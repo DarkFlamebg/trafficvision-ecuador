@@ -1,0 +1,35 @@
+El siguiente paso real del punto 1 es identificar 4 modelos de IA que usaremos:
+
+| Tipo           | Modelo    | Uso             |
+| -------------- | --------- | --------------- |
+| Identificación | YOLOv8    | detectar placa  |
+| Identificación | YOLOv5    | detectar placa  |
+| Clasificación  | EasyOCR   | leer caracteres |
+| Clasificación  | PaddleOCR | leer caracteres |
+
+
+Arquitectura 
+Usuario
+   │
+   │ subir imagen
+   ▼
+Frontend (React + TSX)
+   │
+   │ POST /detect-plate
+   ▼
+Backend (FastAPI)
+   │
+   ├── YOLOv5
+   │     detecta bounding box de placa
+   │
+   └── EasyOCR
+         lee los caracteres
+   │
+   ▼
+Resultado JSON
+   │
+   ▼
+Frontend muestra:
+- placa detectada
+- texto reconocido
+- imagen con bounding box

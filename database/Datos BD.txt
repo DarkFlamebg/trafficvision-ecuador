@@ -1,0 +1,62 @@
+Estructura BD
+placas_ia
+│
+├── plate_detections
+├── plate_audit_logs
+└── plate_images
+
+En MySQL Workbench ejecuta:
+CREATE DATABASE placas_ia;
+
+USE placas_ia;
+
+Crear tabla principal de reconocimiento de placas
+Esta tabla guardará cada detección realizada por los modelos de IA.CREATE TABLE plate_detections (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    plate_text VARCHAR(10),        -- texto reconocido de la placa
+    confidence FLOAT,              -- nivel de confianza del modelo
+    
+    model_name VARCHAR(50),        -- modelo de IA usado
+    model_type ENUM('identification','classification'),
+    
+    image_path TEXT,               -- ruta de la imagen analizada
+    
+    vehicle_type VARCHAR(20),      -- resultado de clasificación (auto, moto, etc)
+    
+    detection_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+Ejemplo de registro real:
+| id | plate_text | confidence | model_name | model_type     | vehicle_type |
+| -- | ---------- | ---------- | ---------- | -------------- | ------------ |
+| 1  | GSA3421    | 0.93       | YOLOv8     | identification | car          |
+| 2  | GSA3421    | 0.91       | EasyOCR    | classification | private      |
+
+✔ Identificación → detectar y leer la placa
+✔ Clasificación → clasificar vehículo / tipo de placa
+
+Auditorias:
+CREATE TABLE plate_audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    plate_text VARCHAR(10),
+    checked_by VARCHAR(50),        -- usuario o sistema
+    
+    check_reason TEXT,
+    
+    check_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+Tabla para imágenes almacenadas
+CREATE TABLE plate_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    plate_detection_id INT,
+    image_path TEXT,
+    
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (plate_detection_id) REFERENCES plate_detections(id)
+);
+
