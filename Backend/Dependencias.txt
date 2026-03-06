@@ -1,0 +1,96 @@
+USAR
+py -3.11 --version
+para la api de roboflow
+
+
+#AL empezar el proyecto
+py -m pip install -r requirements.txt
+py -m pip install gitpython
+#Para los modelos IA
+py -m pip install torch torchvision
+py -m pip install easyocr
+py -m pip install opencv-python
+py -m pip install ultralytics
+py -m pip install fastapi uvicorn python-multipart
+#Todas la dependencias de Yolov5
+py -m pip install pandas numpy opencv-python pillow matplotlib seaborn
+
+
+
+Librerías necesarias para:
+detección de placas con YOLOv5
+reconocimiento de texto con EasyOCR
+backend con FastAPI
+
+iniciar api:
+py -m uvicorn app.main:app --reload
+
+
+Imagen
+   ↓
+YOLOv5 detecta placa
+   ↓
+recorte de la placa
+   ↓
+EasyOCR lee caracteres
+   ↓
+JSON con la placa
+
+
+py -m pip install roboflow inference
+
+
+
+
+1. Crear el entorno virtual:
+bashcd 
+"D:\Otros\Webs\TrafficVision Datasets\Backend"
+
+py -3.11 -m venv venv311
+2. Activar el entorno:
+bashvenv311\Scripts\activate
+
+pip install fastapi uvicorn[standard] python-multipart python-dotenv anthropic opencv-python numpy easyocr inference-sdk Pillow
+(venv311) OK
+pip install fastapi uvicorn python-multipart python-dotenv
+pip install torch torchvision
+pip install ultralytics
+pip install easyocr
+pip install opencv-python numpy pillow
+pip install inference-sdk
+pip install pillow
+
+
+pip install anthropic
+
+
+Backend
+│
+├─ app
+│  ├─ ai
+│  │   ├─ plate_detector.py
+│  │   └─ plate_reader.py
+│  │
+│  ├─ routes
+│  ├─ schemas
+│  ├─ services
+│  └─ main.py
+│
+├─ models
+│  ├─ yolov5s.pt
+│  └─ plate_reader.pt
+│
+├─ temp
+├─ requirements.txt
+└─ .env
+
+
+
+src/
+ ├── pages/
+ │   ├── Home.tsx        ← landing page
+ │   ├── Home.css
+ │   ├── ReadPlate.tsx   ← detector con resultados
+ │   └── ReadPlate.css
+ └── services/
+     └── api.ts          ← axios con baseURL del backend
