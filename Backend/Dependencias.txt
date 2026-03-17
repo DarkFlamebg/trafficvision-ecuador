@@ -27,14 +27,16 @@ py -m uvicorn app.main:app --reload
 
 
 Imagen
-   ↓
-YOLOv5 detecta placa
-   ↓
-recorte de la placa
-   ↓
-EasyOCR lee caracteres
-   ↓
-JSON con la placa
+  ↓
+Roboflow API (YOLOv8 en la nube)  ← plate_detector.py
+  ↓
+Recorte de placa (NumPy)
+  ↓
+EasyOCR (local)                   ← plate_reader.py
+  ↓
+Claude Vision API                 ← plate_classifier.py
+  ↓
+JSON con: placa + confianzas + etiquetas
 
 
 py -m pip install roboflow inference

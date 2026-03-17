@@ -1,0 +1,117 @@
+Python — verifica versión:
+
+>python --version
+>py --version
+
+Node — verifica versión:
+>node --version
+>npm --version
+
+Verifica si ya tienes ultralytics:
+>venv311\Scripts\activate
+>py -m pip show ultralytics
+
+Node 22 — perfecto, no necesita cambios
+venv311 activo — aquí es donde instalaremos todo
+Python 3.14 en el sistema — demasiado nuevo, YOLOv8 no es compatible todavía
+
+Python 3.11.9 dentro del venv — compatible con YOLOv8. Instalar:
+py -m pip install ultralytics
+py -c "from ultralytics import YOLO; print('OK')"
+
+
+
+Estructura hasta el momento
+TrafficVision Datasets/
+│
+├── Backend/
+│   ├── app/
+│   │   ├── ai/
+│   │   │   ├── plate_classifier.py   ← Claude Vision (legible/oclusión/reflejo/suciedad)
+│   │   │   ├── plate_detector.py     ← Roboflow API (temporal, migraremos a local)
+│   │   │   └── plate_reader.py       ← EasyOCR
+│   │   ├── core/
+│   │   │   └── config.py
+│   │   ├── database/
+│   │   │   ├── base.py
+│   │   │   └── connection.py
+│   │   ├── routes/
+│   │   │   ├── datasets.py
+│   │   │   └── detect.py
+│   │   ├── schemas/
+│   │   │   └── dataset_schema.py
+│   │   └── services/
+│   │       └── dataset_service.py
+│   │
+│   ├── datasets/
+│   │   └── license-plates/           ← Dataset Roboflow descargado
+│   │       ├── train/
+│   │       │   ├── images/
+│   │       │   └── labels/
+│   │       ├── valid/
+│   │       │   ├── images/
+│   │       │   └── labels/
+│   │       ├── test/
+│   │       │   ├── images/
+│   │       │   └── labels/
+│   │       ├── data.yaml
+│   │       └── data_fixed.yaml       ← generado por train_yolov8.py
+│   │
+│   │   └── license-plates-ec-1/           ← Dataset Roboflow descargado
+│   │       ├── train/
+│   │       │   ├── images/
+│   │       │   └── labels/
+│   │       ├── valid/
+│   │       │   ├── images/
+│   │       │   └── labels/
+│   │       ├── test/
+│   │       │   ├── images/
+│   │       │   └── labels/
+│   │       ├── data.yaml
+│   │       └── data_fixed.yaml       ← generado por train_yolov8.py
+│   │
+│   ├── models/
+│   │   ├── plate_detector.pt         ← YOLOv5 antiguo (ya no se usa)
+│   │   ├── yolov5s.pt                ← YOLOv5 base (ya no se usa)
+│   │   ├── yolov8n.pt                ← descargado automáticamente
+│   │   └── runs/
+│   │       └── yolov8n_plates/       ← generado al terminar entrenamiento
+│   │           └── weights/
+│   │               ├── best.pt       ← ⭐ modelo entrenado final
+│   │               └── last.pt
+│   │
+│   ├── temp/
+│   ├── train_yolov8.py               ← script de entrenamiento ⭐
+│   ├── main.py                       ← FastAPI + CORS + endpoints
+│   ├── .env                          ← ROBOFLOW_API_KEY + ANTHROPIC_API_KEY
+│   ├── requirements.txt
+│   └── venv311/                      ← entorno virtual Python 3.11
+│
+├── frontend/
+│   └── src/
+│       ├── pages/
+│       │   ├── Home.tsx              ← Landing hero MUI
+│       │   └── ReadPlate.tsx         ← Detector + canvas bbox + etiquetas Claude
+│       ├── services/
+│       │   └── api.ts                ← axios baseURL localhost:8000
+│       └── index.css
+│
+├── database/
+│   ├── Datos BD.txt
+│   └── Mas adelante.txt
+│
+├── .gitignore
+├── README.md
+└── docker-compose.yml
+
+
+Estado actual del pipeline:
+Imagen
+  ↓
+Roboflow API (temporal)     ← plate_detector.py  [pendiente migrar a YOLOv8n local]
+  ↓
+EasyOCR (local)             ← plate_reader.py    [✅ funcionando]
+  ↓
+Claude Vision API           ← plate_classifier.py [✅ funcionando]
+  ↓
+JSON resultado

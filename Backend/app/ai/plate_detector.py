@@ -3,7 +3,7 @@ import os
 import numpy as np
 import cv2
 from PIL import Image, ImageOps
-from inference_sdk import InferenceHTTPClient
+from ultralytics import YOLO
 
 MODEL_ID             = "vehicle-registration-plates-trudk/2"
 API_URL              = "https://serverless.roboflow.com"

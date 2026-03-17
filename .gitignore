@@ -16,8 +16,10 @@ __pycache__/
 # Virtual environments
 venv/
 env/
+.env/
 .venv/
 Backend/venv311/
+Backend/env
 
 # Python build
 build/
