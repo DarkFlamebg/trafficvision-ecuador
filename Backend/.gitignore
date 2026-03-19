@@ -1,0 +1,20 @@
+# Entrenamientos YOLOv8 — generados automáticamente
+runs/
+
+# Modelos entrenados (son muy pesados para GitHub)
+*.pt
+!yolov8n.pt
+
+# Datasets (muy pesados)
+datasets/
+
+# Python
+__pycache__/
+*.pyc
+venv311/
+
+# Entorno
+.env
+
+# Temporales
+temp/

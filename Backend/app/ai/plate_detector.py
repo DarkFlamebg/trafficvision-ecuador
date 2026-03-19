@@ -1,27 +1,31 @@
-# Detecta placas usando la API de Roboflow
+# app/ai/plate_detector.py
+# Detecta placas usando YOLOv8n entrenado localmente con dataset ecuatoriano
+
 import os
 import numpy as np
 import cv2
 from PIL import Image, ImageOps
 from ultralytics import YOLO
 
-MODEL_ID             = "vehicle-registration-plates-trudk/2"
-API_URL              = "https://serverless.roboflow.com"
-CONFIDENCE_THRESHOLD = 0.45
+MODEL_PATH           = "runs/detect/yolov8n_plates_ecuador43/weights/best.pt"
+CONFIDENCE_THRESHOLD = 0.25  # bajo para maximizar detecciones
+
+# Cargar modelo una sola vez al importar
+_model = None
+
+def _get_model() -> YOLO:
+    global _model
+    if _model is None:
+        if not os.path.exists(MODEL_PATH):
+            raise FileNotFoundError(f"Modelo no encontrado: {MODEL_PATH}")
+        _model = YOLO(MODEL_PATH)
+    return _model
 
 
-def _get_client():
-    api_key = os.getenv("ROBOFLOW_API_KEY")
-    if not api_key:
-        raise ValueError("ROBOFLOW_API_KEY no encontrada en .env")
-    return InferenceHTTPClient(api_url=API_URL, api_key=api_key)
-
-
-def _load_image(input_image):
+def _load_image(input_image) -> np.ndarray:
     """
     Carga la imagen respetando la orientación EXIF del celular.
-    Pillow aplica la rotación automáticamente con ImageOps.exif_transpose().
-    Retorna array NumPy BGR (compatible con OpenCV y EasyOCR).
+    Retorna array NumPy BGR compatible con OpenCV.
     """
     if isinstance(input_image, str):
         pil_img = Image.open(input_image)
@@ -30,50 +34,40 @@ def _load_image(input_image):
     else:
         raise TypeError("input_image debe ser str o np.ndarray")
 
-    # Aplicar rotación EXIF automáticamente
     pil_img = ImageOps.exif_transpose(pil_img)
-
-    # Convertir de vuelta a NumPy BGR para OpenCV
     return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
 
-def detect_plate(input_image):
+def detect_plate(input_image) -> list:
     """
-    Detecta placas vehiculares usando la API de Roboflow.
+    Detecta placas vehiculares usando YOLOv8n local.
+
+    Args:
+        input_image: ruta (str) o array NumPy BGR
+
     Returns:
         Lista de dicts:
           - "image":      recorte NumPy BGR de la placa
           - "bbox":       [x1, y1, x2, y2] en píxeles (int)
           - "confidence": float 0.0 – 1.0
-        Lista vacía si no se detectó ninguna placa.
     """
-    # Cargar con corrección EXIF
-    image = _load_image(input_image)
-
-    # Guardar imagen corregida para enviar a Roboflow
-    tmp_path = "temp/_roboflow_tmp.jpg"
-    os.makedirs("temp", exist_ok=True)
-    cv2.imwrite(tmp_path, image)
-
-    client = _get_client()
-    result  = client.infer(tmp_path, model_id=MODEL_ID)
-
-    plates = []
+    image  = _load_image(input_image)
+    model  = _get_model()
     ih, iw = image.shape[:2]
 
-    for pred in result.get("predictions", []):
-        conf = pred["confidence"]
+    results = model(image, verbose=False)[0]
+    plates  = []
 
+    for box in results.boxes:
+        conf = float(box.conf[0])
         if conf < CONFIDENCE_THRESHOLD:
             continue
 
-        cx, cy = pred["x"], pred["y"]
-        w,  h  = pred["width"], pred["height"]
-
-        x1 = max(0,  int(cx - w / 2))
-        y1 = max(0,  int(cy - h / 2))
-        x2 = min(iw, int(cx + w / 2))
-        y2 = min(ih, int(cy + h / 2))
+        x1, y1, x2, y2 = box.xyxy[0].tolist()
+        x1 = max(0,  int(x1))
+        y1 = max(0,  int(y1))
+        x2 = min(iw, int(x2))
+        y2 = min(ih, int(y2))
 
         crop = image[y1:y2, x1:x2]
         if crop.size == 0:
@@ -82,12 +76,7 @@ def detect_plate(input_image):
         plates.append({
             "image":      crop,
             "bbox":       [x1, y1, x2, y2],
-            "confidence": round(float(conf), 4)
+            "confidence": round(conf, 4),
         })
-
-    try:
-        os.remove(tmp_path)
-    except OSError:
-        pass
 
     return plates

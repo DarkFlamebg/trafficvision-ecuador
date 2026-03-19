@@ -111,3 +111,26 @@ weights/
 ########################################
 logs/
 *.log
+Backend/.env
+
+# Backend
+Backend/runs/
+Backend/datasets/
+Backend/models/*.pt
+!Backend/models/yolov8n.pt
+Backend/__pycache__/
+Backend/venv311/
+Backend/temp/
+Backend/.env
+
+# Frontend — imágenes de prueba
+frontend/src/assets/*.jpg
+frontend/src/assets/*.png
+frontend/src/assets/*.jpeg
+
+# Python
+**/__pycache__/
+**/*.pyc
+
+# Node
+frontend/node_modules/

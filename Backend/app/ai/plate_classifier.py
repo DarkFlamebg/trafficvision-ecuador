@@ -1,3 +1,4 @@
+# app/ai/plate_classifier.py
 # Clasifica atributos de calidad de una placa usando Claude Vision API
 
 import anthropic
@@ -57,11 +58,24 @@ def _encode_crop(crop: np.ndarray) -> str:
 def classify_plate(crop: np.ndarray, ocr_confidence: float = 0.0) -> dict:
     """
     Clasifica atributos de calidad de un recorte de placa.
+
+    La legibilidad se determina directamente desde la confianza del OCR:
+      - ocr_confidence >= 0.5  → "Legible"
+      - ocr_confidence <  0.5  → "Ilegible"
+
+    Claude Vision solo evalúa: oclusión, reflejo y suciedad.
+
+    Args:
+        crop:           array NumPy BGR del recorte de la placa
+        ocr_confidence: confianza retornada por EasyOCR (0.0 – 1.0)
+
     Returns:
         dict con claves: legible, oclusion, reflejo, sucia
     """
-    # Legibilidad basada en OCR
-    legible = "Legible" if ocr_confidence >= 0.5 else "Ilegible"
+    # ── Legibilidad basada en OCR ─────────────────────────────────────────────
+    # Si la confianza OCR es >= 0.10 consideramos legible
+    # (EasyOCR suele dar confianzas bajas en placas de color pero la lectura es correcta)
+    legible = "Legible" if ocr_confidence >= 0.10 else "Ilegible"
 
     default = {
         "legible":  legible,
@@ -76,13 +90,14 @@ def classify_plate(crop: np.ndarray, ocr_confidence: float = 0.0) -> dict:
         return default
 
     try:
+        # ── Preprocesamiento ──────────────────────────────────────────────────
         processed = _upscale_if_small(crop, min_w=200, min_h=80)
         processed = _sharpen(processed)
 
         print(f"[plate_classifier] OCR confidence: {ocr_confidence:.2f} → legible: {legible}")
         print(f"[plate_classifier] Tamaño: {crop.shape[1]}x{crop.shape[0]} → {processed.shape[1]}x{processed.shape[0]}")
 
-        # Claude evalúa solo oclusión, reflejo, suciedad
+        # ── Claude evalúa solo oclusión, reflejo, suciedad ───────────────────
         client    = anthropic.Anthropic(api_key=api_key)
         image_b64 = _encode_crop(processed)
 

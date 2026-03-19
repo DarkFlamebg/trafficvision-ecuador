@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Imágenes de prueba subidas por usuarios
+src/assets/*.jpg
+src/assets/*.jpeg
+src/assets/*.png
+src/assets/*.webp
