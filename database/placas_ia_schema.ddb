@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "tables": [
+    {
+      "id": "t1",
+      "name": "plate_detections",
+      "x": 100,
+      "y": 100,
+      "columns": [
+        { "id": "c1", "name": "id", "type": "INT", "primary": true },
+        { "id": "c2", "name": "plate_text", "type": "VARCHAR(10)" },
+        { "id": "c3", "name": "confidence", "type": "FLOAT" },
+        { "id": "c4", "name": "model_name", "type": "ENUM" },
+        { "id": "c5", "name": "architecture_type", "type": "ENUM" },
+        { "id": "c6", "name": "model_type", "type": "ENUM" },
+        { "id": "c7", "name": "inference_time_ms", "type": "FLOAT" },
+        { "id": "c8", "name": "image_path", "type": "TEXT" },
+        { "id": "c9", "name": "vehicle_type", "type": "VARCHAR(20)" },
+        { "id": "c10", "name": "detection_date", "type": "TIMESTAMP" }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "plate_quality_labels",
+      "x": 500,
+      "y": 80,
+      "columns": [
+        { "id": "c11", "name": "id", "type": "INT", "primary": true },
+        { "id": "c12", "name": "detection_id", "type": "INT" },
+        { "id": "c13", "name": "is_legible", "type": "ENUM" },
+        { "id": "c14", "name": "oclusion", "type": "ENUM" },
+        { "id": "c15", "name": "reflejo", "type": "ENUM" },
+        { "id": "c16", "name": "sucia", "type": "ENUM" }
+      ]
+    },
+    {
+      "id": "t3",
+      "name": "plate_audit_logs",
+      "x": 500,
+      "y": 300,
+      "columns": [
+        { "id": "c17", "name": "id", "type": "INT", "primary": true },
+        { "id": "c18", "name": "plate_detection_id", "type": "INT" },
+        { "id": "c19", "name": "checked_by", "type": "VARCHAR(50)" },
+        { "id": "c20", "name": "check_reason", "type": "TEXT" },
+        { "id": "c21", "name": "check_date", "type": "TIMESTAMP" }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "r1",
+      "from": {
+        "tableId": "t2",
+        "columnId": "c12"
+      },
+      "to": {
+        "tableId": "t1",
+        "columnId": "c1"
+      }
+    },
+    {
+      "id": "r2",
+      "from": {
+        "tableId": "t3",
+        "columnId": "c18"
+      },
+      "to": {
+        "tableId": "t1",
+        "columnId": "c1"
+      }
+    }
+  ]
+}

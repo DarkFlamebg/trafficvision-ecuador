@@ -37,12 +37,12 @@ def _preprocess(image: np.ndarray) -> np.ndarray:
 
     # Fix 2: escalar si es muy pequeño
     if h < 80:
-        scale = 80 / h
-        image = cv2.resize(image, (int(w * scale), 80),
+        scale = 120 / h
+        image = cv2.resize(image, (int(w * scale), 120),
                            interpolation=cv2.INTER_CUBIC)
     elif w < 200:
-        scale = 200 / w
-        image = cv2.resize(image, (200, int(h * scale)),
+        scale = 300 / w
+        image = cv2.resize(image, (300, int(h * scale)),
                            interpolation=cv2.INTER_CUBIC)
 
     # Fix 3: escalar a mínimo 300px de ancho

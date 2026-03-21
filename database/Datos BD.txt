@@ -6,23 +6,27 @@ placas_ia
 └── plate_images
 
 En MySQL Workbench ejecuta:
-CREATE DATABASE placas_ia;
+CREATE DATABASE IF NOT EXISTS placas_ia;
 
 USE placas_ia;
 
 Crear tabla principal de reconocimiento de placas
-Esta tabla guardará cada detección realizada por los modelos de IA.CREATE TABLE plate_detections (
+Esta tabla guardará cada detección realizada por los modelos de IA.
+-- 1. Tabla Principal: Cada detección es un evento único
+CREATE TABLE plate_detections (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    plate_text VARCHAR(10) NOT NULL,        -- Ej: 'PFJ-2048'
+    yolo_confidence FLOAT,                  -- Confianza de detección de la caja
+    ocr_confidence FLOAT,                   -- Confianza de lectura de EasyOCR
     
-    plate_text VARCHAR(10),        -- texto reconocido de la placa
-    confidence FLOAT,              -- nivel de confianza del modelo
+    -- Atributos de Calidad (Lo que nos da Gemini)
+    is_legible ENUM('Legible', 'Ilegible') DEFAULT 'Legible',
+    oclusion EN('No', 'Parcial', 'Severa') DEFAULT 'No',
+    reflejo ENUM('No', 'Sí') DEFAULT 'No',
+    sucia ENUM('No', 'Sí') DEFAULT 'No',
     
-    model_name VARCHAR(50),        -- modelo de IA usado
-    model_type ENUM('identification','classification'),
-    
-    image_path TEXT,               -- ruta de la imagen analizada
-    
-    vehicle_type VARCHAR(20),      -- resultado de clasificación (auto, moto, etc)
+    vehicle_type VARCHAR(20) DEFAULT 'Desconocido', -- Auto, Moto, etc.
+    image_path TEXT,                        -- Ruta al archivo en el servidor
     
     detection_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -39,13 +43,11 @@ Ejemplo de registro real:
 Auditorias:
 CREATE TABLE plate_audit_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    
-    plate_text VARCHAR(10),
-    checked_by VARCHAR(50),        -- usuario o sistema
-    
-    check_reason TEXT,
-    
-    check_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    plate_detection_id INT,
+    checked_by VARCHAR(50),                 -- Usuario que consultó
+    check_reason TEXT,                      -- Motivo (ej: 'Control de rutina')
+    check_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plate_detection_id) REFERENCES plate_detections(id)
 );
 
 Tabla para imágenes almacenadas
@@ -60,3 +62,40 @@ CREATE TABLE plate_images (
     FOREIGN KEY (plate_detection_id) REFERENCES plate_detections(id)
 );
 
+
+
+//NUEVO DB
+Después (modelo relacional)
+ plate_detections
+ ├── model_id
+ ├── vehicle_type_id
+models
+vehicle_types
+quality_labels
+detection_quality
+audit_logs
+
+Separación de modelos de IA
+Evita duplicación
+Permite comparar modelos
+Soporta múltiples IA
+
+Normalización de vehicle_type
+Evita inconsistencias
+Mejora integridad
+
+Eliminación de atributos fijos de calidad
+estructura dinámica
+
+Ejemplo ANTES:              DESPUÉS:
+is_legible = 'Sí'   quality_labels → "Legibilidad"
+                    detection_quality → "Sí"
+Puedes agregar:
+- iluminación
+- ángulo
+- nitidez
+- condiciones climáticas
+
+Menos redundancia → menos almace
+Mejor indexación
+Consultas más eficientes

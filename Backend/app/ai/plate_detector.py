@@ -7,8 +7,12 @@ import cv2
 from PIL import Image, ImageOps
 from ultralytics import YOLO
 
-MODEL_PATH           = "runs/detect/yolov8n_plates_ecuador43/weights/best.pt"
-CONFIDENCE_THRESHOLD = 0.25  # bajo para maximizar detecciones
+MODEL_PATH           = "runs/detect/yolov8n_plates_combined_all/weights/best.pt"
+CONFIDENCE_THRESHOLD = 0.45   # subido de 0.25 para evitar falsas detecciones
+
+# Proporción ancho/alto válida para una placa vehicular
+ASPECT_RATIO_MIN = 1.5   # placa cuadrada mínima
+ASPECT_RATIO_MAX = 6.0   # placa muy alargada máxima
 
 # Cargar modelo una sola vez al importar
 _model = None
@@ -42,6 +46,10 @@ def detect_plate(input_image) -> list:
     """
     Detecta placas vehiculares usando YOLOv8n local.
 
+    Filtros aplicados:
+    - Confianza mínima: 0.45
+    - Proporción ancho/alto: entre 1.5 y 6.0 (forma de placa real)
+
     Args:
         input_image: ruta (str) o array NumPy BGR
 
@@ -68,6 +76,17 @@ def detect_plate(input_image) -> list:
         y1 = max(0,  int(y1))
         x2 = min(iw, int(x2))
         y2 = min(ih, int(y2))
+
+        w_box = x2 - x1
+        h_box = y2 - y1
+
+        # Filtrar por proporción — descarta detecciones que no tienen forma de placa
+        if h_box == 0:
+            continue
+        aspect_ratio = w_box / h_box
+        if not (ASPECT_RATIO_MIN <= aspect_ratio <= ASPECT_RATIO_MAX):
+            print(f"[detector] Bbox descartado por proporción: {w_box}x{h_box} = {aspect_ratio:.2f}")
+            continue
 
         crop = image[y1:y2, x1:x2]
         if crop.size == 0:

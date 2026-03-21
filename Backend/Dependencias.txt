@@ -17,6 +17,7 @@ py -m pip install pandas numpy opencv-python pillow matplotlib seaborn
 
 
 
+
 Librerías necesarias para:
 detección de placas con YOLOv5
 reconocimiento de texto con EasyOCR
@@ -62,8 +63,10 @@ pip install opencv-python numpy pillow
 pip install inference-sdk
 pip install pillow
 
-
-pip install anthropic
+pip install anthropic (se dejará de usar por que no es gratuita y tiene limites)
+pip uninstall anthropic
+X No usar : pip install -U google-generativeai (gratis y limite de 15 peticiones por minuto)
+pip install google-genai (nueva version de gemini)
 
 
 Backend

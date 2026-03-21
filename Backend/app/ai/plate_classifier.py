@@ -1,140 +1,62 @@
-# app/ai/plate_classifier.py
-# Clasifica atributos de calidad de una placa usando Claude Vision API
-
-import anthropic
-import base64
+import os
 import json
 import numpy as np
 import cv2
-import os
+import PIL.Image
+from dotenv import load_dotenv
+from google import genai
 
+load_dotenv()
 
-SYSTEM_PROMPT = """Eres un sistema experto en análisis de calidad de imágenes de placas vehiculares.
-Recibirás el recorte de una placa y debes clasificar exactamente 3 atributos visuales.
-Responde ÚNICAMENTE con un JSON válido, sin texto adicional, sin markdown, sin explicaciones."""
-
-USER_PROMPT = """Analiza esta imagen de placa vehicular y clasifica SOLO estos 3 atributos visuales.
-La legibilidad ya fue evaluada por OCR, NO la incluyas.
-
-1. oclusion: ¿Hay objetos físicos tapando parte de la placa (mano, sticker, objeto)?
-   - "No"      → placa completamente visible
-   - "Parcial" → menos del 50% tapado
-   - "Severa"  → más del 50% tapado
-
-2. reflejo: ¿Hay reflejos de luz o destellos sobre los caracteres?
-   - "No" → sin reflejos que interfieran
-   - "Sí" → hay reflejos visibles
-
-3. sucia: ¿La placa tiene suciedad, barro, óxido o daño físico visible?
-   - "No" → placa limpia
-   - "Sí" → suciedad o daño visible
-
-Responde SOLO con este JSON (sin markdown):
-{
-  "oclusion": "No" | "Parcial" | "Severa",
-  "reflejo": "No" | "Sí",
-  "sucia": "No" | "Sí"
-}"""
-
-
-def _upscale_if_small(crop: np.ndarray, min_w: int = 200, min_h: int = 80) -> np.ndarray:
-    h, w = crop.shape[:2]
-    if w < min_w or h < min_h:
-        scale = max(min_w / w, min_h / h)
-        crop = cv2.resize(crop, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_CUBIC)
-    return crop
-
-
-def _sharpen(crop: np.ndarray) -> np.ndarray:
-    kernel = np.array([[ 0, -1,  0], [-1,  5, -1], [ 0, -1,  0]], dtype=np.float32)
-    return cv2.filter2D(crop, -1, kernel)
-
-
-def _encode_crop(crop: np.ndarray) -> str:
-    _, buffer = cv2.imencode(".jpg", crop, [cv2.IMWRITE_JPEG_QUALITY, 95])
-    return base64.standard_b64encode(buffer.tobytes()).decode("utf-8")
-
+SYSTEM_PROMPT = "Eres un experto en visión artificial vehicular. Responde solo en JSON."
+USER_PROMPT = """Analiza la placa y clasifica: 
+1. oclusion (No, Parcial, Severa)
+2. reflejo (No, Sí)
+3. sucia (No, Sí)
+Responde solo JSON: {"oclusion": "No", "reflejo": "No", "sucia": "No"}"""
 
 def classify_plate(crop: np.ndarray, ocr_confidence: float = 0.0) -> dict:
-    """
-    Clasifica atributos de calidad de un recorte de placa.
-
-    La legibilidad se determina directamente desde la confianza del OCR:
-      - ocr_confidence >= 0.5  → "Legible"
-      - ocr_confidence <  0.5  → "Ilegible"
-
-    Claude Vision solo evalúa: oclusión, reflejo y suciedad.
-
-    Args:
-        crop:           array NumPy BGR del recorte de la placa
-        ocr_confidence: confianza retornada por EasyOCR (0.0 – 1.0)
-
-    Returns:
-        dict con claves: legible, oclusion, reflejo, sucia
-    """
-    # ── Legibilidad basada en OCR ─────────────────────────────────────────────
-    # Si la confianza OCR es >= 0.10 consideramos legible
-    # (EasyOCR suele dar confianzas bajas en placas de color pero la lectura es correcta)
     legible = "Legible" if ocr_confidence >= 0.10 else "Ilegible"
+    default = {"legible": legible, "oclusion": "No", "reflejo": "No", "sucia": "No"}
 
-    default = {
-        "legible":  legible,
-        "oclusion": "No",
-        "reflejo":  "No",
-        "sucia":    "No",
-    }
-
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        print("[plate_classifier] ANTHROPIC_API_KEY no encontrada en .env")
-        return default
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key: return default
 
     try:
-        # ── Preprocesamiento ──────────────────────────────────────────────────
-        processed = _upscale_if_small(crop, min_w=200, min_h=80)
-        processed = _sharpen(processed)
+        # 1. Preparar imagen
+        rgb_img = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
+        pil_img = PIL.Image.fromarray(rgb_img)
 
-        print(f"[plate_classifier] OCR confidence: {ocr_confidence:.2f} → legible: {legible}")
-        print(f"[plate_classifier] Tamaño: {crop.shape[1]}x{crop.shape[0]} → {processed.shape[1]}x{processed.shape[0]}")
-
-        # ── Claude evalúa solo oclusión, reflejo, suciedad ───────────────────
-        client    = anthropic.Anthropic(api_key=api_key)
-        image_b64 = _encode_crop(processed)
-
-        message = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=128,
-            system=SYSTEM_PROMPT,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type":       "base64",
-                            "media_type": "image/jpeg",
-                            "data":       image_b64,
-                        },
-                    },
-                    { "type": "text", "text": USER_PROMPT },
-                ],
-            }],
+        # 2. Cliente forzando la versión estable 'v1'
+        # Esto es lo que evita que busque en 'v1beta' y de el error 404
+        client = genai.Client(
+            api_key=api_key, 
+            http_options={'api_version': 'v1'}
         )
 
-        raw    = message.content[0].text.strip()
-        result = json.loads(raw)
+        # 3. Llamada usando el nombre EXACTO de tu lista
+        # Probamos con el 2.0 que es el más potente de tu lista
+        response = client.models.generate_content(
+            model='models/gemini-2.0-flash', 
+            contents=[pil_img, f"{SYSTEM_PROMPT}\n\n{USER_PROMPT}"]
+        )
+        
+        # 4. Limpieza de texto
+        raw_text = response.text.strip()
+        if "```" in raw_text:
+            raw_text = raw_text.split("```")[1].replace("json", "").strip()
+            raw_text = raw_text.split("```")[0].strip()
 
-        # Combinar: legibilidad por OCR + visual por Claude
+        result = json.loads(raw_text)
+
         return {
             "legible":  legible,
             "oclusion": result.get("oclusion", "No"),
             "reflejo":  result.get("reflejo",  "No"),
-            "sucia":    result.get("sucia",     "No"),
+            "sucia":    result.get("sucia",    "No")
         }
 
-    except json.JSONDecodeError as e:
-        print(f"[plate_classifier] Error parseando JSON: {e}")
-        return default
     except Exception as e:
-        print(f"[plate_classifier] Error: {e}")
+        # Si da 429 (Cuota), esperamos y devolvemos default
+        print(f"[plate_classifier] Info: {e}")
         return default

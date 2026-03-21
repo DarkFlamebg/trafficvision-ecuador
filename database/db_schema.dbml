@@ -1,0 +1,83 @@
+Project placas_ia {
+  database_type: "PostgreSQL"
+}
+
+Table datasets {
+  id int [pk, increment]
+  name varchar
+  description text
+  version varchar
+  created_by varchar(50)
+  created_at timestamp [default: `now()`]
+}
+
+Table dataset_files {
+  id int [pk, increment]
+  dataset_id int
+  file_name varchar
+  file_type varchar
+  file_path text
+  uploaded_at timestamp [default: `now()`]
+}
+
+Table models {
+  id int [pk, increment]
+  name varchar
+  architecture_type varchar
+  model_type varchar
+}
+
+Table model_training {
+  id int [pk, increment]
+  dataset_id int
+  model_id int
+  training_date timestamp [default: `now()`]
+  accuracy float
+  loss float
+}
+
+Table vehicle_types {
+  id int [pk, increment]
+  name varchar
+}
+
+Table plate_detections {
+  id int [pk, increment]
+  plate_text varchar(10) [not null]
+  confidence float
+  model_id int
+  vehicle_type_id int
+  inference_time_ms float
+  image_path text
+  detection_date timestamp [default: `now()`]
+}
+
+Table quality_labels {
+  id int [pk, increment]
+  name varchar
+  description text
+}
+
+Table detection_quality {
+  id int [pk, increment]
+  detection_id int
+  quality_label_id int
+  value varchar
+}
+
+Table audit_logs {
+  id int [pk, increment]
+  detection_id int
+  checked_by varchar(50)
+  check_reason text
+  check_date timestamp [default: `now()`]
+}
+
+Ref: dataset_files.dataset_id > datasets.id
+Ref: model_training.dataset_id > datasets.id
+Ref: model_training.model_id > models.id
+Ref: plate_detections.model_id > models.id
+Ref: plate_detections.vehicle_type_id > vehicle_types.id
+Ref: detection_quality.detection_id > plate_detections.id
+Ref: detection_quality.quality_label_id > quality_labels.id
+Ref: audit_logs.detection_id > plate_detections.id

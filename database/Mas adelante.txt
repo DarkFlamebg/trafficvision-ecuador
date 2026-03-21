@@ -1,13 +1,3 @@
-El siguiente paso real del punto 1 es identificar 4 modelos de IA que usaremos:
-
-| Tipo           | Modelo    | Uso             |
-| -------------- | --------- | --------------- |
-| Identificación | YOLOv8    | detectar placa  |
-| Identificación | YOLOv5    | detectar placa  |
-| Clasificación  | EasyOCR   | leer caracteres |
-| Clasificación  | PaddleOCR | leer caracteres |
-
-
 Arquitectura 
 Usuario
    │
@@ -33,3 +23,38 @@ Frontend muestra:
 - placa detectada
 - texto reconocido
 - imagen con bounding box
+
+Integración de los datatsets (descargar - subir - posiblemente entrenar)
+datasets
+   ↓
+dataset_files
+   ↓
+model_training
+   ↓
+models
+   ↓
+plate_detections
+0 Subir datasets (imágenes + labels)
+0 Guardarlos en la BD
+0 Poder descargarlos
+0 Asociarlos a modelos / entrenamientos
+
+
+
+
+Arquitectura integrada
+[ DATASETS ] → [ TRAINING ] → [ MODELS ] → [ DETECTIONS ] → [ AUDIT ]
+
+Sistema completo de gestión de IA + datos
+Incluye:
+Dataset management:
+-subir
+-versionar
+-descargar
+Training tracking:
+- qué dataset entrenó qué modelo
+- métricas (accuracy, loss)
+Detección en producción:
+-resultados reales
+Auditoría:
+-control y seguridad

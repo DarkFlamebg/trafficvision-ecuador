@@ -55,44 +55,51 @@ def root():
 @app.post("/detect-plate")
 async def detect_plate_api(file: UploadFile):
     """
-    Detecta placas, las lee con OCR y clasifica su calidad con Claude Vision.
-    La legibilidad se determina por la confianza del OCR, no por visión de Claude.
+    Detecta placas con YOLOv8, lee con EasyOCR y clasifica calidad con Google Gemini 2.0.
+    La legibilidad se determina por la confianza del OCR local.
     """
     if file.content_type not in ("image/jpeg", "image/png", "image/jpg"):
         raise HTTPException(status_code=400, detail="Solo se aceptan imágenes JPG o PNG")
 
     filename = f"{uuid.uuid4()}.jpg"
-    path     = os.path.join("temp", filename)
+    path = os.path.join("temp", filename)
 
     try:
         with open(path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        plates  = detect_plate(path)
+        # 1. Detección Local (YOLOv8)
+        plates = detect_plate(path)
         results = []
 
         for plate in plates:
-            ocr            = read_plate(plate["image"])
-            ocr_text       = ocr["plate"]      if ocr else "No detectado"
+            # 2. Lectura Local (EasyOCR)
+            ocr = read_plate(plate["image"])
+            ocr_text = ocr["plate"] if ocr else "No detectado"
             ocr_confidence = ocr["confidence"] if ocr else 0.0
 
-            # Pasar ocr_confidence para que determine la legibilidad
+            # 3. Clasificación con IA (Google Gemini)
+            # Pasamos ocr_confidence para que classify_plate determine si es 'Legible'
             labels = classify_plate(plate["image"], ocr_confidence=ocr_confidence)
 
+            # 4. Consolidación de Resultados
             results.append({
                 "bbox":            plate["bbox"],
                 "yolo_confidence": plate["confidence"],
                 "plate":           ocr_text,
                 "ocr_confidence":  ocr_confidence,
-                "labels": {
-                    "legible":  labels["legible"],
-                    "oclusion": labels["oclusion"],
-                    "reflejo":  labels["reflejo"],
-                    "sucia":    labels["sucia"],
-                }
+                "labels":          labels # Ya viene con legible, oclusion, reflejo y sucia
             })
 
-        return {"total": len(results), "plates": results}
+        return {
+            "total": len(results), 
+            "status": "success",
+            "plates": results
+        }
+
+    except Exception as e:
+        print(f"[main] Error crítico: {e}")
+        raise HTTPException(status_code=500, detail="Error interno en el procesamiento de la imagen")
 
     finally:
         if os.path.exists(path):

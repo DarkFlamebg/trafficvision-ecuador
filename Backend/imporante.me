@@ -10,6 +10,8 @@ Node — verifica versión:
 Verifica si ya tienes ultralytics:
 >venv311\Scripts\activate
 >py -m pip show ultralytics
+iniciar api:
+py -m uvicorn app.main:app --reload
 
 Node 22 — perfecto, no necesita cambios
 venv311 activo — aquí es donde instalaremos todo
@@ -31,73 +33,54 @@ TrafficVision Datasets/
 ├── Backend/
 │   ├── app/
 │   │   ├── ai/
-│   │   │   ├── plate_classifier.py   ← Claude Vision (legible/oclusión/reflejo/suciedad)
-│   │   │   ├── plate_detector.py     ← Roboflow API (temporal, migraremos a local)
-│   │   │   └── plate_reader.py       ← EasyOCR
+│   │   │   ├── plate_classifier.py   ← Gemini flash (legible/oclusión/reflejo/suciedad)
+│   │   │   ├── plate_detector.py     ← YOLOv8n local (combined_all best.pt)
+│   │   │   └── plate_reader.py       ← EasyOCR con preprocesamiento por color
 │   │   ├── core/
-│   │   │   └── config.py
 │   │   ├── database/
-│   │   │   ├── base.py
-│   │   │   └── connection.py
 │   │   ├── routes/
-│   │   │   ├── datasets.py
 │   │   │   └── detect.py
 │   │   ├── schemas/
-│   │   │   └── dataset_schema.py
 │   │   └── services/
-│   │       └── dataset_service.py
 │   │
 │   ├── datasets/
-│   │   └── license-plates/           ← Dataset Roboflow descargado
-│   │       ├── train/
-│   │       │   ├── images/
-│   │       │   └── labels/
-│   │       ├── valid/
-│   │       │   ├── images/
-│   │       │   └── labels/
-│   │       ├── test/
-│   │       │   ├── images/
-│   │       │   └── labels/
-│   │       ├── data.yaml
-│   │       └── data_fixed.yaml       ← generado por train_yolov8.py
-│   │
-│   │   └── license-plates-ec-1/           ← Dataset Roboflow descargado
-│   │       ├── train/
-│   │       │   ├── images/
-│   │       │   └── labels/
-│   │       ├── valid/
-│   │       │   ├── images/
-│   │       │   └── labels/
-│   │       ├── test/
-│   │       │   ├── images/
-│   │       │   └── labels/
-│   │       ├── data.yaml
-│   │       └── data_fixed.yaml       ← generado por train_yolov8.py
+│   │   ├── license-plates/               ← global 10,125 imágenes
+│   │   └── license-plates-ec-combined/
+│   │       ├── license-plates-ec-1/      ← 144 imgs Ecuador
+│   │       ├── license-plates-ec-2/      ← 90 imgs Ecuador
+│   │       ├── license-plates-ec-3/      ← OCR caracteres (pendiente)
+│   │       ├── license-plates-ec-4/      ← 375 imgs Ecuador personal
+│   │       ├── data_combined.yaml
+│   │       └── data_combined_all.yaml
 │   │
 │   ├── models/
-│   │   ├── plate_detector.pt         ← YOLOv5 antiguo (ya no se usa)
-│   │   ├── yolov5s.pt                ← YOLOv5 base (ya no se usa)
-│   │   ├── yolov8n.pt                ← descargado automáticamente
-│   │   └── runs/
-│   │       └── yolov8n_plates/       ← generado al terminar entrenamiento
+│   │   ├── plate_detector.pt             ← YOLOv5 antiguo (no se usa)
+│   │   ├── yolov5s.pt                    ← no se usa
+│   │   └── yolov8n.pt                    ← base preentrenado
+│   │
+│   ├── runs/
+│   │   └── detect/
+│   │       ├── yolov8n_plates_ec_combined/     ← mAP@50: 38.5% ❌
+│   │       ├── yolov8n_plates_ecuador43/       ← mAP@50: 67.2% ⚠️
+│   │       └── yolov8n_plates_combined_all/    ← mAP@50: 97.4% ✅ EN USO
 │   │           └── weights/
-│   │               ├── best.pt       ← ⭐ modelo entrenado final
-│   │               └── last.pt
+│   │               ├── best.pt               ← modelo principal
+│   │               └── last.pt               ← checkpoint época 32
 │   │
 │   ├── temp/
-│   ├── train_yolov8.py               ← script de entrenamiento ⭐
-│   ├── main.py                       ← FastAPI + CORS + endpoints
-│   ├── .env                          ← ROBOFLOW_API_KEY + ANTHROPIC_API_KEY
+│   ├── train_yolov8.py                   ← script entrenamiento local
+│   ├── main.py                           ← FastAPI + CORS
+│   ├── .env                              ← Gemini api key
 │   ├── requirements.txt
-│   └── venv311/                      ← entorno virtual Python 3.11
+│   └── venv311/
 │
 ├── frontend/
 │   └── src/
 │       ├── pages/
-│       │   ├── Home.tsx              ← Landing hero MUI
-│       │   └── ReadPlate.tsx         ← Detector + canvas bbox + etiquetas Claude
+│       │   ├── Home.tsx                  ← Landing hero MUI
+│       │   └── ReadPlate.tsx             ← Detector + canvas bbox + etiquetas
 │       ├── services/
-│       │   └── api.ts                ← axios baseURL localhost:8000
+│       │   └── api.ts                    ← axios baseURL localhost:8000
 │       └── index.css
 │
 ├── database/
@@ -112,10 +95,16 @@ TrafficVision Datasets/
 Estado actual del pipeline:
 Imagen
   ↓
-Roboflow API (temporal)     ← plate_detector.py  [pendiente migrar a YOLOv8n local]
+YOLOv8n local (97.4% mAP@50)  ← plate_detector.py  ✅
+  ↓ filtro: confianza >0.45 + proporción 1.5-6.0
+EasyOCR + preprocesamiento     ← plate_reader.py     ✅
   ↓
-EasyOCR (local)             ← plate_reader.py    [✅ funcionando]
+Claude Vision API              ← plate_classifier.py ✅
   ↓
-Claude Vision API           ← plate_classifier.py [✅ funcionando]
-  ↓
-JSON resultado
+JSON: placa + confianzas + etiquetas de calidad
+
+
+
+MyDrive/TrafficVision/runs/
+├── yolov8n_combined_all/     ← época 55/100, mAP@50: 97.4%
+└── yolov8n_ecuador_combined/ ← 100 épocas, mAP@50: 93.7%

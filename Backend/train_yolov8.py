@@ -170,7 +170,9 @@ def train(dataset_key: str):
     else:
         fixed_yaml = fix_yaml_paths(cfg["yaml"])
 
-    model = YOLO(MODEL_BASE)
+    # model = YOLO(MODEL_BASE)
+    last_pt = "runs/detect/yolov8n_plates_combined_all/weights/last.pt"
+    model = YOLO(last_pt)
     model.train(
         data      = fixed_yaml,
         epochs    = EPOCHS,
@@ -184,6 +186,7 @@ def train(dataset_key: str):
         device    = DEVICE,
         amp       = False,
         workers   = 4,        # optimizado para Ryzen 5 5600
+        resume    = True,    # ← agrega esta línea
     )
 
     best = find_best_pt(cfg["name"])
