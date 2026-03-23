@@ -1,0 +1,10 @@
+names:
+- license plate
+nc: 1
+test: D:/Otros/Webs/TrafficVision Datasets/Backend/datasets/license-plates/test/images
+train:
+- D:/Otros/Webs/TrafficVision Datasets/Backend/datasets/license-plates/train/images
+- D:/Otros/Webs/TrafficVision Datasets/Backend/datasets/license-plates-ec-combined/license-plates-ec-1/train/images
+- D:/Otros/Webs/TrafficVision Datasets/Backend/datasets/license-plates-ec-combined/license-plates-ec-2/train/images
+- D:/Otros/Webs/TrafficVision Datasets/Backend/datasets/license-plates-ec-combined/license-plates-ec-4/train/images
+val: D:/Otros/Webs/TrafficVision Datasets/Backend/datasets/license-plates/valid/images

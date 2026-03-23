@@ -27,9 +27,7 @@ py -m pip uninstall torch torchvision -y
 py -m pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu
 py -m pip install torch-directml
 
-
-
-❌ Estructura Anterior
+Estructura hasta el momento
 TrafficVision Datasets/
 │
 ├── Backend/
@@ -110,77 +108,3 @@ JSON: placa + confianzas + etiquetas de calidad
 MyDrive/TrafficVision/runs/
 ├── yolov8n_combined_all/     ← época 55/100, mAP@50: 97.4%
 └── yolov8n_ecuador_combined/ ← 100 épocas, mAP@50: 93.7%
-
-TrafficVision Datasets/
-├── backend/          ✅
-├── database/         ✅
-├── dataset_service/  ✅ nuevo
-├── frontend/         ✅
-├── ml/               ✅ nuevo
-└── storage/          ✅ nuevo
-
-TrafficVision Datasets/
-│
-├── Backend/                          ← original intacto (borrar cuando estés seguro)
-│
-├── backend/                          ← ✅ API principal
-│   ├── app/
-│   │   ├── ai/                       ← ✅ plate_classifier, detector, reader
-│   │   ├── core/                     ← ✅
-│   │   ├── database/
-│   │   │   ├── connection/           ← ✅
-│   │   │   └── logs/                 ← ✅
-│   │   ├── routes/                   
-│   │   │    ├── datasets/            ← ✅ vacío
-│   │   │    └── detect/              ← ✅
-│   │   ├── schemas/                  ← ✅
-│   │   ├── services/                 ← ✅
-│   │   └── controllers/              ← ✅ vacío (nuevo)
-│   ├── docs/
-│   │   ├── Dependencias.txt          ← ✅
-│   │   └── imporante.me              ← ✅
-│   └── temp/                         ← ✅
-│
-├── ml/                               ← ✅ todo lo de IA
-│   ├── datasets/
-│   │   └── raw/
-│   │       ├── license-plates/       ← ✅ 10,125 imgs global
-│   │       └── license-plates-ec-combined/  ← ✅ ec-1,2,3,4
-│   ├── models/
-│   │   ├── base/
-│   │   │   ├── yolov8n.pt            ← ✅
-│   │   │   └── yolov5s.pt            ← ✅
-│   │   └── trained/
-│   │       ├── yolov8n_combined_all/
-│   │       │   ├── best.pt           ← ✅ modelo principal (97.4% mAP)
-│   │       │   └── last.pt           ← ✅
-│   │       └── yolov8n_ecuador/
-│   │           └── best.pt           ← ✅ modelo Ecuador (93.7% mAP)
-│   ├── runs/                         ← ✅ métricas y gráficas
-│   ├── training/
-│   │   └── train_yolov8.py           ← ✅
-│   ├── notebooks/                    ← ✅ vacío (pon el .ipynb aquí)
-│   └── configs/
-│       ├── data.yaml                 ← ✅
-│       ├── data_fixed.yaml           ← ✅
-│       ├── data_combined.yaml        ← ✅
-│       └── data_combined_all.yaml    ← ✅
-│
-├── dataset_service/                  ← ✅ microservicio (vacío, por implementar)
-│   └── app/
-│       ├── routes/
-│       ├── services/
-│       ├── schemas/
-│       └── storage/
-│
-├── storage/                          ← ✅ archivos producción
-│   ├── images/
-│   ├── detections/
-│   └── datasets/
-│
-├── database/                         ← ✅
-├── frontend/                         ← ✅ sin cambios
-├── .gitignore
-├── docker-compose.yml
-├── README.md
-└── migrate.py

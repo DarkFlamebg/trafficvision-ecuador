@@ -37,7 +37,7 @@ def classify_plate(crop: np.ndarray, ocr_confidence: float = 0.0) -> dict:
         # 3. Llamada usando el nombre EXACTO de tu lista
         # Probamos con el 2.0 que es el más potente de tu lista
         response = client.models.generate_content(
-            model='models/gemini-2.0-flash', 
+            model='models/gemini-1.5-flash',
             contents=[pil_img, f"{SYSTEM_PROMPT}\n\n{USER_PROMPT}"]
         )
         

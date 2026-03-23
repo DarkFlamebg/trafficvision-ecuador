@@ -7,8 +7,9 @@ import cv2
 from PIL import Image, ImageOps
 from ultralytics import YOLO
 
-MODEL_PATH           = "runs/detect/yolov8n_plates_combined_all/weights/best.pt"
-CONFIDENCE_THRESHOLD = 0.45   # subido de 0.25 para evitar falsas detecciones
+#MODEL_PATH           = "runs/detect/yolov8n_plates_combined_all/weights/best.pt"
+MODEL_PATH            = "../ml/models/trained/yolov8n_combined_all/best.pt"
+CONFIDENCE_THRESHOLD  = 0.45   # subido de 0.25 para evitar falsas detecciones
 
 # Proporción ancho/alto válida para una placa vehicular
 ASPECT_RATIO_MIN = 1.5   # placa cuadrada mínima

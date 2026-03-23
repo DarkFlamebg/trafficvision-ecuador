@@ -8,7 +8,7 @@ import shutil
 from pathlib import Path
 
 # ── Configuración ──────────────────────────────────────────────────────────────
-DRY_RUN = True   # ← Cambia a False cuando quieras ejecutar de verdad
+DRY_RUN = False   # ← Cambia a False cuando quieras ejecutar de verdad
                   #   Con True solo muestra qué haría sin mover nada
 
 BASE     = Path(__file__).parent
@@ -47,21 +47,30 @@ def copy_file(src: Path, dst: Path):
     log("COPY", str(src.relative_to(BASE)), str(dst.relative_to(BASE)))
     if not DRY_RUN:
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dst)
+        try:
+            shutil.copy2(src, dst)
+        except PermissionError as e:
+            print(f"  {YELLOW}[WARN]{RESET} Saltado (bloqueado): {src.name}")
+        except Exception as e:
+            print(f"  {RED}[ERROR]{RESET} {src.name}: {e}")
 
 def copy_dir(src: Path, dst: Path, ignore_patterns=None):
-    """Copia un directorio completo."""
+    """Copia un directorio completo, ignorando __pycache__ y archivos bloqueados."""
     if not src.exists():
         log("SKIP", str(src.relative_to(BASE)))
         return
     log("COPY", str(src.relative_to(BASE)), str(dst.relative_to(BASE)))
     if not DRY_RUN:
         dst.parent.mkdir(parents=True, exist_ok=True)
-        if ignore_patterns:
+        patterns = list(ignore_patterns) if ignore_patterns else []
+        patterns += ["__pycache__", "*.pyc", "*.pyo"]
+        try:
             shutil.copytree(src, dst, dirs_exist_ok=True,
-                          ignore=shutil.ignore_patterns(*ignore_patterns))
-        else:
-            shutil.copytree(src, dst, dirs_exist_ok=True)
+                          ignore=shutil.ignore_patterns(*patterns))
+        except shutil.Error as e:
+            for item in e.args[0]:
+                src_f, dst_f, err = item
+                print(f"  {YELLOW}[WARN]{RESET} Saltado: {Path(src_f).name}")
 
 # ══════════════════════════════════════════════════════════════════════════════
 def migrate():
