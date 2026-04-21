@@ -9,7 +9,7 @@ Frontend (React + TSX)
    ▼
 Backend (FastAPI)
    │
-   ├── YOLOv5
+   ├── YOLOv8
    │     detecta bounding box de placa
    │
    └── EasyOCR

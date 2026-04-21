@@ -185,8 +185,8 @@ def train(dataset_key: str):
         verbose   = True,
         device    = DEVICE,
         amp       = False,
-        workers   = 4,        # optimizado para Ryzen 5 5600
-        resume    = True,    # ← agrega esta línea
+        workers   = 4,        
+        resume    = True,    
     )
 
     best = find_best_pt(cfg["name"])

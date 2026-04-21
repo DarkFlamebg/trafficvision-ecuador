@@ -37,15 +37,17 @@ En TrafficVision el pipeline funciona así:
 ```
 Imagen JPG/PNG
       ↓
-[1] Detección de placa    → YOLOv8n (97.4% mAP@50)
+[1] Detección de vehículo    → YOLOv8n (clases: car, truck, motorcycle, bus)
       ↓
-[2] Filtrado              → Confianza >45% + proporción 1.5-6.0
+[2] Detección de placa    → YOLOv8n (97.4% mAP@50)
       ↓
-[3] Lectura OCR           → EasyOCR + preprocesamiento por color
+[3] Filtrado              → Confianza >45% + proporción 1.5-6.0
       ↓
-[4] Clasificación calidad → Google Gemini Flash Vision
+[4] Lectura OCR           → EasyOCR + preprocesamiento por color
       ↓
-JSON: placa + confianzas + etiquetas de calidad
+[5] Clasificación calidad → Google Gemini Flash Vision
+      ↓
+JSON: vehículo + placa + confianzas + etiquetas de calidad
 ```
 
 ---
