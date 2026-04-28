@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 import shutil
 import os
 import uuid
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
 from app.ai.vehicle_detector import detect_vehicles
 from app.ai.plate_detector   import detect_plate
@@ -14,16 +16,29 @@ from app.ai.plate_reader     import read_plate
 from app.ai.plate_classifier import classify_plate
 from app.routes.detect       import router as detect_router
 from dotenv import load_dotenv
+from fastapi import WebSocket, WebSocketDisconnect
+
+import base64
+import asyncio
+import cv2
+import time
+
 
 load_dotenv()
+
+TEMP_DIR = "temp"
+
 
 # ── Ciclo de vida ──────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    os.makedirs("temp", exist_ok=True)
+    os.makedirs(TEMP_DIR, exist_ok=True)
     yield
-    for f in os.listdir("temp"):
-        os.remove(os.path.join("temp", f))
+    for f in os.listdir(TEMP_DIR):
+        try:
+            os.remove(os.path.join(TEMP_DIR, f))
+        except Exception:
+            pass
 
 # ── Aplicación ─────────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -39,7 +54,11 @@ app.add_middleware(
     allow_origins=["http://localhost:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Metrics", "X-Detections"],
 )
+# Define los tipos permitidos fuera para que sea más limpio
+ALLOWED_IMAGE_TYPES = ("image/jpeg", "image/png", "image/jpg")
+ALLOWED_VIDEO_TYPES = ("video/mp4", "video/mpeg", "video/x-msvideo", "video/quicktime")
 
 # ── Routers ────────────────────────────────────────────────────────────────────
 app.include_router(detect_router, prefix="/api/v1", tags=["Detección"])
@@ -179,3 +198,189 @@ async def detect_vehicle_only(file: UploadFile):
     finally:
         if os.path.exists(path):
             os.remove(path)
+
+@app.websocket("/ws/detect-vehicle/video")
+async def detect_vehicle_video_ws(websocket: WebSocket):
+    await websocket.accept()
+
+    FRAME_SKIP         = 10
+    MAX_CENTROID_DIST  = 120
+    MAX_FRAMES_MISSING = 6
+
+    COLOR_MAP = {
+        "Automóvil":   (0, 200, 0),
+        "Motocicleta": (0, 140, 255),
+        "Autobús":     (0, 0, 220),
+        "Camión":      (200, 0, 200),
+    }
+    DEFAULT_COLOR = (0, 200, 200)
+
+    def get_centroid(bbox):
+        return ((bbox[0] + bbox[2]) // 2, (bbox[1] + bbox[3]) // 2)
+
+    def centroid_dist(c1, c2):
+        return ((c1[0]-c2[0])**2 + (c1[1]-c2[1])**2) ** 0.5
+
+    def draw_frame(frame, detections, vehicle_counter):
+        annotated = frame.copy()
+        for det in detections:
+            x1, y1, x2, y2 = det["bbox"]
+            label  = det["label"]
+            conf   = det["conf"]
+            color  = COLOR_MAP.get(label, DEFAULT_COLOR)
+            text   = f"{label} {conf*100:.0f}%"
+            cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
+            (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
+            cv2.rectangle(annotated, (x1, y1-th-8), (x1+tw+6, y1), color, -1)
+            cv2.putText(annotated, text, (x1+3, y1-4),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 2)
+
+        total   = sum(vehicle_counter.values())
+        panel_h = 30 + max(len(vehicle_counter), 1) * 22
+        cv2.rectangle(annotated, (5, 5), (220, 5 + panel_h), (0, 0, 0), -1)
+        cv2.putText(annotated, f"Total: {total}", (12, 26),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
+        for idx, (lbl, cnt) in enumerate(vehicle_counter.items()):
+            color = COLOR_MAP.get(lbl, DEFAULT_COLOR)
+            cv2.putText(annotated, f"  {lbl}: {cnt}", (12, 48 + idx*22),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.52, color, 1)
+        return annotated
+
+    try:
+        # 1. Recibir el video como bytes
+        await websocket.send_json({"type": "status", "message": "Esperando video..."})
+        video_bytes = await websocket.receive_bytes()
+
+        # 2. Guardar en temp
+        job_id     = str(uuid.uuid4())
+        input_path = os.path.join(TEMP_DIR, f"{job_id}.mp4")
+        with open(input_path, "wb") as f:
+            f.write(video_bytes)
+
+        await websocket.send_json({"type": "status", "message": "Procesando video..."})
+
+        cap          = cv2.VideoCapture(input_path)
+        fps          = cap.get(cv2.CAP_PROP_FPS) or 30
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # Estado del tracker
+        active_tracks   = {}
+        finished_tracks = []
+        vehicle_counter = {}
+        next_key        = 0
+        last_dets       = []
+        frame_count     = 0
+        processed_count = 0
+        t0              = time.time()
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            if frame_count % FRAME_SKIP == 0:
+                processed_count += 1
+                proc_frame  = frame_count // FRAME_SKIP
+                frame_dets  = []
+
+                # Detectar vehículos
+                vehicles = detect_vehicles(frame)
+
+                for v in vehicles:
+                    frame_dets.append({
+                        "bbox":    v["bbox"],
+                        "label":   v["type_es"],
+                        "conf":    v["confidence"],
+                        "matched": False,
+                    })
+
+                # Tracking por centroide
+                for key in list(active_tracks.keys()):
+                    t = active_tracks[key]
+                    best_dist, best_det = MAX_CENTROID_DIST, None
+                    for det in frame_dets:
+                        if det["matched"] or det["label"] != t["label"]:
+                            continue
+                        d = centroid_dist(get_centroid(det["bbox"]), t["centroid"])
+                        if d < best_dist:
+                            best_dist, best_det = d, det
+                    if best_det:
+                        best_det["matched"] = True
+                        active_tracks[key].update({
+                            "centroid":        get_centroid(best_det["bbox"]),
+                            "last_seen_frame": proc_frame,
+                            "max_conf":        max(best_det["conf"], t["max_conf"]),
+                        })
+
+                for det in frame_dets:
+                    if not det["matched"]:
+                        active_tracks[next_key] = {
+                            "label":           det["label"],
+                            "centroid":        get_centroid(det["bbox"]),
+                            "last_seen_frame": proc_frame,
+                            "max_conf":        det["conf"],
+                        }
+                        vehicle_counter[det["label"]] = vehicle_counter.get(det["label"], 0) + 1
+                        next_key += 1
+
+                expired = [
+                    k for k, t in active_tracks.items()
+                    if proc_frame - t["last_seen_frame"] > MAX_FRAMES_MISSING
+                ]
+                for k in expired:
+                    finished_tracks.append(active_tracks.pop(k))
+
+                last_dets = frame_dets
+
+            # Anotar y enviar frame
+            annotated = draw_frame(frame, last_dets, vehicle_counter)
+            _, buffer  = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 75])
+            b64_frame  = base64.b64encode(buffer).decode("utf-8")
+
+            progress = round((frame_count / max(total_frames, 1)) * 100)
+
+            await websocket.send_json({
+                "type":            "frame",
+                "frame":           b64_frame,
+                "progress":        progress,
+                "vehicle_counter": vehicle_counter,
+                "frame_num":       frame_count,
+            })
+
+            # Pequeña pausa para no saturar el WebSocket
+            await asyncio.sleep(0.01)
+            frame_count += 1
+
+        cap.release()
+
+        # Métricas finales
+        total_unique = len(finished_tracks) + len(active_tracks)
+        duration     = round(time.time() - t0, 2)
+        type_stats   = sorted([
+            {
+                "type":    t,
+                "count":   c,
+                "percent": round(c / total_unique * 100, 1) if total_unique > 0 else 0,
+            }
+            for t, c in vehicle_counter.items()
+        ], key=lambda x: x["count"], reverse=True)
+
+        await websocket.send_json({
+            "type": "done",
+            "metrics": {
+                "total_unique_vehicles": total_unique,
+                "total_raw_detections":  processed_count,
+                "video_duration_s":      round(total_frames / fps, 2),
+                "processing_time_ms":    int(duration * 1000),
+                "vehicles_per_minute":   round(total_unique / (duration / 60), 2) if duration > 0 else 0,
+                "by_type":               type_stats,
+            },
+        })
+
+    except WebSocketDisconnect:
+        print("[WS] Cliente desconectado")
+    except Exception as e:
+        await websocket.send_json({"type": "error", "message": str(e)})
+    finally:
+        if os.path.exists(input_path):
+            os.remove(input_path)

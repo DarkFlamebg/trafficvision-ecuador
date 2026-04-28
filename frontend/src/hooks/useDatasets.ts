@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import API from "../services/api"
-import type { Dataset } from "../types/dataset"
+import type { Dataset } from "../types/Dataset"
 
 
 export function useDatasets() {

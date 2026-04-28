@@ -14,35 +14,41 @@
   font-family: 'DM Mono', monospace; font-size: 0.78rem;
   color: #5a7a99; text-decoration: none; display: inline-block;
   margin-bottom: 1.2rem; transition: color 0.2s;
+  text-align: center; padding: 4px 10px; border: 1px solid #1c2a3a; border-radius: 8px;
 }
-.rp-back:hover { color: #00e5ff; }
+.rp-back:hover { color: #00e5ff70; }
 .rp-tag {
   font-family: 'DM Mono', monospace; font-size: 0.68rem;
   color: #00e5ff; letter-spacing: 0.1em;
   display: block; margin-bottom: 0.5rem;
+  text-align: center;
 }
 .rp-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-size: clamp(3.5rem, 8vw, 5.5rem);
   line-height: 0.9; letter-spacing: 0.04em; color: #e2eaf4;
+  text-align: center;
 }
 .rp-title span { color: #00e5ff; }
 
 /* ── BODY ────────────────────────────────────────────────────────── */
 .rp-body {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 2.5rem; max-width: 1100px;
+  display: grid; 
+  grid-template-columns: 400px 1fr;
+  gap: 2.5rem; 
+  max-width: auto;
+  margin: 0 auto;
 }
 .rp-section-label {
-  font-family: 'DM Mono', monospace; font-size: 0.68rem;
-  color: #2a3f55; letter-spacing: 0.1em;
+  font-family: 'DM Mono', monospace; font-size: 1.2rem;
+  color: #d1e7ff; letter-spacing: 0.1em;
   text-transform: uppercase; margin-bottom: 1rem;
 }
 
 /* ── DROPZONE ────────────────────────────────────────────────────── */
 .rp-dropzone {
   background: #0e1420; border: 1px dashed #1c2a3a;
-  border-radius: 14px; height: 260px;
+  border-radius: 14px; height: 360px; width: auto;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all 0.2s; position: relative;
   overflow: hidden; margin-bottom: 1rem;
@@ -152,7 +158,7 @@
   align-items: center; margin-bottom: 0.8rem;
 }
 .rp-plate-index {
-  font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #2a3f55;
+  font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #d8e1eb;
 }
 .rp-plate-badge {
   font-family: 'DM Mono', monospace; font-size: 0.62rem;
@@ -239,4 +245,169 @@
 
 .rp-btn-download:hover {
   background: rgba(34, 211, 238, 0.08);
+}
+/* ── Reporte ─────────────────────────────────────────────────────────────────── */
+.rp-report-section {
+  grid-column: 1 / -1;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(8, 12, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+}
+
+.rp-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.rp-report-header h3 {
+  font-size: 1.1rem;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.rp-btn-download-csv {
+  padding: 0.5rem 1rem;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.rp-btn-download-csv:hover {
+  opacity: 0.9;
+}
+
+.rp-report-table-wrap {
+  overflow-x: auto;
+}
+
+.rp-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.rp-report-table th {
+  text-align: left;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.rp-report-table td {
+  padding: 0.75rem;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.rp-report-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rp-conf-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.rp-conf-badge.high {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.rp-conf-badge.mid {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.rp-conf-badge.low {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.rp-btn-report {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(34, 211, 238, 0.1);
+  color: #22d3ee;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rp-btn-report:hover {
+  background: rgba(34, 211, 238, 0.15);
+}
+
+.rp-video-frames {
+  margin-top: 1rem;
+}
+
+/* Ajustes para info de archivo */
+.rp-file-type {
+  margin-left: auto;
+  padding: 0.2rem 0.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: #93c5fd;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+/* Contenedor del Grid */
+.rp-results-grid {
+  display: grid;
+  /* auto-fill crea tantas columnas como quepan de mínimo 300px */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+/* Ajuste de la tarjeta para que sea consistente */
+.rp-plate-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Para que todas midan lo mismo en la misma fila */
+  transition: transform 0.2s ease;
+  margin-bottom: 0 !important; 
+  height: 100%;
+}
+
+.rp-plate-card:hover {
+  border-color: rgba(34, 211, 238, 0.4);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+/* Ajuste para la columna derecha si quieres que use todo el ancho de la pantalla */
+.rp-right {
+  flex: 1;
+  min-width: 0; /* Evita que el grid rompa el layout flex */
+}
+
+/* Media query para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .rp-results-grid {
+    grid-template-columns: 1fr; /* Una sola columna en móviles */
+    gap: 1rem;
+  }
 }

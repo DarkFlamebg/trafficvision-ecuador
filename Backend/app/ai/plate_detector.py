@@ -1,5 +1,5 @@
 # app/ai/plate_detector.py
-# Detecta placas usando YOLOv8n entrenado localmente con dataset ecuatoriano
+# Detecta placas usando YOLOv11n entrenado localmente con dataset ecuatoriano
 
 import os
 import numpy as np
@@ -7,16 +7,18 @@ import cv2
 from PIL import Image, ImageOps
 from ultralytics import YOLO
 
-#MODEL_PATH           = "runs/detect/yolov8n_plates_combined_all/weights/best.pt"
-MODEL_PATH            = "../ml/models/trained/yolov8n_combined_all/best.pt"
-CONFIDENCE_THRESHOLD  = 0.45   # subido de 0.25 para evitar falsas detecciones
-MODEL = YOLO('yolov8n.pt')  # preentrenado COCO
+# ── Rutas ──────────────────────────────────────────────────────────────────────
+_BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR  = os.path.abspath(os.path.join(_BASE_DIR, "../../.."))
+
+MODEL_PATH            = os.path.join(_ROOT_DIR, "ml", "models", "trained", "yolo11n_combined_all", "best.pt")
+CONFIDENCE_THRESHOLD  = 0.45
 
 # Proporción ancho/alto válida para una placa vehicular
-ASPECT_RATIO_MIN = 1.5   # placa cuadrada mínima
-ASPECT_RATIO_MAX = 6.0   # placa muy alargada máxima
+ASPECT_RATIO_MIN = 1.5
+ASPECT_RATIO_MAX = 6.0
 
-# Cargar modelo una sola vez al importar
+# Modelo cargado una sola vez al importar
 _model = None
 
 def _get_model() -> YOLO:
@@ -46,7 +48,7 @@ def _load_image(input_image) -> np.ndarray:
 
 def detect_plate(input_image) -> list:
     """
-    Detecta placas vehiculares usando YOLOv8n local.
+    Detecta placas vehiculares usando YOLOv11n local.
 
     Filtros aplicados:
     - Confianza mínima: 0.45
@@ -82,9 +84,9 @@ def detect_plate(input_image) -> list:
         w_box = x2 - x1
         h_box = y2 - y1
 
-        # Filtrar por proporción — descarta detecciones que no tienen forma de placa
         if h_box == 0:
             continue
+
         aspect_ratio = w_box / h_box
         if not (ASPECT_RATIO_MIN <= aspect_ratio <= ASPECT_RATIO_MAX):
             print(f"[detector] Bbox descartado por proporción: {w_box}x{h_box} = {aspect_ratio:.2f}")
@@ -101,10 +103,3 @@ def detect_plate(input_image) -> list:
         })
 
     return plates
-
-
-
-_BASE_DIR  = os.path.dirname(os.path.abspath(__file__))      
-_ROOT_DIR  = os.path.abspath(os.path.join(_BASE_DIR, "../../.."))
-
-MODEL_PATH = os.path.join(_ROOT_DIR, "ml", "models", "trained", "yolov8n_combined_all", "best.pt")

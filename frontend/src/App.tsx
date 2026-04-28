@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 import Home from "./pages/Home"
-import ReadPlate from "./pages/ReadPlate"
+import ReadPlate from "./components/ReadPlate-Yolo/ReadPlate"
 
 function App() {
   return (
