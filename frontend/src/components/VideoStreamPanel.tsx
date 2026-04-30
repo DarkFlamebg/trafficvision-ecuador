@@ -16,88 +16,110 @@ export function VideoStreamPanel({
   if (!visible) return null
 
   return (
-    <div className="rp-canvas-wrap" style={{ marginTop: "1rem" }}>
+    <div className="rp-canvas-wrap" role="region" aria-label="Stream de video en vivo">
 
       {/* Label + REC indicator */}
-      <div className="rp-section-label" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        DETECCIÓN VISUAL — EN VIVO
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.6rem" }}>
+        <div className="rp-section-label">DETECCIÓN EN VIVO</div>
         {isRecording && (
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: "0.3rem",
-            fontSize: "0.65rem", color: "#ef4444", fontFamily: "DM Mono, monospace",
-          }}>
+          <span
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "0.35rem",
+              fontSize: "0.6rem", color: "#ef4444",
+              fontFamily: "var(--font-mono)", letterSpacing: "0.1em",
+              fontWeight: 700,
+            }}
+            aria-label="Grabando"
+          >
             <span style={{
-              width: 6, height: 6, borderRadius: "50%", background: "#ef4444",
+              width: 7, height: 7, borderRadius: "50%", background: "#ef4444",
+              boxShadow: "0 0 6px #ef4444",
               animation: "rp-pulse 1s ease-in-out infinite",
-            }} />
+              flexShrink: 0,
+            }} aria-hidden="true" />
             REC
           </span>
         )}
       </div>
 
       {/* Progress bar */}
-      <div style={{ width: "100%", height: 3, background: "#1e293b", borderRadius: 2, margin: "0.5rem 0", overflow: "hidden" }}>
+      <div
+        style={{ width: "100%", height: 3, background: "rgba(255,255,255,0.05)", borderRadius: 100, marginBottom: "0.5rem", overflow: "hidden" }}
+        role="progressbar"
+        aria-valuenow={wsProgress}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Progreso: ${wsProgress}%`}
+      >
         <div style={{
-          height: "100%", width: `${wsProgress}%`,
-          background: "linear-gradient(90deg, #22d3ee, #3b82f6)",
-          transition: "width 0.2s ease", borderRadius: 2,
+          height: "100%",
+          width: `${wsProgress}%`,
+          background: wsProgress === 100
+            ? "linear-gradient(90deg, #00FF88, #22D3EE)"
+            : "linear-gradient(90deg, #22D3EE, #3B82F6)",
+          transition: "width 0.3s ease",
+          borderRadius: 100,
         }} />
       </div>
 
-      {/* Status text */}
+      {/* Status */}
       {wsStatus && (
-        <span style={{
-          fontFamily: "DM Mono, monospace", fontSize: "0.68rem",
-          color: wsProgress === 100 ? "#10b981" : "#475569",
-          display: "block", marginBottom: "0.5rem",
-        }}>
+        <p style={{
+          fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+          color: wsProgress === 100 ? "var(--accent-green)" : "var(--text-dim)",
+          marginBottom: "0.6rem", letterSpacing: "0.03em",
+          transition: "color 0.3s ease",
+        }} aria-live="polite">
           {wsStatus}{wsProgress > 0 && wsProgress < 100 ? ` · ${wsProgress}%` : ""}
-        </span>
+        </p>
       )}
 
       {/* Live frame or spinner */}
       {wsFrameSrc ? (
-        <img src={wsFrameSrc} alt="frame en vivo" style={{ width: "100%", borderRadius: 8, border: "1px solid #1e293b", display: "block" }} />
+        <img
+          src={wsFrameSrc}
+          alt="Fotograma procesado en tiempo real"
+          style={{ width: "100%", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", display: "block" }}
+        />
       ) : (
         <div style={{
-          width: "100%", minHeight: 180, borderRadius: 8, background: "#0e1420",
-          border: "1px solid #1c2a3a", display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center", gap: 12,
-        }}>
-          <div className="rp-loading-dots"><span /><span /><span /></div>
-          <span style={{ fontFamily: "DM Mono, monospace", fontSize: "0.68rem", color: "#2a3f55" }}>
+          width: "100%", minHeight: 180, borderRadius: 8,
+          background: "var(--bg-card)", border: "1px solid var(--border-sub)",
+          display: "flex", flexDirection: "column", alignItems: "center",
+          justifyContent: "center", gap: 12,
+        }} aria-label="Iniciando stream">
+          <div className="rp-loading-dots" aria-hidden="true"><span /><span /><span /></div>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--text-dim)" }}>
             Iniciando stream...
           </span>
         </div>
       )}
 
-      {/* Converting indicator */}
+      {/* Converting */}
       {isConverting && (
         <div style={{
-          marginTop: "0.75rem", padding: "0.5rem", borderRadius: 8,
-          background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)",
-          fontFamily: "DM Mono, monospace", fontSize: "0.7rem", color: "#f59e0b", textAlign: "center",
-        }}>
-          ⏳ Convirtiendo a MP4 con FFmpeg...
+          marginTop: "0.75rem", padding: "0.6rem 0.85rem", borderRadius: 8,
+          background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)",
+          fontFamily: "var(--font-mono)", fontSize: "0.68rem",
+          color: "var(--accent-amber)", display: "flex", alignItems: "center", gap: "0.5rem",
+        }} aria-live="polite">
+          <span aria-hidden="true">⏳</span> Convirtiendo a MP4 con FFmpeg...
         </div>
       )}
 
-      {/* Download link */}
+      {/* Download */}
       {downloadUrl && !isRecording && !isConverting && (
         <a
           href={downloadUrl}
           download={`deteccion-${fileName?.replace(/\.[^.]+$/, "") ?? "video"}.mp4`}
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            gap: "0.4rem", marginTop: "0.75rem", padding: "0.55rem 1rem", borderRadius: 8,
-            background: "rgba(34,211,238,0.08)", border: "1px solid rgba(34,211,238,0.25)",
-            color: "#22d3ee", textDecoration: "none",
-            fontFamily: "DM Mono, monospace", fontSize: "0.75rem", transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(34,211,238,0.16)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(34,211,238,0.08)")}
+          className="rp-btn-download"
+          aria-label="Descargar video anotado en formato MP4"
         >
-          ⬇ Descargar video anotado (.mp4)
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1V9M7 9L4 6M7 9L10 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M2 11H12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          </svg>
+          Descargar video anotado (.mp4)
         </a>
       )}
     </div>
