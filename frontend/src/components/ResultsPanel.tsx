@@ -1,10 +1,11 @@
 import { LabelBadge } from "./LabelBadge"
-import type { ApiResponse } from "../types/readplate.types"
+import type { ApiResponse, PlateLabels } from "../types/readplate.types"
 
 interface ResultsPanelProps {
   result:   ApiResponse | null
   loading:  boolean
   fileType: "image" | "video" | null
+  labels: PlateLabels | null
 }
 
 export function ResultsPanel({ result, loading, fileType }: ResultsPanelProps) {
@@ -105,9 +106,39 @@ export function ResultsPanel({ result, loading, fileType }: ResultsPanelProps) {
 
                 return (
                   <article className="rp-plate-card" key={i} aria-label={`Vehículo ${i + 1}: placa ${plate.plate}`}>
+                    {/* Reemplaza el rp-plate-header */}
                     <div className="rp-plate-header">
                       <span className="rp-plate-index">Vehículo #{i + 1}</span>
-                      <span className={`rp-plate-badge ${badgeClass}`}>{badgeLabel}</span>
+                      <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                        {/* Badge del detector */}
+                        <span style={{
+                          fontSize: 10,
+                          fontFamily: "var(--font-mono)",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.08em",
+                          padding: "2px 8px",
+                          borderRadius: 4,
+                          background: plate.detector === "yolo"
+                            ? "rgba(0,255,136,0.12)"
+                            : plate.detector === "rtdetr"
+                            ? "rgba(238,211,34,0.12)"
+                            : "rgba(246,130,59,0.12)",
+                          color: plate.detector === "yolo"
+                            ? "#00ff88"
+                            : plate.detector === "rtdetr"
+                            ? "#eed322"
+                            : "#f6823b",
+                          border: `1px solid ${plate.detector === "yolo"
+                            ? "rgba(0,255,136,0.3)"
+                            : plate.detector === "rtdetr"
+                            ? "rgba(238,211,34,0.3)"
+                            : "rgba(246,130,59,0.3)"}`,
+                        }}>
+                          {plate.detector ?? "ensemble"}
+                        </span>
+                        <span className={`rp-plate-badge ${badgeClass}`}>{badgeLabel}</span>
+                      </div>
                     </div>
 
                     {plate.vehicle && (
@@ -150,13 +181,9 @@ export function ResultsPanel({ result, loading, fileType }: ResultsPanelProps) {
 
                     <div className="rp-metrics" aria-label="Métricas de confianza">
                       <div className="rp-metric">
-                        <span className="rp-metric-label">Detec. YOLO</span>
-                        <div className="rp-metric-bar-wrap" role="progressbar"
-                          aria-valuenow={Math.round(plate.yolo_confidence * 100)}
-                          aria-valuemin={0} aria-valuemax={100}>
-                          <div className="rp-metric-bar" style={{ width: `${plate.yolo_confidence * 100}%` }} />
-                        </div>
-                        <span className="rp-metric-val">{(plate.yolo_confidence * 100).toFixed(1)}%</span>
+                        <span className="rp-metric-label">Detec. {plate.detector?.toUpperCase() ?? "YOLO"}</span>
+                        <div className="rp-metric-bar" style={{ width: `${plate.detector_confidence * 100}%` }} />
+                        <span className="rp-metric-val">{(plate.detector_confidence * 100).toFixed(1)}%</span>
                       </div>
                       <div className="rp-metric">
                         <span className="rp-metric-label">Lectura OCR</span>

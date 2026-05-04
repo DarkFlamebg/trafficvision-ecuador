@@ -14,13 +14,15 @@ export interface VehicleInfo {
   confidence: number
 }
 
+// readplate.types.ts / detection_type.ts
 export interface PlateResult {
-  bbox:             [number, number, number, number]
-  yolo_confidence:  number
-  plate:            string
-  ocr_confidence:   number
-  labels:           PlateLabels
-  vehicle:          VehicleInfo | null
+  bbox:                 [number, number, number, number]
+  detector_confidence:  number  
+  detector:             string
+  plate:                string
+  ocr_confidence:       number
+  labels:               PlateLabels | null
+  vehicle:              VehicleInfo | null
 }
 
 export interface ApiResponse {

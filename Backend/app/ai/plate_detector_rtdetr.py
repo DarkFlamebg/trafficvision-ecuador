@@ -151,7 +151,7 @@ def detect_plate_ensemble(input_image, use_yolo: bool = True, use_rtdetr: bool =
     # Detector YOLO
     if use_yolo:
         try:
-            from plate_detector import detect_plate
+            from app.ai.plate_detector import detect_plate
             yolo_plates = detect_plate(input_image)
             for p in yolo_plates:
                 p["detector"] = "yolo"

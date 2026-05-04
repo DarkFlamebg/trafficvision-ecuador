@@ -5,7 +5,6 @@ import API from "../services/api"
 import { drawBoxes, extractVideoFrames, exportReportCSV } from "../utils/readplate.utils"
 import type { ApiResponse, DetectionReport, VideoTypeMetric } from "../types/readplate.types"
 
-// CDN de la build ESM — ajustá la versión si tu @ffmpeg/ffmpeg es diferente
 const FFMPEG_CDN = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm"
 
 export function useReadPlate() {
@@ -44,12 +43,11 @@ export function useReadPlate() {
   const imgRef    = useRef(new Image())
   const videoRef  = useRef<HTMLVideoElement>(null)
 
-  // ── Cargar FFmpeg desde CDN ────────────────────────────────────────────────
+  // ── Cargar FFmpeg desde CDN ──────────────────────────────────────────────
   useEffect(() => {
     const loadFFmpeg = async () => {
       const ffmpeg = ffmpegRef.current
       if (ffmpeg.loaded) return
-
       try {
         await ffmpeg.load({
           coreURL: await toBlobURL(`${FFMPEG_CDN}/ffmpeg-core.js`, "text/javascript"),
@@ -57,7 +55,7 @@ export function useReadPlate() {
         })
       } catch (err) {
         console.error("Error cargando FFmpeg:", err)
-        setError("No se pudo cargar el conversor de video. Reintentá recargando la página.")
+        setError("No se pudo cargar el conversor de video. Recargá la página.")
       }
     }
     loadFFmpeg()
@@ -73,7 +71,7 @@ export function useReadPlate() {
     }
   }, [result, preview, fileType])
 
-  // ── MediaRecorder helpers ──────────────────────────────────────────────────
+  // ── MediaRecorder helpers ────────────────────────────────────────────────
   const initRecorder = (width: number, height: number) => {
     if (offscreenCanvasRef.current) return
     const canvas    = document.createElement("canvas")
@@ -110,15 +108,12 @@ export function useReadPlate() {
       setIsConverting(true)
       try {
         const webmBlob = new Blob(recordedChunksRef.current, { type: "video/webm" })
-
         await ffmpeg.writeFile("input.webm", await fetchFile(webmBlob))
         await ffmpeg.exec(["-i", "input.webm", "-c", "copy", "output.mp4"])
-        
         const mp4Data = await ffmpeg.readFile("output.mp4") as unknown as Uint8Array
         const copy = new Uint8Array(mp4Data.byteLength)
         copy.set(mp4Data)
         const mp4Blob = new Blob([copy], { type: "video/mp4" })
-
         setDownloadUrl(URL.createObjectURL(mp4Blob))
       } catch (err) {
         console.error("Error convirtiendo a MP4:", err)
@@ -148,7 +143,7 @@ export function useReadPlate() {
     streamRef.current          = null
   }
 
-  // ── Selección de archivo ───────────────────────────────────────────────────
+  // ── Selección de archivo ─────────────────────────────────────────────────
   const handleFile = async (f: File) => {
     setFile(f)
     setResult(null)
@@ -190,7 +185,7 @@ export function useReadPlate() {
     if (f) handleFile(f)
   }
 
-  // ── Reportes ───────────────────────────────────────────────────────────────
+  // ── Reportes ─────────────────────────────────────────────────────────────
   const generateVideoReport = (videoTypes: VideoTypeMetric[], processingTime: number) => {
     const dateTime = new Date().toLocaleString("es-EC", {
       year: "numeric", month: "2-digit", day: "2-digit",
@@ -219,7 +214,8 @@ export function useReadPlate() {
       filename:       file?.name || "desconocido",
       location:       "Pendiente",
       vehicleType:    plate.vehicle?.type_es || "Desconocido",
-      confidence:     Math.round(plate.ocr_confidence * 100),
+      // FIX: usar detector_confidence (antes yolo_confidence — campo renombrado)
+      confidence:     Math.round(plate.detector_confidence * 100),
       dateTime,
       processingTime: Number(processingTime.toFixed(2)),
       processed:      true,
@@ -227,7 +223,7 @@ export function useReadPlate() {
     }))])
   }
 
-  // ── Upload / Analyze ───────────────────────────────────────────────────────
+  // ── Upload / Analyze ─────────────────────────────────────────────────────
   const handleUpload = async () => {
     if (!file) return
     setLoading(true)
@@ -241,15 +237,41 @@ export function useReadPlate() {
     offscreenCanvasRef.current = null
     const startTime = performance.now()
 
-    // IMAGEN: HTTP normal
+    // ── IMAGEN: llama a /api/v2/detect/full con soporte multi-modelo ────────
+    // FIX: era /detect-plate (endpoint legacy sin vehicles, sin detector_confidence)
     if (fileType === "image") {
       try {
         const formData = new FormData()
         formData.append("file", file)
-        const res = await API.post<ApiResponse>("/detect-plate", formData)
+
+        // FIX: endpoint v2 con parámetros correctos
+        const res = await API.post<ApiResponse>(
+          "/api/v2/detect/full",
+          formData,
+          {
+            params: {
+              detector:        "ensemble",  // yolo | rtdetr | ensemble
+              include_vehicle: true,
+              include_labels:  true,
+            },
+          }
+        )
+
         const processingTime = (performance.now() - startTime) / 1000
-        setResult(res.data)
-        generateReport(res.data, processingTime)
+
+        // FIX: el backend v2 devuelve detector_confidence, no yolo_confidence.
+        // Normalizamos aquí para que el resto del front no necesite saber esto.
+        const normalized: ApiResponse = {
+          ...res.data,
+          plates: res.data.plates.map(p => ({
+            ...p,
+            // Si por alguna razón llega yolo_confidence del legacy, lo mapeamos
+            detector_confidence: p.detector_confidence ?? (p as any).yolo_confidence ?? 0,
+          })),
+        }
+
+        setResult(normalized)
+        generateReport(normalized, processingTime)
       } catch (e: any) {
         setError(e?.response?.data?.detail || "Error al conectar con el servidor.")
       } finally {
@@ -258,7 +280,7 @@ export function useReadPlate() {
       return
     }
 
-    // VIDEO: WebSocket streaming
+    // ── VIDEO: WebSocket streaming (sin cambios — el WS de vehículos es correcto aquí) ─
     try {
       const ws = new WebSocket("ws://localhost:8000/ws/detect-vehicle/video")
       wsRef.current = ws
@@ -280,22 +302,26 @@ export function useReadPlate() {
           setWsFrameSrc(src)
           setWsProgress(data.progress ?? 0)
           setWsStatus(`Procesando frame ${data.frame_num}...`)
+
           const imgEl  = new Image()
           imgEl.onload = () => {
             if (!offscreenCanvasRef.current) initRecorder(imgEl.naturalWidth, imgEl.naturalHeight)
             paintFrameToCanvas(imgEl)
           }
           imgEl.src = src
-          const counter       = data.vehicle_counter as Record<string, number>
+
+          // FIX: vehicle_counter puede venir undefined si el frame no tiene conteo aún
+          const counter = (data.vehicle_counter ?? {}) as Record<string, number>
           const totalVehicles = Object.values(counter).reduce((a, b) => a + b, 0)
+
           setResult({
             total:    0,
             vehicles: totalVehicles,
             plates:   [],
             video_metrics: {
               total_unique_vehicles: totalVehicles,
-              total_raw_detections:  data.frame_num,
-              frames_processed:      data.frame_num,
+              total_raw_detections:  data.frame_num ?? 0,
+              frames_processed:      data.frame_num ?? 0,
               video_duration_s:      0,
               processing_time_ms:    0,
               vehicles_per_minute:   0,
@@ -312,6 +338,7 @@ export function useReadPlate() {
           const processingTime = (performance.now() - startTime) / 1000
           const metrics        = data.metrics
           stopRecorder()
+
           const finalResult: ApiResponse = {
             total:              0,
             vehicles:           metrics.total_unique_vehicles,
@@ -324,11 +351,13 @@ export function useReadPlate() {
               video_duration_s:      metrics.video_duration_s,
               processing_time_ms:    metrics.processing_time_ms,
               vehicles_per_minute:   metrics.vehicles_per_minute,
-              by_type:               metrics.by_type,
+              by_type:               metrics.by_type ?? [],
             },
           }
+
           setResult(finalResult)
-          generateVideoReport(metrics.by_type, processingTime)
+          // FIX: guardar con by_type seguro (puede ser undefined si el video está vacío)
+          generateVideoReport(metrics.by_type ?? [], processingTime)
           setWsProgress(100)
           setWsStatus("✓ Procesamiento completo")
           setLoading(false)
@@ -351,7 +380,10 @@ export function useReadPlate() {
         setWsStatus("")
       }
 
-      ws.onclose = () => { if (loading) setLoading(false) }
+      // FIX: no usar `loading` del closure — puede estar stale; usar cancelledRef
+      ws.onclose = () => {
+        if (!cancelledRef.current) setLoading(false)
+      }
 
     } catch {
       setError("Error al iniciar el análisis de video.")
