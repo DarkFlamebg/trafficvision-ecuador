@@ -262,7 +262,7 @@ export default function Home() {
       {/* FOOTER */}
       <footer className="home-footer">
         <span>Backend · <code>localhost:8000</code></span>
-        <span>TrafficVision · 2025</span>
+        <span>TrafficVision · 2026</span>
       </footer>
     </div>
   )

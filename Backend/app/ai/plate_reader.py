@@ -1,31 +1,107 @@
 # app/ai/plate_reader.py
-# Reconoce los caracteres de la placa usando EasyOCR
+# Reconoce caracteres de placa usando EasyOCR + Super-Resolución (FSRCNN x4)
 
+import os
 import re
 import cv2
 import numpy as np
 import easyocr
 
-reader = easyocr.Reader(['en'], gpu=False)
+# ── Rutas SR ───────────────────────────────────────────────────────────────────
+_BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR    = os.path.abspath(os.path.join(_BASE_DIR, "../../.."))
+_SR_DIR      = os.path.join(_ROOT_DIR, "ml", "sr_models")
+_FSRCNN_PATH = os.path.join(_SR_DIR, "FSRCNN_x4.pb")
+_ESPCN_PATH  = os.path.join(_SR_DIR, "ESPCN_x4.pb")
 
-_EC_PLATE     = re.compile(r'^[A-Z]{3}\d{4}$')
-_EC_PLATE_FMT = re.compile(r'^[A-Z]{3}-\d{4}$')
+# ── Constantes ─────────────────────────────────────────────────────────────────
+
+# Placas ecuatorianas: 3 letras + 3 o 4 dígitos
+# Ej: GTT-2178 (4 dígitos), PFJ-048 (3 dígitos — motos/especiales)
+_EC_RAW = re.compile(r'[A-Z]{3}\d{3,4}')
+_EC_FMT = re.compile(r'^[A-Z]{3}-\d{3,4}$')
+
+MIN_CROP_W      = 60     # px — descartar crops inútiles
+MIN_CROP_H      = 20     # px
+SR_THRESHOLD    = 150    # px — aplicar SR si ancho < este valor
+OCR_MIN_CONF    = 0.10   # confianza mínima — bajo esto → None ("No detectado")
+
+INNER_MARGIN_X  = 4
+INNER_MARGIN_Y  = 2
+
+_reader = easyocr.Reader(['en'], gpu=False)
+
+# ── Super-Resolución ───────────────────────────────────────────────────────────
+
+_sr        = None
+_sr_loaded = False
+
+
+def _get_sr():
+    global _sr, _sr_loaded
+    if _sr_loaded:
+        return _sr
+    _sr_loaded = True
+    for path, name in [(_FSRCNN_PATH, 'fsrcnn'), (_ESPCN_PATH, 'espcn')]:
+        if os.path.exists(path) and os.path.getsize(path) > 1000:
+            try:
+                sr = cv2.dnn_superres.DnnSuperResImpl_create()
+                sr.readModel(path)
+                sr.setModel(name, 4)
+                _sr = sr
+                print(f"[plate_reader] SR cargado: {os.path.basename(path)}")
+                return _sr
+            except Exception as e:
+                print(f"[plate_reader] SR fallido ({path}): {e}")
+    print("[plate_reader] SR no disponible — usando escalado bicúbico")
+    return None
+
+
+def _upscale(image: np.ndarray) -> np.ndarray:
+    """SR x4 si ancho < SR_THRESHOLD. Fallback bicúbico si no hay modelo."""
+    h, w = image.shape[:2]
+    if w >= SR_THRESHOLD:
+        return image
+    sr = _get_sr()
+    if sr is not None:
+        try:
+            if len(image.shape) == 2:
+                image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+            return sr.upsample(image)
+        except Exception as e:
+            print(f"[plate_reader] SR upsample error: {e}")
+    return cv2.resize(image, (w * 4, h * 4), interpolation=cv2.INTER_CUBIC)
+
+
+# ── Preprocesado ───────────────────────────────────────────────────────────────
+
+def _trim_margins(image: np.ndarray) -> np.ndarray:
+    """Elimina borde del marco metálico que genera caracteres espurios."""
+    h, w = image.shape[:2]
+    x1 = min(INNER_MARGIN_X, w // 6)
+    y1 = min(INNER_MARGIN_Y, h // 6)
+    x2 = max(w - INNER_MARGIN_X, w * 5 // 6)
+    y2 = max(h - INNER_MARGIN_Y, h * 5 // 6)
+    return image[y1:y2, x1:x2]
 
 
 def _preprocess(image: np.ndarray) -> np.ndarray:
     """
-    Preprocesa el recorte de placa para mejorar la lectura OCR.
-
-    Fixes:
-    1. Recortar 25% superior — elimina etiquetas 'ECUA', 'PLACA PROVISIONAL'
-    2. Escalar si es muy pequeño
-    3. CLAHE para mejorar contraste
-    4. Threshold adaptativo para binarizar
+    Pipeline optimizado para crops de placa:
+      1. SR x4 sobre imagen original (antes de cualquier filtro)
+      2. Trim márgenes del marco
+      3. Recorte franja superior 'ECUADOR'
+      4. Escala mínima 300px ancho
+      5. Gris → CLAHE suave → unsharp mask controlado
     """
-    h, w = image.shape[:2]
+    # 1. SR primero — sobre imagen sin modificar
+    image = _upscale(image)
 
-    # Fix 1: recortar franja superior con etiqueta (ECUA, PLACA PROVISIONAL)
-    # Ajuste dinámico según altura del recorte
+    # 2. Trim bordes del marco
+    image = _trim_margins(image)
+    h, w  = image.shape[:2]
+
+    # 3. Recortar franja 'ECUADOR' superior
     if h > 100:
         crop_top = int(h * 0.22)
     elif h > 60:
@@ -33,137 +109,192 @@ def _preprocess(image: np.ndarray) -> np.ndarray:
     else:
         crop_top = int(h * 0.10)
     image = image[crop_top:, :]
-    h, w = image.shape[:2]
+    h, w  = image.shape[:2]
 
-    # Fix 2: escalar si es muy pequeño
+    # 4. Escala mínima
     if h < 80:
-        scale = 120 / h
-        image = cv2.resize(image, (int(w * scale), 120),
-                           interpolation=cv2.INTER_CUBIC)
-    elif w < 200:
-        scale = 300 / w
-        image = cv2.resize(image, (300, int(h * scale)),
-                           interpolation=cv2.INTER_CUBIC)
-
-    # Fix 3: escalar a mínimo 300px de ancho
-    h, w = image.shape[:2]
+        scale = 120 / max(h, 1)
+        image = cv2.resize(image, (int(w * scale), 120), interpolation=cv2.INTER_CUBIC)
     if w < 300:
-        scale = 300 / w
-        image = cv2.resize(image, (300, int(h * scale)),
-                           interpolation=cv2.INTER_CUBIC)
+        scale = 300 / max(w, 1)
+        image = cv2.resize(image, (300, int(image.shape[0] * scale)), interpolation=cv2.INTER_CUBIC)
 
-    # Fix 4: detectar color de fondo y aplicar preprocesamiento adecuado
-    hsv  = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    hue  = hsv[:, :, 0].mean()
-    sat  = hsv[:, :, 1].mean()
-
-    # Verde (placas ecuador estándar): hue 35-85
-    # Naranja/amarillo (taxi): hue 15-35
-    # Azul/celeste (provisional): hue 85-130
-    # Blanco/gris (clásica): saturación baja < 40
-    is_colored = sat > 40
-
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    if is_colored:
-        # Para fondos de color: extraer canal con mejor contraste texto/fondo
-        b, g, r = cv2.split(image)
-        # Texto blanco sobre fondo color — usar canal de valor (brillo)
-        gray = hsv[:, :, 2]
-        # CLAHE agresivo para separar texto del fondo
-        clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(2, 2))
-        gray  = clahe.apply(gray)
-    else:
-        # Para fondos blancos/grises: CLAHE suave
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4))
-        gray  = clahe.apply(gray)
-
-    # Sharpening
-    kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]], dtype=np.float32)
-    gray   = cv2.filter2D(gray, -1, kernel)
+    # 5. Gris + CLAHE suave + unsharp controlado
+    gray  = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(4, 4))
+    gray  = clahe.apply(gray)
+    blur  = cv2.GaussianBlur(gray, (0, 0), 2.0)
+    gray  = cv2.addWeighted(gray, 1.8, blur, -0.8, 0)
 
     return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 
 
-def _fix_ocr_errors(clean: str) -> str:
-    if len(clean) != 7:
-        return clean
+# ── Corrección OCR ─────────────────────────────────────────────────────────────
 
-    letters = (
-        clean[:3]
-        .replace('0', 'O').replace('1', 'I').replace('5', 'S')
-        .replace('8', 'B').replace('2', 'Z').replace('6', 'G')
-    )
-    numbers = (
-        clean[3:]
-        .replace('O', '0').replace('I', '1').replace('S', '5')
-        .replace('B', '8').replace('Z', '2').replace('G', '6')
-    )
-    return letters + numbers
+# Sustituciones en posición de LETRA (primeros 3 chars)
+_LETTER_FIXES = str.maketrans('0158269', 'OISBZGG')
+
+# Sustituciones en posición de DÍGITO (últimos 3-4 chars)
+_DIGIT_FIXES = str.maketrans({
+    'O': '0', 'I': '1', 'S': '5', 'B': '8',
+    'Z': '2', 'G': '6', 'A': '4', 'T': '7',
+    'E': '6', 'J': '1',
+})
+
+# Pares visuales entre letras — para corregir P↔F, H↔J, etc.
+_VISUAL_PAIRS = [
+    ('P', 'F'), ('F', 'P'),
+    ('H', 'J'), ('J', 'H'),   # PFH-2048 → PFJ-2048 (antes que H↔N)
+    ('H', 'N'), ('N', 'H'),
+    ('U', 'V'), ('V', 'U'),
+    ('C', 'G'), ('G', 'C'),
+    ('I', 'J'), ('J', 'I'),
+]
 
 
-def _format_plate(text: str) -> str:
+def _try_fix(candidate: str) -> str | None:
+    """
+    Intenta corregir un candidato de 6 o 7 chars al formato ABC[D]DDD.
+    Retorna la placa corregida o None si no es posible.
+    """
+    # Separar en letras (3) + dígitos (3 o 4)
+    for n_digits in (4, 3):
+        if len(candidate) < 3 + n_digits:
+            continue
+        letters = candidate[:3].translate(_LETTER_FIXES)
+        digits  = candidate[3:3 + n_digits].translate(_DIGIT_FIXES)
+        fixed   = letters + digits
+        if _EC_RAW.fullmatch(fixed):
+            return fixed
+
+    return None
+
+
+def _clean_and_fix(text: str) -> str:
+    """
+    Limpia el texto OCR y extrae el patrón ABC(D)DDD.
+
+    Estrategia:
+      1. Limpiar caracteres no alfanuméricos
+      2. Búsqueda directa del patrón
+      3. Corrección posicional por ventana (letra/dígito fixes)
+      4. Corrección por pares visuales si aún no hay match
+    """
     clean = re.sub(r'[^A-Z0-9]', '', text.upper())
-    clean = _fix_ocr_errors(clean)
-    if _EC_PLATE.match(clean):
-        return clean[:3] + '-' + clean[3:]
+    if not clean:
+        return ''
+
+    # 1. Búsqueda directa — si el texto ya tiene formato válido, aplicar
+    #    fixes posicionales y corrección H→J solo en posición 3 (tercera letra)
+    #    EasyOCR confunde J con H sistemáticamente en fuentes de placa
+    m = _EC_RAW.search(clean)
+    if m:
+        base    = m.group()
+        letters = list(base[:3].translate(_LETTER_FIXES))
+        digits  = base[3:].translate(_DIGIT_FIXES)
+        # H→J solo en posición 2 (índice 2, tercera letra)
+        # Posiciones 0 y 1 se dejan intactas para no alterar letras válidas
+        if letters[2] == 'H':
+            letters[2] = 'J'
+        return ''.join(letters) + digits
+
+    # 2. Corrección posicional por ventana — para texto con chars mezclados
+    for length in (7, 6):
+        for start in range(len(clean) - length + 1):
+            result = _try_fix(clean[start:start + length])
+            if result:
+                return result
+
+    # 3. Pares visuales — último recurso, solo si pasos 1 y 2 fallaron
+    #    En este punto el texto no matchea el patrón con ninguna corrección
+    #    posicional, así que vale la pena probar confusiones entre letras
+    for length in (7, 6):
+        for start in range(len(clean) - length + 1):
+            candidate = clean[start:start + length]
+            letters   = candidate[:3].translate(_LETTER_FIXES)
+            digits    = candidate[3:].translate(_DIGIT_FIXES)
+            for pos in range(3):
+                for orig, repl in _VISUAL_PAIRS:
+                    if letters[pos] == orig:
+                        variant = letters[:pos] + repl + letters[pos+1:]
+                        fixed   = variant + digits
+                        if _EC_RAW.fullmatch(fixed):
+                            return fixed
+
     return clean
 
 
-def _join_results(results: list) -> str:
-    texts = [r[1] for r in sorted(results, key=lambda x: x[0][0][0])]
-    return ''.join(texts)
+def _format_plate(raw: str) -> str:
+    """'GTT2178' → 'GTT-2178', 'PFJ048' → 'PFJ-048'."""
+    if _EC_RAW.fullmatch(raw):
+        return raw[:3] + '-' + raw[3:]
+    return raw
 
+
+# ── OCR runner ────────────────────────────────────────────────────────────────
+
+def _run_ocr(image: np.ndarray) -> list[tuple[str, float]]:
+    raw = _reader.readtext(
+        image,
+        allowlist='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+        detail=1,
+        paragraph=False,
+    )
+    return [(text, float(conf)) for (_, text, conf) in raw if text]
+
+
+# ── Lector principal ───────────────────────────────────────────────────────────
 
 def read_plate(image: np.ndarray) -> dict | None:
     """
-    Extrae el texto de la placa a partir de un recorte de imagen.
+    Extrae el texto de la placa a partir de un recorte BGR.
+
+    Flujo:
+      1. Validar tamaño mínimo (descarta <60×20 px)
+      2. Preproceso (SR + CLAHE suave + unsharp controlado)
+      3. OCR sobre imagen procesada
+      4. Fallback a imagen original si no hay resultado
+      5. Priorizar candidatos con formato ecuatoriano válido
+      6. Descartar si confianza < OCR_MIN_CONF → None ("No detectado")
 
     Returns:
-        Dict con 'plate' y 'confidence', o None si no detectó texto.
+        {'plate': 'GTT-2178', 'confidence': 0.87} o None
     """
-    # Intento 1: preprocesado (sin header + contraste)
-    processed = _preprocess(image)
-    results   = reader.readtext(
-        processed,
-        allowlist='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-        detail=1,
-        paragraph=False
-    )
+    h, w = image.shape[:2]
+    if w < MIN_CROP_W or h < MIN_CROP_H:
+        return None
 
-    # Intento 2: imagen original como fallback
+    # OCR sobre imagen preprocesada
+    processed = _preprocess(image)
+    results   = _run_ocr(processed)
+
+    # Fallback a imagen original
     if not results:
-        results = reader.readtext(
-            image,
-            allowlist='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-            detail=1,
-            paragraph=False
-        )
+        results = _run_ocr(image)
 
     if not results:
         return None
 
-    best        = max(results, key=lambda x: x[2])
-    best_text   = _format_plate(best[1])
-    best_conf   = best[2]
+    # Construir candidatos
+    candidates = []
+    for text, conf in results:
+        fixed     = _clean_and_fix(text)
+        formatted = _format_plate(fixed)
+        candidates.append({
+            'plate':      formatted,
+            'confidence': round(conf, 4),
+            'valid':      bool(_EC_FMT.match(formatted)),
+        })
 
-    joined_text = _format_plate(_join_results(results))
-    avg_conf    = sum(r[2] for r in results) / len(results)
+    # Priorizar válidas, luego mayor confianza
+    valid_ones = [c for c in candidates if c['valid']]
+    best = max(valid_ones or candidates, key=lambda c: c['confidence'])
 
-    if _EC_PLATE_FMT.match(joined_text):
-        plate_text, confidence = joined_text, avg_conf
-    elif _EC_PLATE_FMT.match(best_text):
-        plate_text, confidence = best_text, best_conf
-    else:
-        if best_conf >= avg_conf:
-            plate_text, confidence = best_text, best_conf
-        else:
-            plate_text, confidence = joined_text, avg_conf
-
-    if not plate_text:
+    # Descartar ruido — confianza muy baja = texto inventado
+    if best['confidence'] < OCR_MIN_CONF:
         return None
 
     return {
-        "plate":      plate_text,
-        "confidence": round(float(confidence), 4)
+        'plate':      best['plate'],
+        'confidence': best['confidence'],
     }
