@@ -1,0 +1,318 @@
+import { useState, useRef, useCallback } from "react"
+import API from "../services/api"
+import type {
+  ModelType,
+  ComparisonResult,
+  ComparisonImageResponse,
+  WebSocketMessage,
+} from "../types/comparison_types"
+
+export function useModelComparison() {
+  const [file,         setFile]         = useState<File | null>(null)
+  const [fileType,     setFileType]     = useState<"image" | "video" | null>(null)
+  const [preview,      setPreview]      = useState<string | null>(null)
+  const [loading,      setLoading]      = useState(false)
+  const [activeModel,  ]               = useState<ModelType | null>(null)
+  const [error,        setError]        = useState<string | null>(null)
+
+  const [realPlate,        setRealPlate]        = useState<string>("")
+  const [comparisonResult, setComparisonResult] = useState<ComparisonResult>({})
+
+  const [yoloFrame,      setYoloFrame]      = useState<string | null>(null)
+  const [rtdetrFrame,    setRtdetrFrame]    = useState<string | null>(null)
+  const [yoloProgress,   setYoloProgress]   = useState(0)
+  const [rtdetrProgress, setRtdetrProgress] = useState(0)
+  const [yoloStatus,     setYoloStatus]     = useState("")
+  const [rtdetrStatus,   setRtdetrStatus]   = useState("")
+
+  const yoloWsRef   = useRef<WebSocket | null>(null)
+  const rtdetrWsRef = useRef<WebSocket | null>(null)
+
+  // Ref para saber qué modelos ya terminaron (evita stale closures)
+  const doneRef = useRef<Set<ModelType>>(new Set())
+
+  // Ref para acumular los últimos datos de frame recibidos por modelo
+  // (fallback si el backend cierra sin enviar "done")
+  const lastFrameDataRef = useRef<Record<ModelType, any>>({} as any)
+
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Helper: marca un modelo como terminado y apaga loading si ambos acabaron
+  // ─────────────────────────────────────────────────────────────────────────
+  const markDone = useCallback((model: ModelType) => {
+    doneRef.current.add(model)
+    if (doneRef.current.has("yolo") && doneRef.current.has("rtdetr")) {
+      setLoading(false)
+    }
+  }, [])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Selección de archivo
+  // ─────────────────────────────────────────────────────────────────────────
+  const handleFile = useCallback(async (f: File) => {
+    setFile(f)
+    setError(null)
+    setComparisonResult({})
+    setYoloFrame(null)
+    setRtdetrFrame(null)
+    setYoloProgress(0)
+    setRtdetrProgress(0)
+    setYoloStatus("")
+    setRtdetrStatus("")
+
+    const isVideo = f.type.startsWith("video/")
+    const isImage = f.type === "image/jpeg" || f.type === "image/png"
+
+    if (preview && fileType === "video") URL.revokeObjectURL(preview)
+
+    if (isImage) {
+      setFileType("image")
+      const reader = new FileReader()
+      reader.onload = (e) => setPreview(e.target?.result as string)
+      reader.readAsDataURL(f)
+    } else if (isVideo) {
+      setFileType("video")
+      setPreview(URL.createObjectURL(f))
+    } else {
+      setError("Formato no soportado. Usa JPG, PNG o MP4.")
+    }
+  }, [preview, fileType])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    const f = e.dataTransfer.files?.[0]
+    if (f) handleFile(f)
+  }, [handleFile])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Comparación de IMAGEN
+  // ─────────────────────────────────────────────────────────────────────────
+  const runImageComparison = useCallback(async () => {
+    if (!file || fileType !== "image") return
+    setLoading(true)
+    setError(null)
+    setComparisonResult({})
+    try {
+      const [yoloRes, rtdetrRes] = await Promise.all([
+        runSingleImageDetection("yolo"),
+        runSingleImageDetection("rtdetr"),
+      ])
+      setComparisonResult({ yolo: yoloRes, rtdetr: rtdetrRes })
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || "Error al realizar la comparación")
+    } finally {
+      setLoading(false)
+    }
+  }, [file, fileType])
+
+  const runSingleImageDetection = async (
+    model: ModelType
+  ): Promise<ComparisonImageResponse> => {
+    if (!file) throw new Error("No hay archivo")
+    const formData = new FormData()
+    formData.append("file", file)
+    const res = await API.post<ComparisonImageResponse>(
+      `/api/v1/compare/image?model=${model}`,
+      formData
+    )
+    return res.data
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Comparación de VIDEO
+  // ─────────────────────────────────────────────────────────────────────────
+  const runVideoComparison = useCallback(async () => {
+    if (!file || fileType !== "video") return
+
+    setLoading(true)
+    setError(null)
+    setComparisonResult({})
+    setYoloFrame(null)
+    setRtdetrFrame(null)
+    setYoloProgress(0)
+    setRtdetrProgress(0)
+    setYoloStatus("")
+    setRtdetrStatus("")
+
+    doneRef.current = new Set()
+    lastFrameDataRef.current = {} as any
+
+    try {
+      const videoBytes = await file.arrayBuffer()
+      startVideoWebSocket("yolo",   videoBytes)
+      startVideoWebSocket("rtdetr", videoBytes)
+    } catch {
+      setError("Error al iniciar la comparación de video")
+      setLoading(false)
+    }
+  }, [file, fileType])
+
+  const startVideoWebSocket = (model: ModelType, videoBytes: ArrayBuffer): void => {
+    const ws = new WebSocket(
+      `ws://127.0.0.1:8000/api/v1/compare/video?model=${model}`
+    )
+
+    if (model === "yolo") yoloWsRef.current   = ws
+    else                  rtdetrWsRef.current = ws
+
+    const setFrame    = model === "yolo" ? setYoloFrame    : setRtdetrFrame
+    const setProgress = model === "yolo" ? setYoloProgress : setRtdetrProgress
+    const setStatus   = model === "yolo" ? setYoloStatus   : setRtdetrStatus
+
+    ws.onopen = () => {
+      setStatus(`[${model.toUpperCase()}] Enviando video...`)
+      ws.send(videoBytes)
+    }
+
+    ws.onmessage = (event) => {
+      let data: WebSocketMessage
+      try {
+        data = JSON.parse(event.data)
+      } catch {
+        return
+      }
+
+      if (data.type === "status") {
+        setStatus(data.message)
+      }
+
+      if (data.type === "frame") {
+        setFrame(`data:image/jpeg;base64,${data.frame}`)
+        setProgress(data.progress ?? 0)
+
+        // ── DEFENSIVO: evitar crash si el backend no manda estos campos ──
+        const frameNum = data.frame_num ?? 0
+        const infMs    = data.inference_ms ?? 0
+
+        setStatus(
+          `[${model.toUpperCase()}] Frame ${frameNum} · ${infMs.toFixed(1)}ms`
+        )
+
+        lastFrameDataRef.current[model] = {
+          vehicle_counter: data.vehicle_counter ?? {},
+          plates_count:    data.plates_count ?? 0,
+          inference_ms:    infMs,
+        }
+      }
+
+      if (data.type === "done") {
+        setProgress(100)
+        setStatus(`[${model.toUpperCase()}] ✓ Completado`)
+        setComparisonResult((prev) => ({ ...prev, [model]: data.metrics }))
+        ws.close()
+        markDone(model)
+      }
+
+      if (data.type === "error") {
+        setError(`[${model.toUpperCase()}] ${data.message}`)
+        setStatus(`[${model.toUpperCase()}] ✗ Error`)
+        ws.close()
+        markDone(model)
+      }
+    }
+
+    ws.onerror = () => {
+      setError(`[${model.toUpperCase()}] Error en la conexión WebSocket`)
+      setStatus(`[${model.toUpperCase()}] ✗ Error de conexión`)
+      markDone(model)
+    }
+
+    // ── DEFENSA CLAVE: el backend cerró sin enviar "done" ──────────────────
+    ws.onclose = () => {
+      // Si ya fue marcado como done (cierre normal tras "done"), salir
+      if (doneRef.current.has(model)) return
+
+      // Recuperar desde el último frame recibido
+      const lastFrame = lastFrameDataRef.current[model]
+
+      if (lastFrame) {
+        const fallbackMetrics = buildFallbackMetrics(model, lastFrame)
+        setComparisonResult((prev) => ({ ...prev, [model]: fallbackMetrics }))
+        setProgress(100)
+        setStatus(`[${model.toUpperCase()}] ✓ Completado`)
+      } else {
+        setStatus(`[${model.toUpperCase()}] Sin datos recibidos`)
+      }
+
+      markDone(model)
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Métricas de fallback construidas desde datos de frames
+  // ─────────────────────────────────────────────────────────────────────────
+  const buildFallbackMetrics = (
+    model: ModelType,
+    lastFrame: {
+      vehicle_counter: Record<string, number>
+      plates_count:    number
+      inference_ms:    number
+    }
+  ) => {
+    const counter       = lastFrame.vehicle_counter ?? {}
+    const totalVehicles = Object.values(counter).reduce(
+      (sum: number, v) => sum + (v as number), 0
+    )
+    return {
+      model,
+      inference_ms:           lastFrame.inference_ms ?? 0,
+      avg_inference_ms:       lastFrame.inference_ms ?? 0,
+      vehicles_detected:      totalVehicles,
+      total_unique_vehicles:  totalVehicles,
+      avg_vehicle_confidence: 0,
+      plates_detected:        lastFrame.plates_count ?? 0,
+      total_plates_detected:  lastFrame.plates_count ?? 0,
+      avg_plate_confidence:   0,
+      plates_with_ocr:        0,
+      vehicles_by_type:       counter,
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Cancelar
+  // ─────────────────────────────────────────────────────────────────────────
+  const cancelComparison = useCallback(() => {
+    yoloWsRef.current?.close()
+    yoloWsRef.current = null
+    rtdetrWsRef.current?.close()
+    rtdetrWsRef.current = null
+    doneRef.current = new Set()
+    setLoading(false)
+    setYoloStatus("Cancelado")
+    setRtdetrStatus("Cancelado")
+  }, [])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Reset
+  // ─────────────────────────────────────────────────────────────────────────
+  const reset = useCallback(() => {
+    cancelComparison()
+    if (preview && fileType === "video") URL.revokeObjectURL(preview)
+    setFile(null)
+    setFileType(null)
+    setPreview(null)
+    setError(null)
+    setRealPlate("")
+    setComparisonResult({})
+    setYoloFrame(null)
+    setRtdetrFrame(null)
+    setYoloProgress(0)
+    setRtdetrProgress(0)
+    setYoloStatus("")
+    setRtdetrStatus("")
+    setLoading(false)
+  }, [cancelComparison, preview, fileType])
+
+  return {
+    file, fileType, preview, loading, activeModel, error,
+    realPlate, comparisonResult,
+    yoloFrame, rtdetrFrame,
+    yoloProgress, rtdetrProgress,
+    yoloStatus, rtdetrStatus,
+    inputRef,
+    handleFile, handleDrop,
+    runImageComparison, runVideoComparison,
+    cancelComparison, reset, setRealPlate,
+  }
+}
