@@ -23,6 +23,31 @@ export interface PlateResult {
   vehicle:          VehicleInfo | null
 }
 
+// ── Tipos para Comparación de Modelos ──────────────────────────────────────
+export interface DetectionResult {
+  plate:                string
+  ocr_confidence:       number
+  detector_confidence:  number
+  bbox:                 [number, number, number, number]
+}
+
+export interface ModelDetectionResult {
+  model:         string
+  total:         number
+  detections:    DetectionResult[]
+  image_base64:  string
+}
+
+export interface ComparisonApiResponse {
+  yolo:    ModelDetectionResult
+  rtdetr:  ModelDetectionResult
+  summary: {
+    yolo_plates:   number
+    rtdetr_plates: number
+    total_unique:  number
+  }
+}
+
 export interface ApiResponse {
   total:    number
   vehicles: number
@@ -36,6 +61,14 @@ export interface ApiResponse {
     processing_time_ms:    number
     vehicles_per_minute:   number
     by_type:               VideoTypeMetric[]
+  }
+  // Para imágenes: resultado de comparación
+  yolo?:    ModelDetectionResult
+  rtdetr?:  ModelDetectionResult
+  summary?: {
+    yolo_plates:   number
+    rtdetr_plates: number
+    total_unique:  number
   }
 }
 
