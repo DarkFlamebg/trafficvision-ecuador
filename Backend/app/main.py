@@ -15,6 +15,7 @@ from app.ai.plate_detector   import detect_plate
 from app.ai.plate_reader     import read_plate
 from app.ai.plate_classifier import classify_plate
 from app.routes.detect       import router as detect_router
+from app.routes.compare      import router as compare_router   # ← nuevo
 from dotenv import load_dotenv
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -44,7 +45,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="TrafficVision API",
     description="Detección de vehículos y placas vehiculares con YOLOv8 + EasyOCR + Gemini",
-    version="1.2.0",
+    version="1.3.0",
     lifespan=lifespan
 )
 
@@ -56,20 +57,21 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Metrics", "X-Detections"],
 )
-# Define los tipos permitidos fuera para que sea más limpio
+
 ALLOWED_IMAGE_TYPES = ("image/jpeg", "image/png", "image/jpg")
 ALLOWED_VIDEO_TYPES = ("video/mp4", "video/mpeg", "video/x-msvideo", "video/quicktime")
 
 # ── Routers ────────────────────────────────────────────────────────────────────
-app.include_router(detect_router, prefix="/api/v1", tags=["Detección"])
+app.include_router(detect_router,  prefix="/api/v1", tags=["Detección"])
+app.include_router(compare_router, prefix="/api/v1", tags=["Comparativa"])  
 
-# ── Endpoints ──────────────────────────────────────────────────────────────────
+# ── Endpoints base ─────────────────────────────────────────────────────────────
 @app.get("/")
 def root():
     return {
         "message": "TrafficVision API activa",
         "docs":    "/docs",
-        "version": "1.2.0"
+        "version": "1.3.0"
     }
 
 
@@ -94,14 +96,10 @@ async def detect_plate_api(file: UploadFile):
         with open(path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # ── Etapa 1: Detectar vehículos ────────────────────────────────────
-        vehicles = detect_vehicles(path)
-
-        results      = []
+        vehicles     = detect_vehicles(path)
         plates_found = []
 
         if vehicles:
-            # ── Etapa 2a: Buscar placa dentro de cada vehículo ────────────
             for vehicle in vehicles:
                 plates_in_vehicle = detect_plate(vehicle["image"])
 
@@ -111,7 +109,6 @@ async def detect_plate_api(file: UploadFile):
                     ocr_confidence = ocr["confidence"] if ocr else 0.0
                     labels         = classify_plate(plate["image"], ocr_confidence)
 
-                    # Ajustar bbox de la placa al sistema de coordenadas original
                     vx1, vy1 = vehicle["bbox"][0], vehicle["bbox"][1]
                     abs_bbox = [
                         plate["bbox"][0] + vx1,
@@ -134,7 +131,6 @@ async def detect_plate_api(file: UploadFile):
                         }
                     })
         else:
-            # ── Etapa 2b: Sin vehículo detectado → buscar placa en imagen completa
             print("[main] No se detectaron vehículos — buscando placa en imagen completa")
             plates_in_image = detect_plate(path)
 
@@ -150,7 +146,7 @@ async def detect_plate_api(file: UploadFile):
                     "plate":           ocr_text,
                     "ocr_confidence":  ocr_confidence,
                     "labels":          labels,
-                    "vehicle":         None   # placa sin vehículo asociado
+                    "vehicle":         None
                 })
 
         return {
@@ -166,10 +162,7 @@ async def detect_plate_api(file: UploadFile):
 
 @app.post("/detect-vehicle")
 async def detect_vehicle_only(file: UploadFile):
-    """
-    Detecta solo vehículos sin procesar placas.
-    Útil para contar vehículos o clasificar tipo de tráfico.
-    """
+    """Detecta solo vehículos sin procesar placas."""
     if file.content_type not in ("image/jpeg", "image/png", "image/jpg"):
         raise HTTPException(status_code=400, detail="Solo se aceptan imágenes JPG o PNG")
 
@@ -198,6 +191,7 @@ async def detect_vehicle_only(file: UploadFile):
     finally:
         if os.path.exists(path):
             os.remove(path)
+
 
 @app.websocket("/ws/detect-vehicle/video")
 async def detect_vehicle_video_ws(websocket: WebSocket):
@@ -246,12 +240,11 @@ async def detect_vehicle_video_ws(websocket: WebSocket):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.52, color, 1)
         return annotated
 
+    input_path = None
     try:
-        # 1. Recibir el video como bytes
         await websocket.send_json({"type": "status", "message": "Esperando video..."})
         video_bytes = await websocket.receive_bytes()
 
-        # 2. Guardar en temp
         job_id     = str(uuid.uuid4())
         input_path = os.path.join(TEMP_DIR, f"{job_id}.mp4")
         with open(input_path, "wb") as f:
@@ -263,7 +256,6 @@ async def detect_vehicle_video_ws(websocket: WebSocket):
         fps          = cap.get(cv2.CAP_PROP_FPS) or 30
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        # Estado del tracker
         active_tracks   = {}
         finished_tracks = []
         vehicle_counter = {}
@@ -283,7 +275,6 @@ async def detect_vehicle_video_ws(websocket: WebSocket):
                 proc_frame  = frame_count // FRAME_SKIP
                 frame_dets  = []
 
-                # Detectar vehículos
                 vehicles = detect_vehicles(frame)
 
                 for v in vehicles:
@@ -294,7 +285,6 @@ async def detect_vehicle_video_ws(websocket: WebSocket):
                         "matched": False,
                     })
 
-                # Tracking por centroide
                 for key in list(active_tracks.keys()):
                     t = active_tracks[key]
                     best_dist, best_det = MAX_CENTROID_DIST, None
@@ -332,12 +322,10 @@ async def detect_vehicle_video_ws(websocket: WebSocket):
 
                 last_dets = frame_dets
 
-            # Anotar y enviar frame
             annotated = draw_frame(frame, last_dets, vehicle_counter)
             _, buffer  = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 75])
             b64_frame  = base64.b64encode(buffer).decode("utf-8")
-
-            progress = round((frame_count / max(total_frames, 1)) * 100)
+            progress   = round((frame_count / max(total_frames, 1)) * 100)
 
             await websocket.send_json({
                 "type":            "frame",
@@ -347,13 +335,11 @@ async def detect_vehicle_video_ws(websocket: WebSocket):
                 "frame_num":       frame_count,
             })
 
-            # Pequeña pausa para no saturar el WebSocket
             await asyncio.sleep(0.01)
             frame_count += 1
 
         cap.release()
 
-        # Métricas finales
         total_unique = len(finished_tracks) + len(active_tracks)
         duration     = round(time.time() - t0, 2)
         type_stats   = sorted([
@@ -382,5 +368,5 @@ async def detect_vehicle_video_ws(websocket: WebSocket):
     except Exception as e:
         await websocket.send_json({"type": "error", "message": str(e)})
     finally:
-        if os.path.exists(input_path):
+        if input_path and os.path.exists(input_path):
             os.remove(input_path)

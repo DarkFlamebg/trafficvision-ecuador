@@ -131,7 +131,6 @@ def _preprocess(image: np.ndarray) -> np.ndarray:
 
 # ── Corrección OCR ─────────────────────────────────────────────────────────────
 
-# Sustituciones en posición de LETRA (primeros 3 chars)
 _LETTER_FIXES = str.maketrans('0158269', 'OISBZGG')
 
 # Sustituciones en posición de DÍGITO (últimos 3-4 chars)
@@ -141,10 +140,10 @@ _DIGIT_FIXES = str.maketrans({
     'E': '6', 'J': '1',
 })
 
-# Pares visuales entre letras — para corregir P↔F, H↔J, etc.
+# Pares visuales entre letras — para corregir 
 _VISUAL_PAIRS = [
     ('P', 'F'), ('F', 'P'),
-    ('H', 'J'), ('J', 'H'),   # PFH-2048 → PFJ-2048 (antes que H↔N)
+    ('H', 'J'), ('J', 'H'),   
     ('H', 'N'), ('N', 'H'),
     ('U', 'V'), ('V', 'U'),
     ('C', 'G'), ('G', 'C'),
