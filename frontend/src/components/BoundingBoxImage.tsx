@@ -95,7 +95,7 @@ export function BoundingBoxImage({
         ctx.fillText(text, x1 + padX, y2 + tagH - padY)
 
         // Confianza detector en esquina superior derecha
-        const detText = `YOLO ${(p.detector_confidence * 100).toFixed(0)}%`
+        const detText = `${modelName.toUpperCase()} ${(p.detector_confidence * 100).toFixed(0)}%`
         ctx.font      = `${fontSize * 0.85}px monospace`
         const dtw     = ctx.measureText(detText).width
         ctx.fillStyle = "rgba(0,0,0,0.6)"
@@ -124,13 +124,33 @@ export function BoundingBoxImage({
   // Si no hay detecciones todavía pero hay imagen (imagen cruda preview)
   const hasDetections = vehicles.length > 0 || plates.length > 0
 
+  const handleDownload = () => {
+    if (hasDetections && canvasRef.current) {
+      const dataUrl = canvasRef.current.toDataURL("image/png")
+      const link = document.createElement("a")
+      link.href = dataUrl
+      link.download = `detections-${modelName.toLowerCase()}.png`
+      link.click()
+    } else if (src) {
+      const link = document.createElement("a")
+      link.href = src
+      link.download = `original-${modelName.toLowerCase()}.png`
+      link.click()
+    }
+  }
+
   return (
     <div className="bbox-image-container">
-      <div className="bbox-image-header" style={{ borderColor: color + "55" }}>
-        <span className="bbox-image-label" style={{ color }}>
+      <div 
+        className="bbox-image-header" 
+        style={{ 
+          borderColor: color + "55", 
+        }}
+      >
+        <span className="bbox-image-label" style={{ color, marginRight: '0.75rem' }}>
           {modelName}
         </span>
-        <span className="bbox-image-sub">
+        <span className="bbox-image-sub" style={{ fontSize: '0.65rem', color: 'var(--text-mid)', fontFamily: 'var(--font-mono)' }}>
           {hasDetections
             ? `${vehicles.length} vehículo${vehicles.length !== 1 ? "s" : ""} · ${plates.length} placa${plates.length !== 1 ? "s" : ""}`
             : "Sin detecciones"}
@@ -139,10 +159,10 @@ export function BoundingBoxImage({
 
       <div className="bbox-image-wrapper">
         {hasDetections ? (
-          // Canvas con bboxes dibujados
+          // Canvas con bboxes dibujados (usando bbox-image para que escale al 100%)
           <canvas
             ref={canvasRef}
-            className="bbox-canvas"
+            className="bbox-image"
             role="img"
             aria-label={`${alt} con bounding boxes`}
           />
@@ -150,6 +170,36 @@ export function BoundingBoxImage({
           // Imagen cruda sin anotaciones
           <img src={src} alt={alt} className="bbox-image" />
         )}
+      </div>
+
+      {/* Botón de descarga reubicado debajo de la imagen */}
+      <div style={{ 
+        padding: '0.6rem 0.8rem', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        borderTop: '1px solid var(--border)', 
+        background: 'rgba(255,255,255,0.01)' 
+      }}>
+        <button 
+          onClick={handleDownload}
+          title="Descargar imagen procesada"
+          style={{
+            background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', 
+            borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+            color: 'var(--text-hi)', padding: '0.45rem 1rem', display: 'flex', gap: '0.5rem',
+            alignItems: 'center', transition: 'all 0.2s', fontSize: '0.72rem', fontWeight: 600,
+            letterSpacing: '0.05em'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = color; e.currentTarget.style.color = color }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-hi)' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          DESCARGAR IMAGEN
+        </button>
       </div>
     </div>
   )

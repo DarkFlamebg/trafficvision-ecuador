@@ -246,102 +246,176 @@ function ModelComparison() {
         {/* ═══ RIGHT COL — results ═══ */}
         <div className="comparison-right-col">
 
-          {/* Video streams */}
-          {hasVideoActivity && (
+        {/* Video streams */}
+        {hasVideoActivity && (
             <section className="comparison-streams-section" aria-label="Streams de procesamiento">
-              <div className="comparison-panel-header">
+            <div className="comparison-panel-header">
                 <span className="comparison-panel-label" aria-hidden="true">02</span>
                 <h2 className="comparison-panel-title">PROCESAMIENTO EN VIVO</h2>
-              </div>
-              <div className="comparison-streams-grid">
+            </div>
+            <div className="comparison-streams-grid">
                 <ComparisonVideoStream
-                  model="YOLO" frameSrc={mc.yoloFrame}
-                  progress={mc.yoloProgress} status={mc.yoloStatus}
-                  loading={mc.loading} color="#22d3ee"
+                model="YOLO" frameSrc={mc.yoloFrame}
+                progress={mc.yoloProgress} status={mc.yoloStatus}
+                loading={mc.loading} color="#22d3ee"
                 />
                 <ComparisonVideoStream
-                  model="RT-DETR" frameSrc={mc.rtdetrFrame}
-                  progress={mc.rtdetrProgress} status={mc.rtdetrStatus}
-                  loading={mc.loading} color="#f59e0b"
+                model="RT-DETR" frameSrc={mc.rtdetrFrame}
+                progress={mc.rtdetrProgress} status={mc.rtdetrStatus}
+                loading={mc.loading} color="#f59e0b"
                 />
-              </div>
+            </div>
             </section>
-          )}
+        )}
 
-          {/* Image results — prototype 3-column rows */}
-          {hasResults && mc.fileType === "image" && (
-            <section className="prototype-results-section" aria-label="Resultados comparativos">
-              <div className="comparison-panel-header">
-                <span className="comparison-panel-label" aria-hidden="true">02</span>
+        {/* Resultados comparativos - UNIFICADO */}
+        {hasResults && (
+            <section 
+            className={mc.fileType === "image" ? "prototype-results-section" : "comparison-results-section"} 
+            aria-label="Resultados comparativos"
+            >
+            <div className="comparison-panel-header">
+                <span className="comparison-panel-label" aria-hidden="true">
+                {mc.fileType === "video" ? "03" : "02"}
+                </span>
                 <h2 className="comparison-panel-title">RESULTADOS COMPARATIVOS</h2>
-              </div>
+            </div>
 
-              {/* ── YOLO ROW: [BBox] [Metrics] [OCR] ── */}
-              <ModelResultRow
-                modelKey="yolo"
-                modelLabel="YOLO"
-                color="#22d3ee"
-                imageSrc={yoloImage}
-                metrics={yoloMetrics as ComparisonMetrics | null}
-                plate={yoloPlate}
-                realPlate={mc.realPlate}
-              />
+            {/* LAYOUT PARA IMÁGENES - Filas con 3 columnas */}
+            {mc.fileType === "image" ? (
+                <>
+                {/* ── YOLO ROW: [BBox] [Metrics] [OCR] ── */}
+                <ModelResultRow
+                    modelKey="yolo"
+                    modelLabel="YOLO"
+                    color="#22d3ee"
+                    imageSrc={yoloImage}
+                    metrics={yoloMetrics as ComparisonMetrics | null}
+                    plate={yoloPlate}
+                    realPlate={mc.realPlate}
+                    vehicles={yoloData?.vehicles || []}
+                    allPlates={yoloData?.plates || []}
+                />
 
-              <div className="prototype-model-divider" />
+                <div className="prototype-model-divider" />
 
-              {/* ── RT-DETR ROW ── */}
-              <ModelResultRow
-                modelKey="rtdetr"
-                modelLabel="RT-DETR"
-                color="#f59e0b"
-                imageSrc={rtdetrImage}
-                metrics={rtdetrMetrics as ComparisonMetrics | null}
-                plate={rtdetrPlate}
-                realPlate={mc.realPlate}
-              />
+                {/* ── RT-DETR ROW ── */}
+                <ModelResultRow
+                    modelKey="rtdetr"
+                    modelLabel="RT-DETR"
+                    color="#f59e0b"
+                    imageSrc={rtdetrImage}
+                    metrics={rtdetrMetrics as ComparisonMetrics | null}
+                    plate={rtdetrPlate}
+                    realPlate={mc.realPlate}
+                    vehicles={rtdetrData?.vehicles || []}
+                    allPlates={rtdetrData?.plates || []}
+                />
 
-              {/* Winner */}
-              {yoloMetrics && rtdetrMetrics && (
-                <div className="comparison-winner-section">
-                  <div className="comparison-section-label">GANADOR POR VELOCIDAD</div>
-                  {renderWinner(
-                    yoloMetrics as ComparisonMetrics,
-                    rtdetrMetrics as ComparisonMetrics
-                  )}
+                {/* Winner */}
+                {yoloMetrics && rtdetrMetrics && (
+                    <div className="comparison-winner-section">
+                    <div className="comparison-section-label">GANADOR POR VELOCIDAD</div>
+                    {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics)}
+                    </div>
+                )}
+
+                {/* Validation table */}
+                <ValidationTable
+                    results={mc.comparisonResult}
+                    realPlate={mc.realPlate}
+                />
+                </>
+            ) : (
+                /* LAYOUT PARA VIDEO - Grid de métricas + placas */
+                <>
+                <div className="comparison-metrics-grid">
+                    <MetricsCard
+                    model="YOLO"
+                    metrics={yoloMetrics as ComparisonMetrics | null}
+                    color="#22d3ee"
+                    />
+                    <MetricsCard
+                    model="RT-DETR"
+                    metrics={rtdetrMetrics as ComparisonMetrics | null}
+                    color="#f59e0b"
+                    />
                 </div>
-              )}
 
-              {/* Validation table */}
-              <ValidationTable
-                results={mc.comparisonResult}
-                realPlate={mc.realPlate}
-              />
+                {/* Winner badge */}
+                {yoloMetrics && rtdetrMetrics && (
+                    <div className="comparison-winner-section">
+                    <div className="comparison-section-label">GANADOR</div>
+                    {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics)}
+                    </div>
+                )}
+
+                {/* Placas detectadas */}
+                {(yoloMetrics?.plates_detected || rtdetrMetrics?.plates_detected) && (
+                    <div className="comparison-plates-section">
+                    <div className="comparison-section-label">PLACAS DETECTADAS</div>
+                    <div className="comparison-plates-grid">
+                        {yoloMetrics && mc.comparisonResult.yolo && "plates" in mc.comparisonResult.yolo && mc.comparisonResult.yolo.plates && (
+                        <div className="comparison-plates-model">
+                            <h4 style={{ color: "#22d3ee" }}>YOLOv11n</h4>
+                            <div className="comparison-plates-list">
+                            {mc.comparisonResult.yolo.plates.map((plate: any, idx: number) => (
+                                <div key={idx} className="comparison-plate-item">
+                                <span className="comparison-plate-text">{plate.plate || "Sin texto"}</span>
+                                <span className="comparison-plate-confidence">
+                                    OCR: {(plate.ocr_confidence * 100).toFixed(1)}%
+                                </span>
+                                </div>
+                            ))}
+                            </div>
+                        </div>
+                        )}
+                        {rtdetrMetrics && mc.comparisonResult.rtdetr && "plates" in mc.comparisonResult.rtdetr && mc.comparisonResult.rtdetr.plates && (
+                        <div className="comparison-plates-model">
+                            <h4 style={{ color: "#f59e0b" }}>RT-DETR</h4>
+                            <div className="comparison-plates-list">
+                            {mc.comparisonResult.rtdetr.plates.map((plate: any, idx: number) => (
+                                <div key={idx} className="comparison-plate-item">
+                                <span className="comparison-plate-text">{plate.plate || "Sin texto"}</span>
+                                <span className="comparison-plate-confidence">
+                                    OCR: {(plate.ocr_confidence * 100).toFixed(1)}%
+                                </span>
+                                </div>
+                            ))}
+                            </div>
+                        </div>
+                        )}
+                    </div>
+                    </div>
+                )}
+                </>
+            )}
             </section>
-          )}
+        )}
 
-          {/* Empty state */}
-          {!hasResults && !hasVideoActivity && (
+        {/* Empty state */}
+        {!hasResults && !hasVideoActivity && (
             <div className="comparison-empty-right">
-              <div className="comparison-empty-illustration" aria-hidden="true">
+            <div className="comparison-empty-illustration" aria-hidden="true">
                 <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-                  <rect x="6" y="10" width="44" height="32" rx="4"
+                <rect x="6" y="10" width="44" height="32" rx="4"
                     stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M6 32L18 20L28 30L38 18L50 28"
+                <path d="M6 32L18 20L28 30L38 18L50 28"
                     stroke="currentColor" strokeWidth="1.5"
                     strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="40" cy="20" r="3.5"
+                <circle cx="40" cy="20" r="3.5"
                     stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M20 46H36" stroke="currentColor"
+                <path d="M20 46H36" stroke="currentColor"
                     strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-              </div>
-              <p className="comparison-empty-title">Esperando archivo</p>
-              <p className="comparison-empty-desc">
+            </div>
+            <p className="comparison-empty-title">Esperando archivo</p>
+            <p className="comparison-empty-desc">
                 Sube una imagen o video y presiona{" "}
                 <strong>PROBAR MODELOS</strong> para ver el análisis comparativo.
-              </p>
+            </p>
             </div>
-          )}
+        )}
         </div>
       </main>
     </div>
@@ -359,10 +433,12 @@ interface ModelResultRowProps {
   metrics:    ComparisonMetrics | null
   plate:      any
   realPlate:  string
+  vehicles?:  any[]
+  allPlates?: any[]
 }
 
 function ModelResultRow({
-  modelLabel, color, imageSrc, metrics, plate, realPlate,
+  modelLabel, color, imageSrc, metrics, plate, realPlate, vehicles = [], allPlates = []
 }: ModelResultRowProps) {
   return (
     <div className="prototype-model-row">
@@ -386,6 +462,8 @@ function ModelResultRow({
         alt={`${modelLabel} bounding box detection`}
         modelName={modelLabel}
         color={color}
+        vehicles={vehicles}
+        plates={allPlates}
       />
 
       {/* Col 2 — Metrics */}

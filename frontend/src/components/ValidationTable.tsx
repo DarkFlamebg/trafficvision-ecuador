@@ -190,49 +190,103 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
 
       {/* ── Veredicto ──────────────────────────────────────────────────── */}
       {bothReady && (
-        <div className="validation-verdict" style={{ borderColor: winnerColor + "44" }}>
-          <div className="validation-verdict-left">
-            <div className="validation-verdict-crown" style={{ color: winnerColor }}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M2 13L4.5 6L8 10L9 4L10 10L13.5 6L16 13H2Z"
-                  fill={winnerColor} opacity="0.9"
-                />
-              </svg>
+        <div className="validation-verdict" style={{ borderColor: winnerColor + "44", flexDirection: 'column', alignItems: 'stretch' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <div className="validation-verdict-left">
+              <div className="validation-verdict-crown" style={{ color: winnerColor }}>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path
+                    d="M2 13L4.5 6L8 10L9 4L10 10L13.5 6L16 13H2Z"
+                    fill={winnerColor} opacity="0.9"
+                  />
+                </svg>
+              </div>
+              <div>
+                <div className="validation-verdict-title" style={{ color: winnerColor }}>
+                  {winnerLabel}
+                </div>
+                <div className="validation-verdict-sub">
+                  mejor modelo — score {(Math.max(yoloScore, rtdetrScore) * 100).toFixed(0)}/100
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="validation-verdict-title" style={{ color: winnerColor }}>
-                {winnerLabel}
-              </div>
-              <div className="validation-verdict-sub">
-                mejor modelo — score {(Math.max(yoloScore, rtdetrScore) * 100).toFixed(0)}/100
-              </div>
+
+            <div className="validation-verdict-breakdown">
+              <ScoreBreakdown
+                label="Conf. detector"
+                yolo={yoloMetrics?.avg_plate_confidence ?? 0}
+                rtdetr={rtdetrMetrics?.avg_plate_confidence ?? 0}
+                format={(v) => `${(v * 100).toFixed(0)}%`}
+                winnerKey={winnerKey}
+              />
+              <ScoreBreakdown
+                label="Conf. OCR"
+                yolo={yoloOcr}
+                rtdetr={rtdetrOcr}
+                format={(v) => `${(v * 100).toFixed(0)}%`}
+                winnerKey={winnerKey}
+              />
+              <ScoreBreakdown
+                label="Velocidad"
+                yolo={yoloTime}
+                rtdetr={rtdetrTime}
+                format={(v) => `${v.toFixed(1)}ms`}
+                winnerKey={winnerKey}
+                lowerBetter
+              />
             </div>
           </div>
 
-          <div className="validation-verdict-breakdown">
-            <ScoreBreakdown
-              label="Conf. detector"
-              yolo={yoloMetrics?.avg_plate_confidence ?? 0}
-              rtdetr={rtdetrMetrics?.avg_plate_confidence ?? 0}
-              format={(v) => `${(v * 100).toFixed(0)}%`}
-              winnerKey={winnerKey}
-            />
-            <ScoreBreakdown
-              label="Conf. OCR"
-              yolo={yoloOcr}
-              rtdetr={rtdetrOcr}
-              format={(v) => `${(v * 100).toFixed(0)}%`}
-              winnerKey={winnerKey}
-            />
-            <ScoreBreakdown
-              label="Velocidad"
-              yolo={yoloTime}
-              rtdetr={rtdetrTime}
-              format={(v) => `${v.toFixed(1)}ms`}
-              winnerKey={winnerKey}
-              lowerBetter
-            />
+          {/* ── Explicación Simplificada ── */}
+          <div style={{
+            marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)',
+            color: 'var(--text-hi)', fontSize: '0.85rem', lineHeight: '1.6'
+          }}>
+            <h4 style={{ color: 'var(--text-hi)', marginBottom: '0.85rem', fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              💡 Resumen Simplificado
+            </h4>
+            <p style={{ marginBottom: '1rem', color: 'var(--text-mid)' }}>
+              En esta prueba, <strong style={{ color: winnerColor }}>{winnerLabel}</strong> fue coronado como el mejor modelo general, obteniendo una calificación de <strong>{(Math.max(yoloScore, rtdetrScore) * 100).toFixed(0)} sobre 100</strong>. Aquí te desglosamos el porqué:
+            </p>
+            <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.8rem', color: 'var(--text-mid)', margin: 0 }}>
+              <li>
+                <span style={{ color: 'var(--text-hi)', fontWeight: 600 }}>Saber dónde está la placa (Detector):</span><br />
+                {(() => {
+                  const yoloDet = yoloMetrics?.avg_plate_confidence ?? 0;
+                  const rtDet = rtdetrMetrics?.avg_plate_confidence ?? 0;
+                  if (yoloDet === rtDet) return 'Imagina que les pides que señalen la placa con el dedo. Ambos modelos tuvieron exactamente la misma seguridad al encontrarla.';
+                  const winner = yoloDet > rtDet ? 'YOLOv11n' : 'RT-DETR';
+                  const loser = yoloDet > rtDet ? 'RT-DETR' : 'YOLOv11n';
+                  const wScore = Math.max(yoloDet, rtDet) * 100;
+                  const lScore = Math.min(yoloDet, rtDet) * 100;
+                  return `Imagina que les pides que señalen la placa con el dedo. ${winner} estuvo más seguro de haberla encontrado (${wScore.toFixed(0)}% de seguridad). En cambio, ${loser} dudó más y solo estuvo seguro al ${lScore.toFixed(0)}%. Por lo tanto, en "vista", ganó ${winner}.`;
+                })()}
+              </li>
+              <li>
+                <span style={{ color: 'var(--text-hi)', fontWeight: 600 }}>Saber leer letras y números (OCR):</span><br />
+                {(() => {
+                  if (yoloOcr === 0 && rtdetrOcr === 0) return 'Una vez que encuentran la placa, tienen que leer el texto. En esta imagen en particular, fue una tarea demasiado difícil: ninguno logró leer nada (0%). Fue un empate a cero.';
+                  if (yoloOcr === rtdetrOcr) return `Una vez que encuentran la placa, tienen que leer el texto. Ambos modelos lograron leerla con el mismo nivel de confianza (${(yoloOcr * 100).toFixed(0)}%).`;
+                  const winner = yoloOcr > rtdetrOcr ? 'YOLOv11n' : 'RT-DETR';
+                  const loser = yoloOcr > rtdetrOcr ? 'RT-DETR' : 'YOLOv11n';
+                  const wScore = Math.max(yoloOcr, rtdetrOcr) * 100;
+                  const lScore = Math.min(yoloOcr, rtdetrOcr) * 100;
+                  return `Una vez encontrada la placa, tienen que leer el texto. ${winner} tuvo más facilidad para leer los caracteres (${wScore.toFixed(0)}%), superando a ${loser} que obtuvo ${lScore.toFixed(0)}%.`;
+                })()}
+              </li>
+              <li>
+                <span style={{ color: 'var(--text-hi)', fontWeight: 600 }}>Qué tan rápidos son pensando (Velocidad):</span><br />
+                {(() => {
+                  if (yoloTime === rtdetrTime) return 'Ambos modelos procesaron la imagen exactamente a la misma velocidad.';
+                  const winner = yoloTime < rtdetrTime ? 'YOLOv11n' : 'RT-DETR';
+                  const loser = yoloTime < rtdetrTime ? 'RT-DETR' : 'YOLOv11n';
+                  const fast = Math.min(yoloTime, rtdetrTime);
+                  const slow = Math.max(yoloTime, rtdetrTime);
+                  const ratio = (slow / Math.max(fast, 1)).toFixed(1);
+                  return `Aquí es donde destacó ${winner}. Logró procesar la imagen en apenas ${fast.toFixed(0)} milisegundos, mientras que ${loser} fue más lento tardando ${slow.toFixed(0)} milisegundos. Al ser ${ratio} veces más rápido, ${winner} se lleva el premio en velocidad.`;
+                })()}
+              </li>
+            </ul>
           </div>
         </div>
       )}
@@ -283,7 +337,7 @@ function ScoreBreakdown({
     <div className="validation-breakdown-row">
       <span
         className={`validation-breakdown-val ${yoloWins ? "validation-breakdown-val--win" : ""}`}
-        style={{ color: yoloWins ? "var(--yolo)" : "var(--text-lo)" }}
+        style={{ color: yoloWins ? "var(--yolo)" : "var(--text-hi)" }}
       >
         {format(yolo)}
         {yoloWins && <span className="validation-breakdown-arrow">▲</span>}
@@ -291,7 +345,7 @@ function ScoreBreakdown({
       <span className="validation-breakdown-label">{label}</span>
       <span
         className={`validation-breakdown-val ${rtdetrWins ? "validation-breakdown-val--win" : ""}`}
-        style={{ color: rtdetrWins ? "var(--rtdetr)" : "var(--text-lo)" }}
+        style={{ color: rtdetrWins ? "var(--rtdetr)" : "var(--text-hi)" }}
       >
         {format(rtdetr)}
         {rtdetrWins && <span className="validation-breakdown-arrow">▲</span>}
