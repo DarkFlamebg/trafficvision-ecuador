@@ -258,11 +258,13 @@ function ModelComparison() {
                 model="YOLO" frameSrc={mc.yoloFrame}
                 progress={mc.yoloProgress} status={mc.yoloStatus}
                 loading={mc.loading} color="#22d3ee"
+                telemetry={mc.yoloTelemetry}
                 />
                 <ComparisonVideoStream
                 model="RT-DETR" frameSrc={mc.rtdetrFrame}
                 progress={mc.rtdetrProgress} status={mc.rtdetrStatus}
                 loading={mc.loading} color="#f59e0b"
+                telemetry={mc.rtdetrTelemetry}
                 />
             </div>
             </section>
@@ -327,69 +329,62 @@ function ModelComparison() {
                 />
                 </>
             ) : (
-                /* LAYOUT PARA VIDEO - Grid de métricas + placas */
-                <>
-                <div className="comparison-metrics-grid">
+                /* LAYOUT PARA VIDEO - Grid de métricas + placas integradas */
+                <div className="comparison-video-integrated">
+                  {/* YOLO Column */}
+                  <div className="comparison-model-column">
+                    <div className="comparison-model-header-integrated" style={{ color: "#22d3ee" }}>
+                      YOLOv11n
+                    </div>
                     <MetricsCard
-                    model="YOLO"
-                    metrics={yoloMetrics as ComparisonMetrics | null}
-                    color="#22d3ee"
+                      model="YOLO"
+                      metrics={yoloMetrics as ComparisonMetrics | null}
+                      color="#22d3ee"
                     />
+                    
+                    {yoloData?.plates && yoloData.plates.length > 0 && (
+                      <div className="comparison-integrated-plates">
+                        <div className="comparison-section-label">PLACAS DETECTADAS</div>
+                        <div className="video-plates-list">
+                          {yoloData.plates.map((plate: any, idx: number) => (
+                            <VideoPlateCard key={idx} plate={plate} color="#22d3ee" />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* RT-DETR Column */}
+                  <div className="comparison-model-column">
+                    <div className="comparison-model-header-integrated" style={{ color: "#f59e0b" }}>
+                      RT-DETR
+                    </div>
                     <MetricsCard
-                    model="RT-DETR"
-                    metrics={rtdetrMetrics as ComparisonMetrics | null}
-                    color="#f59e0b"
+                      model="RT-DETR"
+                      metrics={rtdetrMetrics as ComparisonMetrics | null}
+                      color="#f59e0b"
                     />
+
+                    {rtdetrData?.plates && rtdetrData.plates.length > 0 && (
+                      <div className="comparison-integrated-plates">
+                        <div className="comparison-section-label">PLACAS DETECTADAS</div>
+                        <div className="video-plates-list">
+                          {rtdetrData.plates.map((plate: any, idx: number) => (
+                            <VideoPlateCard key={idx} plate={plate} color="#f59e0b" />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Winner badge at bottom */}
+                  {yoloMetrics && rtdetrMetrics && (
+                    <div className="comparison-winner-row">
+                      {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics)}
+                    </div>
+                  )}
                 </div>
-
-                {/* Winner badge */}
-                {yoloMetrics && rtdetrMetrics && (
-                    <div className="comparison-winner-section">
-                    <div className="comparison-section-label">GANADOR</div>
-                    {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics)}
-                    </div>
-                )}
-
-                {/* Placas detectadas */}
-                {(yoloMetrics?.plates_detected || rtdetrMetrics?.plates_detected) && (
-                    <div className="comparison-plates-section">
-                    <div className="comparison-section-label">PLACAS DETECTADAS</div>
-                    <div className="comparison-plates-grid">
-                        {yoloMetrics && mc.comparisonResult.yolo && "plates" in mc.comparisonResult.yolo && mc.comparisonResult.yolo.plates && (
-                        <div className="comparison-plates-model">
-                            <h4 style={{ color: "#22d3ee" }}>YOLOv11n</h4>
-                            <div className="comparison-plates-list">
-                            {mc.comparisonResult.yolo.plates.map((plate: any, idx: number) => (
-                                <div key={idx} className="comparison-plate-item">
-                                <span className="comparison-plate-text">{plate.plate || "Sin texto"}</span>
-                                <span className="comparison-plate-confidence">
-                                    OCR: {(plate.ocr_confidence * 100).toFixed(1)}%
-                                </span>
-                                </div>
-                            ))}
-                            </div>
-                        </div>
-                        )}
-                        {rtdetrMetrics && mc.comparisonResult.rtdetr && "plates" in mc.comparisonResult.rtdetr && mc.comparisonResult.rtdetr.plates && (
-                        <div className="comparison-plates-model">
-                            <h4 style={{ color: "#f59e0b" }}>RT-DETR</h4>
-                            <div className="comparison-plates-list">
-                            {mc.comparisonResult.rtdetr.plates.map((plate: any, idx: number) => (
-                                <div key={idx} className="comparison-plate-item">
-                                <span className="comparison-plate-text">{plate.plate || "Sin texto"}</span>
-                                <span className="comparison-plate-confidence">
-                                    OCR: {(plate.ocr_confidence * 100).toFixed(1)}%
-                                </span>
-                                </div>
-                            ))}
-                            </div>
-                        </div>
-                        )}
-                    </div>
-                    </div>
-                )}
-                </>
-            )}
+              )}
             </section>
         )}
 
@@ -520,6 +515,42 @@ function renderWinner(yolo: ComparisonMetrics, rtdetr: ComparisonMetrics) {
         <div>
           <span className="comparison-detail-label">RT-DETR</span>
           <span className="comparison-detail-value">{rtdetrTime.toFixed(2)}ms</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VIDEO PLATE CARD
+   ══════════════════════════════════════════════════════════════ */
+function VideoPlateCard({ plate, color }: { plate: any; color: string }) {
+  return (
+    <div className="video-plate-card" style={{ borderColor: color + '33' }}>
+      <div className="vpc-image-wrap">
+        {plate.image_base64 ? (
+          <img src={`data:image/jpeg;base64,${plate.image_base64}`} alt="Placa" className="vpc-image" />
+        ) : (
+          <div className="vpc-no-image">No Image</div>
+        )}
+      </div>
+      <div className="vpc-body">
+        <div className="vpc-plate-text" style={{ color, fontSize: plate.plate ? '0.95rem' : '0.65rem' }}>
+          {plate.plate || "No Detectada Correctamente"}
+        </div>
+        <div className="vpc-metrics">
+          <div className="vpc-metric">
+            <span>OCR</span>
+            <strong>{(plate.ocr_confidence * 100).toFixed(1)}%</strong>
+          </div>
+          <div className="vpc-metric">
+            <span>DET</span>
+            <strong>{(plate.detector_confidence * 100).toFixed(1)}%</strong>
+          </div>
+          <div className="vpc-metric" title="Segundo en el video">
+            <span>TIME</span>
+            <strong>{plate.timestamp_video?.toFixed(1)}s</strong>
+          </div>
         </div>
       </div>
     </div>

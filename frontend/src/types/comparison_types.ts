@@ -41,6 +41,7 @@ export interface PlateDetection {
   vehicle_bbox?:       [number, number, number, number] | null
   // Para OCR visual por carácter (si el backend lo soporta)
   char_confidences?:   number[]
+  image_base64?:       string
 }
 
 export interface VehicleDetection {

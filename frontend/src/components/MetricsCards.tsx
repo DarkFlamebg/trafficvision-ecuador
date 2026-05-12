@@ -37,7 +37,7 @@ export function MetricsCard({ model, metrics, color }: MetricsCardProps) {
               <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
               <path d="M6 3V6L8 7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
-            <span>{metrics.inference_ms.toFixed(1)}ms</span>
+            <span>{metrics.inference_ms.toFixed(1)}<span className="comparison-stat-unit" style={{ color: 'inherit' }}>ms</span></span>
           </div>
         )}
       </div>
@@ -78,14 +78,14 @@ export function MetricsCard({ model, metrics, color }: MetricsCardProps) {
             <div className="comparison-stat">
               <span className="comparison-stat-label">Tiempo procesamiento</span>
               <span className="comparison-stat-value">
-                {((metrics.processing_time_ms ?? 0) / 1000).toFixed(2)}s
+                {((metrics.processing_time_ms ?? 0) / 1000).toFixed(2)}<span className="comparison-stat-unit">s</span>
               </span>
             </div>
             {metrics.avg_inference_ms !== undefined && (
               <div className="comparison-stat comparison-stat--highlight">
                 <span className="comparison-stat-label">Inferencia promedio</span>
                 <span className="comparison-stat-value" style={{ color }}>
-                  {metrics.avg_inference_ms.toFixed(2)}ms
+                  {metrics.avg_inference_ms.toFixed(2)}<span className="comparison-stat-unit">ms</span>
                 </span>
               </div>
             )}
@@ -125,7 +125,7 @@ export function MetricsCard({ model, metrics, color }: MetricsCardProps) {
             <div className="comparison-stat comparison-stat--highlight">
               <span className="comparison-stat-label">Tiempo inferencia</span>
               <span className="comparison-stat-value" style={{ color }}>
-                {metrics.inference_ms.toFixed(2)}ms
+                {metrics.inference_ms.toFixed(2)}<span className="comparison-stat-unit">ms</span>
               </span>
             </div>
           </>

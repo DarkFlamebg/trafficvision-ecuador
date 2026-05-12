@@ -14,6 +14,7 @@ import time
 import base64
 import asyncio
 import shutil
+import re
 
 import cv2
 import numpy as np
@@ -30,6 +31,47 @@ TEMP_DIR = "temp"
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/jpg"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/mpeg", "video/x-msvideo", "video/quicktime", "video/webm"}
+
+# ── Heurística para Placas ─────────────────────────────────────────────────────
+
+def _is_valid_plate_text(text: str) -> bool:
+    """
+    Filtro heurístico inteligente:
+    - Permite placas sin texto (para que aparezcan al final si el detector funcionó pero OCR falló).
+    - Descarta letreros de buses conocidos ("ESCOLAR", "COMPANIA").
+    - Si tiene letras y números, es válida.
+    - Si solo tiene números o solo letras, la permite SOLO si es muy corta (lectura parcial ej. "GRY").
+      Si tiene 4+ caracteres de un solo tipo (ej. "2923" o "ESCO"), la descarta.
+    """
+    if not text:
+        return True
+    
+    clean_text = re.sub(r'[^A-Z0-9]', '', text.upper())
+    
+    # Blacklist de textos de buses
+    for w in ["ESCOLAR", "COMPANIA", "FURBUSA", "INSTITU"]:
+        if w in text.upper():
+            return False
+
+    if len(clean_text) > 8:
+        return False
+        
+    has_letters = any(c.isalpha() for c in clean_text)
+    has_numbers = any(c.isdigit() for c in clean_text)
+    
+    if has_letters and has_numbers:
+        return True
+        
+    # Si solo tiene números y es de 4+ caracteres (ej. "2923"), descartar
+    if not has_letters and len(clean_text) >= 4:
+        return False
+        
+    # Si solo tiene letras y es de 4+ caracteres (ej. "ESCO"), descartar
+    if not has_numbers and len(clean_text) >= 4:
+        return False
+        
+    # Lectura parcial corta (ej. "GRY" o "123") -> Permitir
+    return True
 
 # ── Selector de detector ───────────────────────────────────────────────────────
 
@@ -145,14 +187,17 @@ async def compare_image(
                     plate["bbox"][3] + vy1,
                 ] if vehicles else plate["bbox"]
 
-                plates_found.append({
-                    "bbox":               abs_bbox,
-                    "detector_confidence": plate["confidence"],
-                    "plate":              ocr_text,
-                    "ocr_confidence":     round(ocr_conf, 4),
-                    "vehicle_type":       v.get("type_es"),
-                    "vehicle_bbox":       v["bbox"] if vehicles else None,
-                })
+                # Añadir solo si pasa el filtro heurístico o si estamos en modo estricto
+                # (Para la lista de imagen, mantendremos las que pasen el filtro para evitar ensuciar los resultados)
+                if _is_valid_plate_text(ocr_text):
+                    plates_found.append({
+                        "bbox":               abs_bbox,
+                        "detector_confidence": plate["confidence"],
+                        "plate":              ocr_text,
+                        "ocr_confidence":     round(ocr_conf, 4),
+                        "vehicle_type":       v.get("type_es"),
+                        "vehicle_bbox":       v["bbox"] if vehicles else None,
+                    })
 
         inference_ms = (time.perf_counter() - t_start) * 1000
 
@@ -400,9 +445,12 @@ async def compare_video(
                             "vehicle_type":        v["type_es"],
                             "frame":               proc_frame,
                             "timestamp_video":     round(frame_count / fps, 2),
+                            "image_base64":        _frame_to_b64(plate["image"]) if "image" in plate else None,
                         }
                         frame_p_dets.append(p_entry)
-                        if ocr_text:
+                        
+                        # Solo consideramos la placa como "válida" si pasa el filtro heurístico
+                        if _is_valid_plate_text(ocr_text):
                             all_plates.append(p_entry)
 
                 # ── Tracking ───────────────────────────────────────────────

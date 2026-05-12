@@ -25,6 +25,9 @@ export function useModelComparison() {
   const [yoloStatus,     setYoloStatus]     = useState("")
   const [rtdetrStatus,   setRtdetrStatus]   = useState("")
 
+  const [yoloTelemetry,   setYoloTelemetry]   = useState<any>(null)
+  const [rtdetrTelemetry, setRtdetrTelemetry] = useState<any>(null)
+
   const yoloWsRef   = useRef<WebSocket | null>(null)
   const rtdetrWsRef = useRef<WebSocket | null>(null)
 
@@ -137,6 +140,8 @@ export function useModelComparison() {
 
     doneRef.current = new Set()
     lastFrameDataRef.current = {} as any
+    setYoloTelemetry(null)
+    setRtdetrTelemetry(null)
 
     try {
       const videoBytes = await file.arrayBuffer()
@@ -159,6 +164,7 @@ export function useModelComparison() {
     const setFrame    = model === "yolo" ? setYoloFrame    : setRtdetrFrame
     const setProgress = model === "yolo" ? setYoloProgress : setRtdetrProgress
     const setStatus   = model === "yolo" ? setYoloStatus   : setRtdetrStatus
+    const setTelemetry = model === "yolo" ? setYoloTelemetry : setRtdetrTelemetry
 
     ws.onopen = () => {
       setStatus(`[${model.toUpperCase()}] Enviando video...`)
@@ -189,11 +195,16 @@ export function useModelComparison() {
           `[${model.toUpperCase()}] Frame ${frameNum} · ${infMs.toFixed(1)}ms`
         )
 
-        lastFrameDataRef.current[model] = {
+        const telemetry = {
           vehicle_counter: data.vehicle_counter ?? {},
           plates_count:    data.plates_count ?? 0,
           inference_ms:    infMs,
+          frame_num:       frameNum
         }
+
+        setTelemetry(telemetry)
+
+        lastFrameDataRef.current[model] = telemetry
       }
 
       if (data.type === "done") {
@@ -310,6 +321,7 @@ export function useModelComparison() {
     yoloFrame, rtdetrFrame,
     yoloProgress, rtdetrProgress,
     yoloStatus, rtdetrStatus,
+    yoloTelemetry, rtdetrTelemetry,
     inputRef,
     handleFile, handleDrop,
     runImageComparison, runVideoComparison,

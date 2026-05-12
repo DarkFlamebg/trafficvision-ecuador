@@ -5,6 +5,7 @@ interface ComparisonVideoStreamProps {
   status:     string
   loading:    boolean
   color:      string
+  telemetry?: any
 }
 
 export function ComparisonVideoStream({
@@ -14,6 +15,7 @@ export function ComparisonVideoStream({
   status,
   loading,
   color,
+  telemetry,
 }: ComparisonVideoStreamProps) {
   if (!loading && !frameSrc) return null
 
