@@ -22,7 +22,7 @@ from ultralytics import YOLO
 # ── Detectar dispositivo ───────────────────────────────────────────────────────
 try:
     import torch_directml
-    DEVICE = "cpu"
+    DEVICE = torch_directml.device()
     print(f"[device] ✅ AMD GPU via DirectML: {DEVICE}")
 except ImportError:
     DEVICE = "cpu"
@@ -34,11 +34,11 @@ EPOCHS      = 50
 IMG_SIZE    = 640
 BATCH_SIZE  = 8
 
-EC_BASE = "datasets/license-plates-ec-combined"
+EC_BASE = "../datasets/raw/license-plates-ec-combined"
 
 DATASETS = {
     "global": {
-        "yaml": "datasets/license-plates/data.yaml",
+        "yaml": "../datasets/raw/license-plates/data.yaml",
         "name": "yolov8n_plates_global",
     },
     "ecuador": {
@@ -97,6 +97,7 @@ def create_combined_yaml() -> str:
     }
 
     path = os.path.join(base, "data_combined.yaml")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
 
@@ -109,7 +110,7 @@ def create_combined_yaml() -> str:
 # ── Crear data_combined_all.yaml (global + ec-1 + ec-2 + ec-4) ───────────────
 def create_combined_all_yaml() -> str:
     base    = os.path.abspath(EC_BASE)
-    global_ = os.path.abspath("datasets/license-plates")
+    global_ = os.path.abspath("../datasets/raw/license-plates")
 
     gl_train  = os.path.join(global_, "train", "images").replace("\\", "/")
     gl_valid  = os.path.join(global_, "valid", "images").replace("\\", "/")
@@ -126,6 +127,7 @@ def create_combined_all_yaml() -> str:
     }
 
     path = os.path.join(base, "data_combined_all.yaml")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
 
@@ -170,9 +172,16 @@ def train(dataset_key: str):
     else:
         fixed_yaml = fix_yaml_paths(cfg["yaml"])
 
-    # model = YOLO(MODEL_BASE)
-    last_pt = "runs/detect/yolov8n_plates_combined_all/weights/last.pt"
-    model = YOLO(last_pt)
+    last_pt = f"runs/detect/{cfg['name']}/weights/last.pt"
+    if os.path.exists(last_pt):
+        print(f"  [info] Retomando desde {last_pt}")
+        model = YOLO(last_pt)
+        resume_train = True
+    else:
+        print(f"  [info] Iniciando desde {MODEL_BASE}")
+        model = YOLO(MODEL_BASE)
+        resume_train = False
+
     model.train(
         data      = fixed_yaml,
         epochs    = EPOCHS,
@@ -186,7 +195,7 @@ def train(dataset_key: str):
         device    = DEVICE,
         amp       = False,
         workers   = 4,        # optimizado para Ryzen 5 5600
-        resume    = True,    # ← agrega esta línea
+        resume    = resume_train,
     )
 
     best = find_best_pt(cfg["name"])
