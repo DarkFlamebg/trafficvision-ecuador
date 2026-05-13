@@ -241,7 +241,7 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
           <div className="validation-summary-box">
             <header className="validation-summary-header">
               <div className="validation-summary-icon">💡</div>
-              <h4 className="validation-summary-title">Resumen Simplificado</h4>
+              <h4 className="validation-summary-title">Resumen</h4>
             </header>
             <div className="validation-summary-content">
               <p className="summary-intro">

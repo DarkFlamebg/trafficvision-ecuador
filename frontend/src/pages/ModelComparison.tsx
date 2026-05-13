@@ -329,7 +329,7 @@ function ModelComparison() {
                 />
                 </>
             ) : (
-                /* LAYOUT PARA VIDEO - Grid de métricas + placas integradas */
+                <>
                 <div className="comparison-video-integrated">
                   {/* YOLO Column */}
                   <div className="comparison-model-column">
@@ -384,6 +384,13 @@ function ModelComparison() {
                     </div>
                   )}
                 </div>
+
+                {/* Validation summary — veredicto + resumen simplificado */}
+                <ValidationTable
+                  results={mc.comparisonResult}
+                  realPlate={mc.realPlate}
+                />
+                </>
               )}
             </section>
         )}
