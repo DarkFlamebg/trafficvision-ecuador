@@ -6,6 +6,7 @@ import numpy as np
 import cv2
 from PIL import Image, ImageOps
 from ultralytics import YOLO
+from app.ai.crop_utils import extract_plate_crop
 
 # ── Rutas ──────────────────────────────────────────────────────────────────────
 _BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
@@ -14,11 +15,9 @@ _ROOT_DIR  = os.path.abspath(os.path.join(_BASE_DIR, "../../.."))
 MODEL_PATH            = os.path.join(_ROOT_DIR, "ml", "models", "trained", "yolo11n_combined_all", "best.pt")
 CONFIDENCE_THRESHOLD  = 0.45
 
-# Proporción ancho/alto válida para una placa vehicular
 ASPECT_RATIO_MIN = 1.5
 ASPECT_RATIO_MAX = 6.0
 
-# Modelo cargado una sola vez al importar
 _model = None
 
 def _get_model() -> YOLO:
@@ -59,8 +58,8 @@ def detect_plate(input_image) -> list:
 
     Returns:
         Lista de dicts:
-          - "image":      recorte NumPy BGR de la placa
-          - "bbox":       [x1, y1, x2, y2] en píxeles (int)
+          - "image":      recorte NumPy BGR de la placa (con padding + deskew)
+          - "bbox":       [x1, y1, x2, y2] en píxeles originales (int)
           - "confidence": float 0.0 – 1.0
     """
     image  = _load_image(input_image)
@@ -89,16 +88,17 @@ def detect_plate(input_image) -> list:
 
         aspect_ratio = w_box / h_box
         if not (ASPECT_RATIO_MIN <= aspect_ratio <= ASPECT_RATIO_MAX):
-            print(f"[detector] Bbox descartado por proporción: {w_box}x{h_box} = {aspect_ratio:.2f}")
+            print(f"[yolo] Bbox descartado por proporción: {w_box}x{h_box} = {aspect_ratio:.2f}")
             continue
 
-        crop = image[y1:y2, x1:x2]
+        # ── CAMBIO: crop con padding adaptativo + deskew ──────────────────────
+        crop = extract_plate_crop(image, x1, y1, x2, y2)
         if crop.size == 0:
             continue
 
         plates.append({
             "image":      crop,
-            "bbox":       [x1, y1, x2, y2],
+            "bbox":       [x1, y1, x2, y2],   # bbox original sin padding (para visualización)
             "confidence": round(conf, 4),
         })
 
