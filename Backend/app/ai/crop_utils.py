@@ -9,19 +9,24 @@ import numpy as np
 PADDING_RATIO   = 0.08   # 8% del ancho/alto del bbox como padding extra
 MIN_PADDING_PX  = 4      # Mínimo absoluto en píxeles
 
+# Ratio ancho/alto por debajo del cual la placa se considera vertical (moto EC)
+# Placa moto EC: ~10x15cm → ratio ≈ 0.67
+# Umbral conservador: cualquier bbox más alto que ancho es placa de moto
+MOTO_PLATE_RATIO = 1.0
+
 
 def extract_plate_crop(image: np.ndarray, x1: int, y1: int, x2: int, y2: int) -> np.ndarray:
     """
-    Extrae un crop de placa con padding adaptativo y corrección de perspectiva.
+    Extrae un crop de placa con padding adaptativo, rotación para placas de
+    moto (verticales) y corrección de perspectiva (deskew).
 
-    Reemplaza el simple image[y1:y2, x1:x2] de los detectores.
-    Mejora la calidad del crop que llega al OCR, especialmente en:
-      - Placas pequeñas (evita cortar bordes de caracteres)
-      - Placas con leve inclinación (deskew automático)
-      - Placas con marco metálico brillante (padding absorbe el borde)
+    Tipos de placa soportados:
+      - Auto/camión: horizontal (ratio > 1.5)
+      - Moto EC:     vertical   (ratio < 1.0) → se rota 90° para que el OCR
+                                               lea de izquierda a derecha
 
     Args:
-        image:      imagen completa BGR (NumPy array)
+        image:        imagen completa BGR (NumPy array)
         x1,y1,x2,y2: coordenadas del bbox detectado (ya clipeadas a imagen)
 
     Returns:
@@ -45,9 +50,33 @@ def extract_plate_crop(image: np.ndarray, x1: int, y1: int, x2: int, y2: int) ->
     if crop.size == 0:
         return image[y1:y2, x1:x2]  # fallback al crop original
 
-    # ── 2. Corrección de perspectiva (deskew) ──────────────────────────────────
+    # ── 2. Rotar si es placa de moto (vertical) ────────────────────────────────
+    crop = _rotate_if_moto(crop)
+
+    # ── 3. Corrección de perspectiva (deskew) ──────────────────────────────────
     crop = _deskew(crop)
 
+    return crop
+
+
+def _rotate_if_moto(crop: np.ndarray) -> np.ndarray:
+    """
+    Si el crop es más alto que ancho (placa de moto ecuatoriana en vertical),
+    lo rota 90° en sentido antihorario para que quede horizontal.
+
+    Las placas de moto EC tienen formato:
+      Línea 1: letras (e.g. "PFJ")
+      Línea 2: dígitos (e.g. "204")
+    Al rotar, ambas líneas quedan en una sola fila legible por EasyOCR.
+    """
+    h, w = crop.shape[:2]
+    if w == 0 or h == 0:
+        return crop
+
+    ratio = w / h
+    if ratio < MOTO_PLATE_RATIO:
+        # Placa vertical → rotar 90° antihorario
+        crop = cv2.rotate(crop, cv2.ROTATE_90_COUNTERCLOCKWISE)
     return crop
 
 

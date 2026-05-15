@@ -15,7 +15,10 @@ _ROOT_DIR  = os.path.abspath(os.path.join(_BASE_DIR, "../../.."))
 MODEL_PATH            = os.path.join(_ROOT_DIR, "ml", "models", "trained", "rtdetr_combined_all", "best.pt")
 CONFIDENCE_THRESHOLD  = 0.45
 
-ASPECT_RATIO_MIN = 1.5
+# Autos/camiones: ratio > 1.5 (placa horizontal)
+# Motos EC:       ratio < 1.0 (placa vertical ~10x15cm)
+# Rango combinado: 0.3 – 6.0, el giro se maneja en crop_utils._rotate_if_moto
+ASPECT_RATIO_MIN = 0.3
 ASPECT_RATIO_MAX = 6.0
 
 _model = None

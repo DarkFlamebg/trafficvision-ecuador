@@ -36,42 +36,65 @@ ALLOWED_VIDEO_TYPES = {"video/mp4", "video/mpeg", "video/x-msvideo", "video/quic
 
 def _is_valid_plate_text(text: str) -> bool:
     """
-    Filtro heurístico inteligente:
-    - Permite placas sin texto (para que aparezcan al final si el detector funcionó pero OCR falló).
-    - Descarta letreros de buses conocidos ("ESCOLAR", "COMPANIA").
-    - Si tiene letras y números, es válida.
-    - Si solo tiene números o solo letras, la permite SOLO si es muy corta (lectura parcial ej. "GRY").
-      Si tiene 4+ caracteres de un solo tipo (ej. "2923" o "ESCO"), la descarta.
+    Filtro heurístico basado en el formato de placas ecuatorianas.
+
+    Formato estándar Ecuador: 3 letras + guión + 3 o 4 dígitos  →  ABC-1234 / ABC-123
+    Diplomáticas / especiales: pueden variar, pero siempre letras antes de números.
+
+    Reglas:
+      1. Texto vacío (detector encontró algo, OCR falló) → permitir.
+      2. Blacklist de letreros de buses/empresas → rechazar.
+      3. Menos de 3 caracteres alfanuméricos o más de 8 → rechazar.
+      4. Cumple formato exacto ABC-1234 o ABC-123 → siempre aceptar.
+      5. Solo dígitos (ej. '8', '404', '292', '2923') → rechazar siempre.
+      6. Solo letras (ej. 'FUU', 'ULO', 'LAR') → rechazar siempre
+         (sin dígitos es demasiado ambiguo, podría ser cualquier letrero).
+      7. Mezcla letras + dígitos → aceptar SOLO si las letras vienen
+         ANTES que los dígitos (ej. 'AB12', 'GTT2' ✓ / '12AB' ✗).
+         Esto respeta la estructura LLL-NNNN de las placas ecuatorianas.
     """
     if not text:
         return True
-    
-    clean_text = re.sub(r'[^A-Z0-9]', '', text.upper())
-    
-    # Blacklist de textos de buses
-    for w in ["ESCOLAR", "COMPANIA", "FURBUSA", "INSTITU"]:
-        if w in text.upper():
-            return False
 
-    if len(clean_text) > 8:
+    clean = re.sub(r'[^A-Z0-9]', '', text.strip().upper())
+
+    BLACKLIST = [
+        "ESCOLAR", "COMPANIA", "FURBUSA", "FUNBUSA", "INSTITU",
+        "OLAR", "SOLAR", "UNIVER", "MUNICI", "COOPER", "PRESTA",
+        "SERVI", "TURISM", "EXPRES", "EMPRES", "TRANS",
+    ]
+    if any(w in text.upper() for w in BLACKLIST):
         return False
-        
-    has_letters = any(c.isalpha() for c in clean_text)
-    has_numbers = any(c.isdigit() for c in clean_text)
-    
-    if has_letters and has_numbers:
+
+    if len(clean) < 3 or len(clean) > 8:
+        return False
+
+    # ── Formato exacto ecuatoriano → siempre válido ────────────────────────
+    if re.match(r'^[A-Z]{3}-?\d{3,4}$', text.strip().upper()):
         return True
-        
-    # Si solo tiene números y es de 4+ caracteres (ej. "2923"), descartar
-    if not has_letters and len(clean_text) >= 4:
+
+    has_letters = any(c.isalpha() for c in clean)
+    has_numbers = any(c.isdigit() for c in clean)
+
+    # Solo dígitos → nunca es una placa
+    if not has_letters:
         return False
-        
-    # Si solo tiene letras y es de 4+ caracteres (ej. "ESCO"), descartar
-    if not has_numbers and len(clean_text) >= 4:
+
+    # Solo letras → demasiado ambiguo (podría ser cualquier letrero)
+    if not has_numbers:
         return False
-        
-    # Lectura parcial corta (ej. "GRY" o "123") -> Permitir
+
+    # Mezcla: verificar que las letras vienen ANTES que los dígitos
+    # (en una placa ecuatoriana siempre es LLL seguido de NNN/NNNN)
+    first_digit_pos = next((i for i, c in enumerate(clean) if c.isdigit()), len(clean))
+    last_letter_pos = max((i for i, c in enumerate(clean) if c.isalpha()), default=-1)
+
+    if last_letter_pos > first_digit_pos:
+        # Hay letras después de dígitos → no corresponde al formato ecuatoriano
+        return False
+
     return True
+
 
 # ── Selector de detector ───────────────────────────────────────────────────────
 
@@ -447,10 +470,11 @@ async def compare_video(
                             "timestamp_video":     round(frame_count / fps, 2),
                             "image_base64":        _frame_to_b64(plate["image"]) if "image" in plate else None,
                         }
-                        frame_p_dets.append(p_entry)
-                        
-                        # Solo consideramos la placa como "válida" si pasa el filtro heurístico
+
+                        # Solo añadir si pasa el filtro heurístico
+                        # Esto limpia tanto el display en vivo como la lista final
                         if _is_valid_plate_text(ocr_text):
+                            frame_p_dets.append(p_entry)
                             all_plates.append(p_entry)
 
                 # ── Tracking ───────────────────────────────────────────────
