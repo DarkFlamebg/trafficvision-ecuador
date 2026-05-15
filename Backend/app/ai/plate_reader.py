@@ -21,7 +21,7 @@ _EC_FMT = re.compile(r'^[A-Z]{3}-\d{3,4}$')
 MIN_CROP_W      = 60
 MIN_CROP_H      = 20
 SR_THRESHOLD    = 150
-OCR_MIN_CONF    = 0.30
+OCR_MIN_CONF    = 0.10
 
 INNER_MARGIN_X  = 4
 INNER_MARGIN_Y  = 2

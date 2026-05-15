@@ -1069,6 +1069,50 @@
   font-size: 0.72rem;
 }
 
+/* ── Multi-plate list ─────────────────────────────────────────────────────── */
+.ocr-plates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ocr-plate-card {
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.2s;
+}
+
+.ocr-plate-card:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.ocr-plate-index {
+  font-size: 0.6rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  opacity: 0.7;
+}
+
+.ocr-uncertain-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 4px;
+  padding: 0.15rem 0.45rem;
+  margin-bottom: 0.4rem;
+}
+
 /* ══════════════════════════════════════════════════════════════
    VALIDATION TABLE
    ══════════════════════════════════════════════════════════════ */

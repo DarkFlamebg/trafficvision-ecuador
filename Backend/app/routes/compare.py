@@ -210,17 +210,17 @@ async def compare_image(
                     plate["bbox"][3] + vy1,
                 ] if vehicles else plate["bbox"]
 
-                # Añadir solo si pasa el filtro heurístico o si estamos en modo estricto
-                # (Para la lista de imagen, mantendremos las que pasen el filtro para evitar ensuciar los resultados)
-                if _is_valid_plate_text(ocr_text):
-                    plates_found.append({
-                        "bbox":               abs_bbox,
-                        "detector_confidence": plate["confidence"],
-                        "plate":              ocr_text,
-                        "ocr_confidence":     round(ocr_conf, 4),
-                        "vehicle_type":       v.get("type_es"),
-                        "vehicle_bbox":       v["bbox"] if vehicles else None,
-                    })
+                # Siempre añadir la placa detectada al resultado;
+                # el campo 'ocr_valid' indica si pasa el filtro de formato ecuatoriano
+                plates_found.append({
+                    "bbox":               abs_bbox,
+                    "detector_confidence": plate["confidence"],
+                    "plate":              ocr_text,
+                    "ocr_confidence":     round(ocr_conf, 4),
+                    "vehicle_type":       v.get("type_es"),
+                    "vehicle_bbox":       v["bbox"] if vehicles else None,
+                    "ocr_valid":          _is_valid_plate_text(ocr_text),
+                })
 
         inference_ms = (time.perf_counter() - t_start) * 1000
 
@@ -469,13 +469,13 @@ async def compare_video(
                             "frame":               proc_frame,
                             "timestamp_video":     round(frame_count / fps, 2),
                             "image_base64":        _frame_to_b64(plate["image"]) if "image" in plate else None,
+                            "ocr_valid":           _is_valid_plate_text(ocr_text),
                         }
 
-                        # Solo añadir si pasa el filtro heurístico
-                        # Esto limpia tanto el display en vivo como la lista final
-                        if _is_valid_plate_text(ocr_text):
-                            frame_p_dets.append(p_entry)
-                            all_plates.append(p_entry)
+                        # Mostrar siempre en el panel; acumular siempre en all_plates
+                        # El flag ocr_valid permite al frontend distinguir lecturas confiables
+                        frame_p_dets.append(p_entry)
+                        all_plates.append(p_entry)
 
                 # ── Tracking ───────────────────────────────────────────────
                 for key in list(active_tracks.keys()):

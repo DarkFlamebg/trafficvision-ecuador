@@ -293,7 +293,6 @@ function ModelComparison() {
                     color="#22d3ee"
                     imageSrc={yoloImage}
                     metrics={yoloMetrics as ComparisonMetrics | null}
-                    plate={yoloPlate}
                     realPlate={mc.realPlate}
                     vehicles={yoloData?.vehicles || []}
                     allPlates={yoloData?.plates || []}
@@ -308,7 +307,6 @@ function ModelComparison() {
                     color="#f59e0b"
                     imageSrc={rtdetrImage}
                     metrics={rtdetrMetrics as ComparisonMetrics | null}
-                    plate={rtdetrPlate}
                     realPlate={mc.realPlate}
                     vehicles={rtdetrData?.vehicles || []}
                     allPlates={rtdetrData?.plates || []}
@@ -433,14 +431,13 @@ interface ModelResultRowProps {
   color:      string
   imageSrc:   string | null | undefined
   metrics:    ComparisonMetrics | null
-  plate:      any
   realPlate:  string
   vehicles?:  any[]
   allPlates?: any[]
 }
 
 function ModelResultRow({
-  modelLabel, color, imageSrc, metrics, plate, realPlate, vehicles = [], allPlates = []
+  modelLabel, color, imageSrc, metrics, realPlate, vehicles = [], allPlates = []
 }: ModelResultRowProps) {
   return (
     <div className="prototype-model-row">
@@ -454,7 +451,7 @@ function ModelResultRow({
           fontSize: "0.68rem", color: "var(--text-lo)",
           fontFamily: "var(--font-mono)", letterSpacing: "0.05em",
         }}>
-          (ROUNDING BOX)
+          {allPlates.length > 0 ? `${allPlates.length} placa${allPlates.length !== 1 ? 's' : ''} detectada${allPlates.length !== 1 ? 's' : ''}` : 'Sin placas'}
         </span>
       </div>
 
@@ -475,9 +472,9 @@ function ModelResultRow({
         color={color}
       />
 
-      {/* Col 3 — OCR */}
+      {/* Col 3 — OCR (todas las placas) */}
       <OCRPanel
-        plate={plate}
+        plates={allPlates}
         realPlate={realPlate}
         color={color}
         modelName={modelLabel}
