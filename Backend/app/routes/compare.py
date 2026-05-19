@@ -24,6 +24,8 @@ from app.ai.vehicle_detector    import detect_vehicles
 from app.ai.plate_detector      import detect_plate      as detect_plate_yolo
 from app.ai.plate_detector_rtdetr import detect_plate_rtdetr
 from app.ai.plate_reader        import read_plate
+from app.ai.plate_detector_efficientdet import detect_plate_efficientdet
+
 
 router = APIRouter(prefix="/compare", tags=["Comparativa"])
 
@@ -107,9 +109,11 @@ def _get_plate_detector(model: str):
         return detect_plate_yolo, "YOLOv11n"
     if model == "rtdetr":
         return detect_plate_rtdetr, "RT-DETR"
+    if model == "efficientdet":
+        return detect_plate_efficientdet, "EfficientDet-D2"
     raise HTTPException(
         status_code=400,
-        detail=f"Modelo '{model}' no válido. Usa 'yolo' o 'rtdetr'."
+        detail=f"Modelo '{model}' no válido. Usa 'yolo', 'rtdetr' o 'efficientdet'."
     )
 
 
@@ -153,7 +157,7 @@ def _count_by_type(vehicles: list) -> dict:
 @router.post("/image")
 async def compare_image(
     file: UploadFile = File(...),
-    model: str = Query("yolo", enum=["yolo", "rtdetr"]),
+    model: str = Query("yolo", enum=["yolo", "rtdetr", "efficientdet"]),
 ):
     """
     Corre el pipeline completo de detección sobre una imagen
@@ -190,11 +194,14 @@ async def compare_image(
         # ── Etapa 2: Placas con el modelo elegido ─────────────────────────
         t_start = time.perf_counter()
 
-        search_targets = vehicles if vehicles else [{"bbox": [0, 0, 0, 0], "image": path, "type_es": None, "type": None, "confidence": 0.0}]
+        if model_name == "EfficientDet-D2":
+            search_targets = [{"bbox": [0, 0, 0, 0], "image": path, "type_es": None, "type": None, "confidence": 0.0}]
+        else:
+            search_targets = vehicles if vehicles else [{"bbox": [0, 0, 0, 0], "image": path, "type_es": None, "type": None, "confidence": 0.0}]
 
         for v in search_targets:
-            v_image = v["image"] if vehicles else path
-            vx1, vy1 = (v["bbox"][0], v["bbox"][1]) if vehicles else (0, 0)
+            v_image = v["image"] if model_name != "EfficientDet-D2" and vehicles else path
+            vx1, vy1 = (v["bbox"][0], v["bbox"][1]) if model_name != "EfficientDet-D2" and vehicles else (0, 0)
 
             plates_in_v = detect_plates(v_image)
 
@@ -208,7 +215,7 @@ async def compare_image(
                     plate["bbox"][1] + vy1,
                     plate["bbox"][2] + vx1,
                     plate["bbox"][3] + vy1,
-                ] if vehicles else plate["bbox"]
+                ] if (model_name != "EfficientDet-D2" and vehicles) else plate["bbox"]
 
                 # Siempre añadir la placa detectada al resultado;
                 # el campo 'ocr_valid' indica si pasa el filtro de formato ecuatoriano
@@ -354,7 +361,7 @@ def _build_video_metrics(
 @router.websocket("/video")
 async def compare_video(
     websocket: WebSocket,
-    model: str = Query("yolo", enum=["yolo", "rtdetr"]),
+    model: str = Query("yolo", enum=["yolo", "rtdetr", "efficientdet"]),
 ):
     """
     WebSocket de comparativa de video.
@@ -378,9 +385,12 @@ async def compare_video(
     if model == "yolo":
         detect_plates = detect_plate_yolo
         model_name    = "YOLOv11n"
-    else:
+    elif model == "rtdetr":
         detect_plates = detect_plate_rtdetr
         model_name    = "RT-DETR"
+    else:
+        detect_plates = detect_plate_efficientdet
+        model_name    = "EfficientDet-D2"
 
     input_path = None
 
@@ -442,40 +452,64 @@ async def compare_video(
                         "matched": False,
                     })
 
-                    # ── Placas con el modelo elegido ───────────────────────
+                # ── Placas con el modelo elegido ───────────────────────
+                if model_name == "EfficientDet-D2":
                     t_inf = time.perf_counter()
-                    plates_in_v = detect_plates(v["image"])
+                    plates_in_frame = detect_plates(frame)
                     inference_times.append((time.perf_counter() - t_inf) * 1000)
-
-                    vx1, vy1 = v["bbox"][0], v["bbox"][1]
-                    for plate in plates_in_v:
+                    
+                    for plate in plates_in_frame:
                         ocr      = read_plate(plate["image"])
                         ocr_text = ocr["plate"]      if ocr else ""
                         ocr_conf = ocr["confidence"] if ocr else 0.0
 
-                        abs_bbox = [
-                            plate["bbox"][0] + vx1,
-                            plate["bbox"][1] + vy1,
-                            plate["bbox"][2] + vx1,
-                            plate["bbox"][3] + vy1,
-                        ]
-
                         p_entry = {
-                            "bbox":                abs_bbox,
+                            "bbox":                plate["bbox"],
                             "plate":               ocr_text,
                             "ocr_confidence":      round(ocr_conf, 4),
                             "detector_confidence": plate["confidence"],
-                            "vehicle_type":        v["type_es"],
+                            "vehicle_type":        None,
                             "frame":               proc_frame,
                             "timestamp_video":     round(frame_count / fps, 2),
                             "image_base64":        _frame_to_b64(plate["image"]) if "image" in plate else None,
-                            "ocr_valid":           _is_valid_plate_text(ocr_text),
+                            "ocr_valid":           _is_valid_plate_text(ocr_text) or True, # Forzar dibujado aunque ocr falle
                         }
 
-                        # Mostrar siempre en el panel; acumular siempre en all_plates
-                        # El flag ocr_valid permite al frontend distinguir lecturas confiables
                         frame_p_dets.append(p_entry)
                         all_plates.append(p_entry)
+                else:
+                    for v in vehicles:
+                        t_inf = time.perf_counter()
+                        plates_in_v = detect_plates(v["image"])
+                        inference_times.append((time.perf_counter() - t_inf) * 1000)
+
+                        vx1, vy1 = v["bbox"][0], v["bbox"][1]
+                        for plate in plates_in_v:
+                            ocr      = read_plate(plate["image"])
+                            ocr_text = ocr["plate"]      if ocr else ""
+                            ocr_conf = ocr["confidence"] if ocr else 0.0
+
+                            abs_bbox = [
+                                plate["bbox"][0] + vx1,
+                                plate["bbox"][1] + vy1,
+                                plate["bbox"][2] + vx1,
+                                plate["bbox"][3] + vy1,
+                            ]
+
+                            p_entry = {
+                                "bbox":                abs_bbox,
+                                "plate":               ocr_text,
+                                "ocr_confidence":      round(ocr_conf, 4),
+                                "detector_confidence": plate["confidence"],
+                                "vehicle_type":        v["type_es"],
+                                "frame":               proc_frame,
+                                "timestamp_video":     round(frame_count / fps, 2),
+                                "image_base64":        _frame_to_b64(plate["image"]) if "image" in plate else None,
+                                "ocr_valid":           _is_valid_plate_text(ocr_text) or True, # Forzar dibujado aunque ocr falle
+                            }
+
+                            frame_p_dets.append(p_entry)
+                            all_plates.append(p_entry)
 
                 # ── Tracking ───────────────────────────────────────────────
                 for key in list(active_tracks.keys()):
