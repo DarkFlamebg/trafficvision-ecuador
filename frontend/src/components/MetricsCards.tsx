@@ -1,7 +1,7 @@
 import type { ComparisonMetrics } from "../types/comparison_types"
 
 interface MetricsCardProps {
-  model:   "YOLO" | "RT-DETR"
+  model:   "YOLO" | "RT-DETR" | "EfficientDet-D2"
   metrics: ComparisonMetrics | null
   color:   string
 }

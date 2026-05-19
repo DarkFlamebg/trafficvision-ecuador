@@ -11,13 +11,13 @@ interface ValidationTableProps {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function getMetrics(data?: ComparisonResult["yolo"] | ComparisonResult["rtdetr"]): ComparisonMetrics | null {
+function getMetrics(data?: any): ComparisonMetrics | null {
   if (!data) return null
   if ("metrics" in data) return (data as ComparisonImageResponse).metrics
   return data as ComparisonMetrics
 }
 
-function getBestPlate(data?: ComparisonResult["yolo"] | ComparisonResult["rtdetr"]): string {
+function getBestPlate(data?: any): string {
   if (!data) return "—"
   if ("plates" in data) {
     const plates = (data as ComparisonImageResponse).plates
@@ -26,7 +26,7 @@ function getBestPlate(data?: ComparisonResult["yolo"] | ComparisonResult["rtdetr
   return "—"
 }
 
-function getBestOcrConf(data?: ComparisonResult["yolo"] | ComparisonResult["rtdetr"]): number {
+function getBestOcrConf(data?: any): number {
   if (!data) return 0
   if ("plates" in data) {
     const plates = (data as ComparisonImageResponse).plates
@@ -57,26 +57,40 @@ function computeScore(
 export function ValidationTable({ results, realPlate }: ValidationTableProps) {
   const yoloMetrics   = getMetrics(results.yolo)
   const rtdetrMetrics = getMetrics(results.rtdetr)
+  const efficientdetMetrics = getMetrics(results.efficientdet)
+  
   const yoloPlate     = getBestPlate(results.yolo)
   const rtdetrPlate   = getBestPlate(results.rtdetr)
+  const efficientdetPlate = getBestPlate(results.efficientdet)
+  
   const yoloOcr       = getBestOcrConf(results.yolo)
   const rtdetrOcr     = getBestOcrConf(results.rtdetr)
+  const efficientdetOcr = getBestOcrConf(results.efficientdet)
 
   // Tiempos para normalizar velocidad
   const yoloTime   = yoloMetrics?.avg_inference_ms   ?? yoloMetrics?.inference_ms   ?? 0
   const rtdetrTime = rtdetrMetrics?.avg_inference_ms ?? rtdetrMetrics?.inference_ms ?? 0
-  const allTimes   = [yoloTime, rtdetrTime].filter(Boolean)
+  const efficientdetTime = efficientdetMetrics?.avg_inference_ms ?? efficientdetMetrics?.inference_ms ?? 0
+  const allTimes   = [yoloTime, rtdetrTime, efficientdetTime].filter(Boolean)
 
   const yoloScore   = computeScore(yoloMetrics,   yoloOcr,   allTimes)
   const rtdetrScore = computeScore(rtdetrMetrics, rtdetrOcr, allTimes)
+  const efficientdetScore = computeScore(efficientdetMetrics, efficientdetOcr, allTimes)
 
   // Veredicto
-  const bothReady  = yoloMetrics && rtdetrMetrics
-  const winnerKey  = bothReady
-    ? (yoloScore >= rtdetrScore ? "yolo" : "rtdetr")
-    : null
-  const winnerLabel = winnerKey === "yolo" ? "YOLOv11n" : "RT-DETR"
-  const winnerColor = winnerKey === "yolo" ? "var(--yolo)" : "var(--rtdetr)"
+  const allReady  = yoloMetrics && rtdetrMetrics && efficientdetMetrics
+  
+  let winnerKey: string | null = null
+  if (allReady) {
+    const maxScore = Math.max(yoloScore, rtdetrScore, efficientdetScore)
+    if (maxScore === yoloScore) winnerKey = "yolo"
+    else if (maxScore === rtdetrScore) winnerKey = "rtdetr"
+    else winnerKey = "efficientdet"
+  }
+  const winnerLabel = winnerKey === "yolo" ? "YOLOv11n" : winnerKey === "rtdetr" ? "RT-DETR" : "EfficientDet-D2"
+  const winnerColor = winnerKey === "yolo" ? "var(--yolo)" : winnerKey === "rtdetr" ? "var(--rtdetr)" : "var(--efficientdet)"
+
+  const maxTotalScore = Math.max(yoloScore, rtdetrScore, efficientdetScore)
 
   const rows = [
     {
@@ -98,6 +112,16 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
       ocrConf:   rtdetrOcr,
       score:     rtdetrScore,
       infTime:   rtdetrTime,
+    },
+    {
+      key:       "efficientdet",
+      label:     "EfficientDet-D2",
+      color:     "var(--efficientdet)",
+      metrics:   efficientdetMetrics,
+      plate:     efficientdetPlate,
+      ocrConf:   efficientdetOcr,
+      score:     efficientdetScore,
+      infTime:   efficientdetTime,
     },
   ]
 
@@ -189,7 +213,7 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
       </div>
 
       {/* ── Veredicto ──────────────────────────────────────────────────── */}
-      {bothReady && (
+      {allReady && (
         <div className="validation-verdict" style={{ borderColor: winnerColor + "33", flexDirection: 'column', alignItems: 'stretch' }}>
           <div className="validation-verdict-top">
             <div className="validation-verdict-left">
@@ -206,7 +230,7 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                   {winnerLabel}
                 </div>
                 <div className="validation-verdict-sub">
-                  MEJOR MODELO · SCORE {(Math.max(yoloScore, rtdetrScore) * 100).toFixed(0)}/100
+                  MEJOR MODELO · SCORE {(maxTotalScore * 100).toFixed(0)}/100
                 </div>
               </div>
             </div>
@@ -216,22 +240,22 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                 label="Conf. detector"
                 yolo={yoloMetrics?.avg_plate_confidence ?? 0}
                 rtdetr={rtdetrMetrics?.avg_plate_confidence ?? 0}
+                efficientdet={efficientdetMetrics?.avg_plate_confidence ?? 0}
                 format={(v) => `${(v * 100).toFixed(0)}%`}
-                winnerKey={winnerKey}
               />
               <ScoreBreakdown
                 label="Conf. OCR"
                 yolo={yoloOcr}
                 rtdetr={rtdetrOcr}
+                efficientdet={efficientdetOcr}
                 format={(v) => `${(v * 100).toFixed(0)}%`}
-                winnerKey={winnerKey}
               />
               <ScoreBreakdown
                 label="Velocidad"
                 yolo={yoloTime}
                 rtdetr={rtdetrTime}
+                efficientdet={efficientdetTime}
                 format={(v) => `${v.toFixed(1)}ms`}
-                winnerKey={winnerKey}
                 lowerBetter
               />
             </div>
@@ -245,7 +269,7 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
             </header>
             <div className="validation-summary-content">
               <p className="summary-intro">
-                En esta prueba, <strong style={{ color: winnerColor }}>{winnerLabel}</strong> fue coronado como el mejor modelo general, obteniendo una calificación de <strong>{(Math.max(yoloScore, rtdetrScore) * 100).toFixed(0)} sobre 100</strong>. Aquí te desglosamos el porqué:
+                En esta prueba, <strong style={{ color: winnerColor }}>{winnerLabel}</strong> fue coronado como el mejor modelo general, obteniendo una calificación de <strong>{(maxTotalScore * 100).toFixed(0)} sobre 100</strong>. Aquí te desglosamos el porqué:
               </p>
               <div className="summary-grid">
                 <div className="summary-item">
@@ -254,12 +278,14 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                     {(() => {
                       const yoloDet = yoloMetrics?.avg_plate_confidence ?? 0;
                       const rtDet = rtdetrMetrics?.avg_plate_confidence ?? 0;
-                      if (yoloDet === rtDet) return 'Ambos modelos tuvieron exactamente la misma seguridad al encontrar la placa.';
-                      const winner = yoloDet > rtDet ? 'YOLOv11n' : 'RT-DETR';
-                      const loser = yoloDet > rtDet ? 'RT-DETR' : 'YOLOv11n';
-                      const wScore = Math.max(yoloDet, rtDet) * 100;
-                      const lScore = Math.min(yoloDet, rtDet) * 100;
-                      return `${winner} estuvo más seguro (${wScore.toFixed(0)}%) superando a ${loser} (${lScore.toFixed(0)}%) al señalar la placa.`;
+                      const effDet = efficientdetMetrics?.avg_plate_confidence ?? 0;
+                      const arr = [
+                        { name: 'YOLOv11n', val: yoloDet },
+                        { name: 'RT-DETR', val: rtDet },
+                        { name: 'EfficientDet-D2', val: effDet }
+                      ].sort((a,b) => b.val - a.val);
+                      if (arr[0].val === arr[2].val && arr[0].val > 0) return 'Los modelos tuvieron exactamente la misma seguridad al encontrar la placa.';
+                      return `${arr[0].name} estuvo más seguro (${(arr[0].val*100).toFixed(0)}%) superando a los demás al señalar la placa.`;
                     })()}
                   </p>
                 </div>
@@ -267,12 +293,13 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                   <div className="summary-item-label">Lectura (OCR)</div>
                   <p className="summary-item-text">
                     {(() => {
-                      if (yoloOcr === 0 && rtdetrOcr === 0) return 'Tarea difícil: ninguno logró leer nada (0%) en esta imagen.';
-                      if (yoloOcr === rtdetrOcr) return `Empate técnico: ambos leyeron con ${(yoloOcr * 100).toFixed(0)}% de confianza.`;
-                      const winner = yoloOcr > rtdetrOcr ? 'YOLOv11n' : 'RT-DETR';
-                      const loser = yoloOcr > rtdetrOcr ? 'RT-DETR' : 'YOLOv11n';
-                      const wScore = Math.max(yoloOcr, rtdetrOcr) * 100;
-                      return `${winner} leyó mejor los caracteres (${wScore.toFixed(0)}%) que el modelo rival.`;
+                      if (yoloOcr === 0 && rtdetrOcr === 0 && efficientdetOcr === 0) return 'Tarea difícil: ninguno logró leer nada (0%) en esta imagen.';
+                      const arr = [
+                        { name: 'YOLOv11n', val: yoloOcr },
+                        { name: 'RT-DETR', val: rtdetrOcr },
+                        { name: 'EfficientDet-D2', val: efficientdetOcr }
+                      ].sort((a,b) => b.val - a.val);
+                      return `${arr[0].name} lideró la lectura de los caracteres (${(arr[0].val*100).toFixed(0)}%) en esta imagen.`;
                     })()}
                   </p>
                 </div>
@@ -280,12 +307,16 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                   <div className="summary-item-label">Cerebro (Velocidad)</div>
                   <p className="summary-item-text">
                     {(() => {
-                      if (yoloTime === rtdetrTime) return 'Ambos procesaron a la misma velocidad.';
-                      const winner = yoloTime < rtdetrTime ? 'YOLOv11n' : 'RT-DETR';
-                      const fast = Math.min(yoloTime, rtdetrTime);
-                      const slow = Math.max(yoloTime, rtdetrTime);
-                      const ratio = (slow / Math.max(fast, 1)).toFixed(1);
-                      return `${winner} fue increíblemente rápido (${fast.toFixed(0)}ms), siendo ${ratio}x más veloz que la competencia.`;
+                      const validTimes = [
+                        { name: 'YOLOv11n', val: yoloTime },
+                        { name: 'RT-DETR', val: rtdetrTime },
+                        { name: 'EfficientDet-D2', val: efficientdetTime }
+                      ].filter(t => t.val > 0).sort((a,b) => a.val - b.val);
+                      if (validTimes.length === 0) return 'No se registraron tiempos de inferencia válidos.';
+                      const fast = validTimes[0];
+                      const slow = validTimes[validTimes.length - 1];
+                      const ratio = (slow.val / Math.max(fast.val, 1)).toFixed(1);
+                      return `${fast.name} fue el más rápido (${fast.val.toFixed(0)}ms), siendo ${ratio}x más veloz que el modelo más lento.`;
                     })()}
                   </p>
                 </div>
@@ -325,35 +356,45 @@ function ScorePill({ score, isWinner, color }: { score: number; isWinner: boolea
 }
 
 function ScoreBreakdown({
-  label, yolo, rtdetr, format, winnerKey, lowerBetter = false,
+  label, yolo, rtdetr, efficientdet, format, lowerBetter = false,
 }: {
   label: string
   yolo: number
   rtdetr: number
+  efficientdet: number
   format: (v: number) => string
-  winnerKey: string | null
   lowerBetter?: boolean
 }) {
-  const yoloWins   = lowerBetter ? yolo < rtdetr : yolo > rtdetr
-  const rtdetrWins = lowerBetter ? rtdetr < yolo  : rtdetr > yolo
+  const validVals = [yolo, rtdetr, efficientdet].filter(v => v > 0 || !lowerBetter)
+  const bestVal = validVals.length > 0 ? (lowerBetter ? Math.min(...validVals) : Math.max(...validVals)) : 0
+
+  const yoloWins   = yolo === bestVal && yolo !== 0
+  const rtdetrWins = rtdetr === bestVal && rtdetr !== 0
+  const effWins    = efficientdet === bestVal && efficientdet !== 0
 
   return (
-    <div className="validation-breakdown-row">
-      <span
-        className={`validation-breakdown-val ${yoloWins ? "validation-breakdown-val--win" : ""}`}
-        style={{ color: yoloWins ? "var(--yolo)" : "var(--text-hi)" }}
-      >
-        {format(yolo)}
-        {yoloWins && <span className="validation-breakdown-arrow">▲</span>}
-      </span>
-      <span className="validation-breakdown-label">{label}</span>
-      <span
-        className={`validation-breakdown-val ${rtdetrWins ? "validation-breakdown-val--win" : ""}`}
-        style={{ color: rtdetrWins ? "var(--rtdetr)" : "var(--text-hi)" }}
-      >
-        {format(rtdetr)}
-        {rtdetrWins && <span className="validation-breakdown-arrow">▲</span>}
-      </span>
+    <div className="validation-breakdown-row" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-start', alignItems: 'center' }}>
+      <span className="validation-breakdown-label" style={{ minWidth: '100px' }}>{label}</span>
+      <div style={{ display: 'flex', gap: '0.75rem', flex: 1 }}>
+        <span
+          className={`validation-breakdown-val ${yoloWins ? "validation-breakdown-val--win" : ""}`}
+          style={{ color: yoloWins ? "var(--yolo)" : "var(--text-hi)", flex: 1, textAlign: 'center' }}
+        >
+          {format(yolo)}
+        </span>
+        <span
+          className={`validation-breakdown-val ${rtdetrWins ? "validation-breakdown-val--win" : ""}`}
+          style={{ color: rtdetrWins ? "var(--rtdetr)" : "var(--text-hi)", flex: 1, textAlign: 'center' }}
+        >
+          {format(rtdetr)}
+        </span>
+        <span
+          className={`validation-breakdown-val ${effWins ? "validation-breakdown-val--win" : ""}`}
+          style={{ color: effWins ? "var(--efficientdet)" : "var(--text-hi)", flex: 1, textAlign: 'center' }}
+        >
+          {format(efficientdet)}
+        </span>
+      </div>
     </div>
   )
 }

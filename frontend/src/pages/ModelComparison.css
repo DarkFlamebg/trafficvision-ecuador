@@ -6,6 +6,7 @@
 :root {
   --yolo: #22d3ee;
   --rtdetr: #f59e0b;
+  --efficientdet: #10b981;
   --ok: #22c55e;
   --err: #ef4444;
 
@@ -293,6 +294,12 @@
   color: var(--rtdetr);
   border-color: rgba(245, 158, 11, 0.35);
   background: rgba(245, 158, 11, 0.06);
+}
+
+.comparison-model-tag--efficientdet {
+  color: var(--efficientdet);
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.06);
 }
 
 /* Toolbar right side */

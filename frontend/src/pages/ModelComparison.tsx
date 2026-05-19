@@ -12,18 +12,22 @@ function ModelComparison() {
 
   const yoloData   = mc.comparisonResult.yolo   as ComparisonImageResponse | undefined
   const rtdetrData = mc.comparisonResult.rtdetr as ComparisonImageResponse | undefined
+  const efficientdetData = mc.comparisonResult.efficientdet as ComparisonImageResponse | undefined
 
   const yoloMetrics   = yoloData   ? ("metrics" in yoloData   ? yoloData.metrics   : yoloData)   : null
   const rtdetrMetrics = rtdetrData ? ("metrics" in rtdetrData ? rtdetrData.metrics : rtdetrData) : null
+  const efficientdetMetrics = efficientdetData ? ("metrics" in efficientdetData ? efficientdetData.metrics : efficientdetData) : null
 
   const yoloPlate   = yoloData?.plates?.[0]   || null
   const rtdetrPlate = rtdetrData?.plates?.[0] || null
+  const efficientdetPlate = efficientdetData?.plates?.[0] || null
 
   const yoloImage   = yoloData?.processed_image   || (mc.fileType === "image" ? mc.preview : mc.yoloFrame)
   const rtdetrImage = rtdetrData?.processed_image || (mc.fileType === "image" ? mc.preview : mc.rtdetrFrame)
+  const efficientdetImage = efficientdetData?.processed_image || (mc.fileType === "image" ? mc.preview : mc.efficientdetFrame)
 
-  const hasResults      = !!(yoloMetrics || rtdetrMetrics)
-  const hasVideoActivity = mc.fileType === "video" && (mc.loading || mc.yoloFrame || mc.rtdetrFrame)
+  const hasResults      = !!(yoloMetrics || rtdetrMetrics || efficientdetMetrics)
+  const hasVideoActivity = mc.fileType === "video" && (mc.loading || mc.yoloFrame || mc.rtdetrFrame || mc.efficientdetFrame)
 
   return (
     <div className="comparison-page">
@@ -48,7 +52,7 @@ function ModelComparison() {
             </div>
             <h1 className="comparison-title">COMPARACIÓN DE MODELOS</h1>
           </div>
-          <p className="comparison-tag">YOLOv11n vs RT-DETR · Análisis comparativo</p>
+          <p className="comparison-tag">YOLOv11n vs RT-DETR vs EfficientDet-D2 · Análisis comparativo</p>
         </div>
 
         {mc.loading && (
@@ -93,6 +97,7 @@ function ModelComparison() {
         <div className="comparison-model-tags" aria-label="Modelos activos">
           <span className="comparison-model-tag comparison-model-tag--yolo">YOLO</span>
           <span className="comparison-model-tag comparison-model-tag--rtdetr">RTDETR</span>
+          <span className="comparison-model-tag comparison-model-tag--efficientdet">EFFICIENTDET</span>
         </div>
 
         {/* File info */}
@@ -266,6 +271,12 @@ function ModelComparison() {
                 loading={mc.loading} color="#f59e0b"
                 telemetry={mc.rtdetrTelemetry}
                 />
+                <ComparisonVideoStream
+                model="EfficientDet-D2" frameSrc={mc.efficientdetFrame}
+                progress={mc.efficientdetProgress} status={mc.efficientdetStatus}
+                loading={mc.loading} color="#10b981"
+                telemetry={mc.efficientdetTelemetry}
+                />
             </div>
             </section>
         )}
@@ -312,11 +323,25 @@ function ModelComparison() {
                     allPlates={rtdetrData?.plates || []}
                 />
 
+                <div className="prototype-model-divider" />
+
+                {/* ── EFFICIENTDET ROW ── */}
+                <ModelResultRow
+                    modelKey="efficientdet"
+                    modelLabel="EfficientDet-D2"
+                    color="#10b981"
+                    imageSrc={efficientdetImage}
+                    metrics={efficientdetMetrics as ComparisonMetrics | null}
+                    realPlate={mc.realPlate}
+                    vehicles={efficientdetData?.vehicles || []}
+                    allPlates={efficientdetData?.plates || []}
+                />
+
                 {/* Winner */}
-                {yoloMetrics && rtdetrMetrics && (
+                {yoloMetrics && rtdetrMetrics && efficientdetMetrics && (
                     <div className="comparison-winner-section">
                     <div className="comparison-section-label">GANADOR POR VELOCIDAD</div>
-                    {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics)}
+                    {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics, efficientdetMetrics as ComparisonMetrics)}
                     </div>
                 )}
 
@@ -375,10 +400,33 @@ function ModelComparison() {
                     )}
                   </div>
 
+                  {/* EfficientDet Column */}
+                  <div className="comparison-model-column">
+                    <div className="comparison-model-header-integrated" style={{ color: "#10b981" }}>
+                      EfficientDet-D2
+                    </div>
+                    <MetricsCard
+                      model="EfficientDet-D2"
+                      metrics={efficientdetMetrics as ComparisonMetrics | null}
+                      color="#10b981"
+                    />
+
+                    {efficientdetData?.plates && efficientdetData.plates.length > 0 && (
+                      <div className="comparison-integrated-plates">
+                        <div className="comparison-section-label">PLACAS DETECTADAS</div>
+                        <div className="video-plates-list">
+                          {efficientdetData.plates.map((plate: any, idx: number) => (
+                            <VideoPlateCard key={`eff_${idx}`} plate={plate} color="#10b981" />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Winner badge at bottom */}
-                  {yoloMetrics && rtdetrMetrics && (
+                  {yoloMetrics && rtdetrMetrics && efficientdetMetrics && (
                     <div className="comparison-winner-row">
-                      {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics)}
+                      {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics, efficientdetMetrics as ComparisonMetrics)}
                     </div>
                   )}
                 </div>
@@ -486,40 +534,44 @@ function ModelResultRow({
 /* ══════════════════════════════════════════════════════════════
    WINNER HELPER
    ══════════════════════════════════════════════════════════════ */
-function renderWinner(yolo: ComparisonMetrics, rtdetr: ComparisonMetrics) {
+function renderWinner(yolo: ComparisonMetrics, rtdetr: ComparisonMetrics, efficientdet: ComparisonMetrics) {
   const yoloTime   = yolo.avg_inference_ms   ?? yolo.inference_ms
   const rtdetrTime = rtdetr.avg_inference_ms ?? rtdetr.inference_ms
-  if (!yoloTime || !rtdetrTime) return null
+  const efficientdetTime = efficientdet.avg_inference_ms ?? efficientdet.inference_ms
+  if (!yoloTime || !rtdetrTime || !efficientdetTime) return null
 
-  const winner   = yoloTime < rtdetrTime ? "YOLO" : "RT-DETR"
-  const color    = winner === "YOLO" ? "#22d3ee" : "#f59e0b"
-  const timeDiff = Math.abs(yoloTime - rtdetrTime).toFixed(2)
+  const times = [
+    { name: "YOLO", time: yoloTime, color: "#22d3ee" },
+    { name: "RT-DETR", time: rtdetrTime, color: "#f59e0b" },
+    { name: "EfficientDet-D2", time: efficientdetTime, color: "#10b981" }
+  ].sort((a, b) => a.time - b.time)
+
+  const winner = times[0]
+  const slowest = times[2]
+  const timeDiff = Math.abs(winner.time - slowest.time).toFixed(2)
   const pctDiff  = (
-    ((Math.max(yoloTime, rtdetrTime) - Math.min(yoloTime, rtdetrTime)) /
-      Math.max(yoloTime, rtdetrTime)) * 100
+    ((slowest.time - winner.time) / slowest.time) * 100
   ).toFixed(1)
 
   return (
     <div className="comparison-winner-card">
-      <div className="comparison-winner-badge" style={{ borderColor: color, color }}>
+      <div className="comparison-winner-badge" style={{ borderColor: winner.color, color: winner.color }}>
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
           <path d="M9 2L11.2 7L16.5 7.3L12.5 11L13.9 16.5L9 13.6L4.1 16.5L5.5 11L1.5 7.3L6.8 7L9 2Z"
-            fill={color} stroke={color} strokeWidth="1.3" />
+            fill={winner.color} stroke={winner.color} strokeWidth="1.3" />
         </svg>
-        {winner}
+        {winner.name}
       </div>
       <p className="comparison-winner-text">
-        Más rápido por <strong>{timeDiff}ms</strong> ({pctDiff}% mejor)
+        El más rápido (hasta {pctDiff}% mejor)
       </p>
       <div className="comparison-winner-details">
-        <div>
-          <span className="comparison-detail-label">YOLO</span>
-          <span className="comparison-detail-value">{yoloTime.toFixed(2)}ms</span>
-        </div>
-        <div>
-          <span className="comparison-detail-label">RT-DETR</span>
-          <span className="comparison-detail-value">{rtdetrTime.toFixed(2)}ms</span>
-        </div>
+        {times.map((t) => (
+          <div key={t.name}>
+            <span className="comparison-detail-label" style={{ color: t.color }}>{t.name}</span>
+            <span className="comparison-detail-value">{t.time.toFixed(2)}ms</span>
+          </div>
+        ))}
       </div>
     </div>
   )

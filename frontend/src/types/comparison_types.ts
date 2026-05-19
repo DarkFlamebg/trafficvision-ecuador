@@ -1,6 +1,6 @@
 // ── Comparison Types ────────────────────────────────────────────────────────
 
-export type ModelType = "yolo" | "rtdetr"
+export type ModelType = "yolo" | "rtdetr" | "efficientdet"
 
 export interface ComparisonMetrics {
   model:                   string
@@ -63,6 +63,7 @@ export interface ComparisonImageResponse {
 export interface ComparisonResult {
   yolo?:   ComparisonImageResponse | ComparisonMetrics
   rtdetr?: ComparisonImageResponse | ComparisonMetrics
+  efficientdet?: ComparisonImageResponse | ComparisonMetrics
 }
 
 export interface WebSocketFrameMessage {
