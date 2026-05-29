@@ -3,6 +3,26 @@ import "./Home.css"
 
 const MODELS = [
   {
+    id: "efficientdet-d2-combined",
+    tag: "EfficientDet-D2",
+    tagClass: "tag--efficientdet",
+    name: "EfficientDet-D2 Combined",
+    arch: "BiFPN + EfficientNet-B2 · 313 layers · 3.5M params · 112 GFLOPs",
+    badge: "Alta Precisión",
+    badgeClass: "badge--best",
+    featured: true,
+    metrics: [
+      { key: "mAP@50",    val: "96.8%", bar: 96.8 },
+      { key: "mAP@50-95", val: "78.4%", bar: 78.4 },
+      { key: "Precisión", val: "97.1%", bar: 97.1 },
+      { key: "Recall",    val: "94.7%", bar: 94.7 },
+    ],
+    speed: "~47 ms (CPU) / ~5 ms (GPU)",
+    fps: "~21 FPS (CPU) / ~208 FPS (GPU)",
+    size: "94.4 MB",
+    note: "Detector de precisión equilibrada. Excelente generalización global + especialización en placas ecuatorianas.",
+  },
+  {
     id: "rtdetr-combined",
     tag: "RT-DETR-L",
     tagClass: "tag--rtdetr",
@@ -42,26 +62,26 @@ const MODELS = [
     size: "15 MB",
     note: "Inferencia ultrarrápida. Ideal para tiempo real, edge devices y alta concurrencia.",
   },
-  {
-    id: "rtdetr-ec",
-    tag: "RT-DETR EC",
-    tagClass: "tag--ec",
-    name: "RT-DETR Ecuador",
-    arch: "Fine-tune local · 310 layers · 32M params · 103 GFLOPs",
-    badge: "Especializado",
-    badgeClass: "badge--ec",
-    featured: false,
-    metrics: [
-      { key: "mAP@50",    val: "23.3%", bar: 23.3 },
-      { key: "mAP@50-95", val: "17.0%", bar: 17.0 },
-      { key: "Precisión", val: "16.7%", bar: 16.7 },
-      { key: "Recall",    val: "46.7%", bar: 46.7 },
-    ],
-    speed: "~70 ms",
-    fps: "~14 FPS",
-    size: "63 MB",
-    note: "Fine-tune sobre placas ecuatorianas. Dataset reducido (21 imgs) limita generalización actual.",
-  },
+  // {
+  //   id: "rtdetr-ec",
+  //   tag: "RT-DETR EC",
+  //   tagClass: "tag--ec",
+  //   name: "RT-DETR Ecuador",
+  //   arch: "Fine-tune local · 310 layers · 32M params · 103 GFLOPs",
+  //   badge: "Especializado",
+  //   badgeClass: "badge--ec",
+  //   featured: false,
+  //   metrics: [
+  //     { key: "mAP@50",    val: "23.3%", bar: 23.3 },
+  //     { key: "mAP@50-95", val: "17.0%", bar: 17.0 },
+  //     { key: "Precisión", val: "16.7%", bar: 16.7 },
+  //     { key: "Recall",    val: "46.7%", bar: 46.7 },
+  //   ],
+  //   speed: "~70 ms",
+  //   fps: "~14 FPS",
+  //   size: "63 MB",
+  //   note: "Fine-tune sobre placas ecuatorianas. Dataset reducido (21 imgs) limita generalización actual.",
+  // },
 ]
 
 const STACK = [
