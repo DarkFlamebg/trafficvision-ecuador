@@ -42,6 +42,12 @@ export interface PlateDetection {
   // Para OCR visual por carácter (si el backend lo soporta)
   char_confidences?:   number[]
   image_base64?:       string
+  labels?: {
+    legible: string
+    oclusion: string
+    reflejo: string
+    sucia: string
+  }
 }
 
 export interface VehicleDetection {

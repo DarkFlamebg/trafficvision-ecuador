@@ -25,6 +25,7 @@ from app.ai.plate_detector      import detect_plate      as detect_plate_yolo
 from app.ai.plate_detector_rtdetr import detect_plate_rtdetr
 from app.ai.plate_reader        import read_plate
 from app.ai.plate_detector_efficientdet import detect_plate_efficientdet
+from app.ai.plate_classifier    import classify_plates_batch
 
 
 router = APIRouter(prefix="/compare", tags=["Comparativa"])
@@ -227,7 +228,17 @@ async def compare_image(
                     "vehicle_type":       v.get("type_es"),
                     "vehicle_bbox":       v["bbox"] if vehicles else None,
                     "ocr_valid":          _is_valid_plate_text(ocr_text),
+                    "_crop":              plate["image"],
                 })
+
+        # ── Etapa 3: Validación con Gemini (Lote) ─────────────────────────
+        if plates_found:
+            crops = [p["_crop"] for p in plates_found]
+            confs = [p["ocr_confidence"] for p in plates_found]
+            labels_batch = classify_plates_batch(crops, confs)
+            for i, p in enumerate(plates_found):
+                p["labels"] = labels_batch[i]
+                del p["_crop"]  # limpiar imagen temporal
 
         inference_ms = (time.perf_counter() - t_start) * 1000
 
@@ -329,6 +340,27 @@ def _build_video_metrics(
         txt = p["plate"]
         if txt not in unique_plates or p["ocr_confidence"] > unique_plates[txt]["ocr_confidence"]:
             unique_plates[txt] = p
+
+    unique_plates_list = list(unique_plates.values())
+    if unique_plates_list:
+        crops = []
+        confs = []
+        for p in unique_plates_list:
+            if p.get("image_base64"):
+                img_data = base64.b64decode(p["image_base64"])
+                np_arr = np.frombuffer(img_data, np.uint8)
+                crop = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+                crops.append(crop)
+            else:
+                crops.append(np.zeros((10, 10, 3), dtype=np.uint8))
+            confs.append(p["ocr_confidence"])
+            
+        for i in range(0, len(crops), 10):
+            batch_crops = crops[i:i+10]
+            batch_confs = confs[i:i+10]
+            labels_batch = classify_plates_batch(batch_crops, batch_confs)
+            for j, label in enumerate(labels_batch):
+                unique_plates_list[i+j]["labels"] = label
 
     all_confs = [p["detector_confidence"] for p in all_plates]
     type_stats = sorted([

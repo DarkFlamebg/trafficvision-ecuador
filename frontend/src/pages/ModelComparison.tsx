@@ -608,6 +608,45 @@ function VideoPlateCard({ plate, color }: { plate: any; color: string }) {
             <strong>{plate.timestamp_video?.toFixed(1)}s</strong>
           </div>
         </div>
+        {plate.labels && (
+          <div style={{
+            display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.2rem", 
+            marginTop: "0.5rem", fontSize: "0.55rem", fontFamily: "var(--font-mono)"
+          }}>
+            <div style={{
+              background: plate.labels.legible === "Legible" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
+              color: plate.labels.legible === "Legible" ? "var(--ok)" : "var(--err)",
+              padding: "0.2rem", borderRadius: "var(--radius-sm)", textAlign: "center",
+              border: `1px solid ${plate.labels.legible === "Legible" ? "var(--ok)44" : "var(--err)44"}`
+            }}>
+              {plate.labels.legible.substring(0,3).toUpperCase()}
+            </div>
+            <div style={{
+              background: plate.labels.oclusion === "Severa" ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.03)",
+              color: plate.labels.oclusion === "Severa" ? "var(--err)" : "var(--text-mid)",
+              padding: "0.2rem", borderRadius: "var(--radius-sm)", textAlign: "center",
+              border: `1px solid ${plate.labels.oclusion === "Severa" ? "var(--err)44" : "var(--border)"}`
+            }}>
+              OCL: {plate.labels.oclusion.substring(0,3).toUpperCase()}
+            </div>
+            <div style={{
+              background: plate.labels.reflejo === "Sí" ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.03)", 
+              color: plate.labels.reflejo === "Sí" ? "#f59e0b" : "var(--text-mid)",
+              padding: "0.2rem", borderRadius: "var(--radius-sm)", textAlign: "center",
+              border: `1px solid ${plate.labels.reflejo === "Sí" ? "#f59e0b44" : "var(--border)"}`
+            }}>
+              REF: {plate.labels.reflejo.toUpperCase()}
+            </div>
+            <div style={{
+              background: plate.labels.sucia === "Sí" ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.03)",
+              color: plate.labels.sucia === "Sí" ? "#f59e0b" : "var(--text-mid)",
+              padding: "0.2rem", borderRadius: "var(--radius-sm)", textAlign: "center",
+              border: `1px solid ${plate.labels.sucia === "Sí" ? "#f59e0b44" : "var(--border)"}`
+            }}>
+              SUC: {plate.labels.sucia.toUpperCase()}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
