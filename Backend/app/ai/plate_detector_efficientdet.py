@@ -14,7 +14,7 @@ _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _ROOT_DIR = os.path.abspath(os.path.join(_BASE_DIR, "../../.."))
 
 MODEL_PATH = os.path.join(
-    _ROOT_DIR, "runs", "detect", "ml", "runs",
+    _ROOT_DIR, "ml", "runs",
     "detect", "efficientdet_d2_plates_v3",
     "weights", "best.pt"
 )
@@ -40,7 +40,6 @@ def _get_model() -> YOLO:
                 f"Asegúrate de que best.pt esté en la ruta correcta."
             )
         _model = YOLO(MODEL_PATH)
-        print(f"[efficientdet] Modelo cargado: {MODEL_PATH}")
     return _model
 
 
@@ -106,7 +105,7 @@ def detect_plate_efficientdet(input_image) -> list:
         aspect_ratio = w_box / h_box
         if not (ASPECT_RATIO_MIN <= aspect_ratio <= ASPECT_RATIO_MAX):
             print(f"[efficientdet] Bbox descartado por proporción: "
-                  f"{w_box}x{h_box} = {aspect_ratio:.2f}")
+                    f"{w_box}x{h_box} = {aspect_ratio:.2f}")
             continue
 
         # Extraer recorte con padding adaptativo + deskew (igual que plate_detector.py)
@@ -121,7 +120,6 @@ def detect_plate_efficientdet(input_image) -> list:
             "detector":   "efficientdet",
         })
 
-    print(f"[efficientdet] Placas detectadas: {len(plates)}")
     return plates
 
 

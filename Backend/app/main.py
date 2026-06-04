@@ -14,8 +14,9 @@ from app.ai.vehicle_detector import detect_vehicles
 from app.ai.plate_detector   import detect_plate
 from app.ai.plate_reader     import read_plate
 from app.ai.plate_classifier import classify_plate
+from app.ai.model_loader     import load_all_models, get_status as model_status
 from app.routes.detect       import router as detect_router
-from app.routes.compare      import router as compare_router   # ← nuevo
+from app.routes.compare      import router as compare_router
 from dotenv import load_dotenv
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -33,8 +34,13 @@ TEMP_DIR = "temp"
 # ── Ciclo de vida ──────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # ── Startup ──────────────────────────────────────────────────────────────
     os.makedirs(TEMP_DIR, exist_ok=True)
+    # Carga y precalienta todos los modelos en paralelo (no bloquea el event loop)
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, load_all_models)
     yield
+    # ── Shutdown ─────────────────────────────────────────────────────────────
     for f in os.listdir(TEMP_DIR):
         try:
             os.remove(os.path.join(TEMP_DIR, f))
@@ -72,6 +78,18 @@ def root():
         "message": "TrafficVision API activa",
         "docs":    "/docs",
         "version": "1.3.0"
+    }
+
+
+@app.get("/health")
+def health():
+    """Estado de la API y tiempo de carga de modelos."""
+    status = model_status()
+    return {
+        "status":        "ok" if status["models_ready"] else "loading",
+        "models_ready":  status["models_ready"],
+        "load_time_ms":  status["load_time_ms"],
+        "version":       "1.3.0",
     }
 
 

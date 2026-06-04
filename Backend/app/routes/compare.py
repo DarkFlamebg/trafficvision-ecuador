@@ -231,6 +231,9 @@ async def compare_image(
                     "_crop":              plate["image"],
                 })
 
+        # Detenemos el cronómetro de inferencia local ANTES de llamar a Gemini
+        inference_ms = (time.perf_counter() - t_start) * 1000
+
         # ── Etapa 3: Validación con Gemini (Lote) ─────────────────────────
         if plates_found:
             crops = [p["_crop"] for p in plates_found]
@@ -239,8 +242,6 @@ async def compare_image(
             for i, p in enumerate(plates_found):
                 p["labels"] = labels_batch[i]
                 del p["_crop"]  # limpiar imagen temporal
-
-        inference_ms = (time.perf_counter() - t_start) * 1000
 
         metrics = _build_image_metrics(model_name, vehicles, plates_found, inference_ms)
 

@@ -1,18 +1,21 @@
+# app/routes/detect.py
 # Ruta /detect — recibe imagen y retorna placas detectadas con texto OCR
-# Usa ambos detectores: YOLOv11n y RT-DETR
+# Compara los tres detectores: YOLOv11n, RT-DETR y EfficientDet-D2
+
 from fastapi import APIRouter, UploadFile, File, HTTPException
 import numpy as np
 import cv2
 import base64
 
-from app.ai.plate_detector import detect_plate as detect_plate_yolo
-from app.ai.plate_detector_rtdetr import detect_plate_rtdetr
-from app.ai.plate_reader import read_plate
+from app.ai.plate_detector              import detect_plate as detect_plate_yolo
+from app.ai.plate_detector_rtdetr       import detect_plate_rtdetr
+from app.ai.plate_detector_efficientdet import detect_plate_efficientdet
+from app.ai.plate_reader                import read_plate
 
 router = APIRouter()
 
 # Colores para anotación
-PLATE_COLOR = (0, 255, 255)  # Cian
+PLATE_COLOR     = (0, 255, 255)   # Cian
 PLATE_THICKNESS = 2
 
 
@@ -22,166 +25,150 @@ def _frame_to_base64(frame: np.ndarray, quality: int = 85) -> str:
     return base64.b64encode(buffer).decode('utf-8')
 
 
-def _draw_plates_on_image(image: np.ndarray, detections: list, model_name: str) -> np.ndarray:
+def _draw_plates_on_image(
+    image: np.ndarray, detections: list, model_name: str
+) -> np.ndarray:
     """
     Anota las placas detectadas en la imagen.
-    
+
     Args:
-        image: array NumPy BGR
-        detections: lista de dicts con bbox, confidence, plate
-        model_name: nombre del modelo para el label
-        
+        image:      array NumPy BGR
+        detections: lista de dicts con bbox, detector_confidence, plate
+        model_name: nombre del modelo para el panel superior
+
     Returns:
         Imagen anotada
     """
     output = image.copy()
-    h, w = image.shape[:2]
-    
+
     # Panel superior con info del modelo
     panel_text = f"Modelo: {model_name} | Placas: {len(detections)}"
-    (text_width, text_height), _ = cv2.getTextSize(
-        panel_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2
-    )
-    cv2.rectangle(output, (5, 5), (15 + text_width, 30 + text_height), (0, 0, 0), -1)
+    (tw, th), _ = cv2.getTextSize(panel_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+    cv2.rectangle(output, (5, 5), (15 + tw, 30 + th), (0, 0, 0), -1)
     cv2.putText(output, panel_text, (10, 25),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-    
+
     # Dibujar cada placa
     for idx, det in enumerate(detections, 1):
         x1, y1, x2, y2 = det["bbox"]
-        
+
         # Caja alrededor de la placa
         cv2.rectangle(output, (x1, y1), (x2, y2), PLATE_COLOR, PLATE_THICKNESS)
-        
-        # Texto con placa detectada y confianza
+
+        # ✅ usar detector_confidence (campo correcto del dict)
         plate_text = det.get("plate", "No detectado")
-        conf_text = f"{det.get('confidence', 0):.1%}"
-        label_text = f"#{idx}: {plate_text} ({conf_text})"
-        
-        (label_width, label_height), _ = cv2.getTextSize(
-            label_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2
-        )
-        
+        conf       = det.get("detector_confidence", 0.0)
+        label_text = f"#{idx}: {plate_text} ({conf:.1%})"
+
         # Fondo para el texto
-        cv2.rectangle(
-            output,
-            (x1, y1 - label_height - 12),
-            (x1 + label_width + 8, y1),
-            PLATE_COLOR,
-            -1
-        )
-        
-        # Texto
-        cv2.putText(
-            output,
-            label_text,
-            (x1 + 4, y1 - 6),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            (0, 0, 0),
-            2
-        )
-    
+        (lw, lh), _ = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+        cv2.rectangle(output,
+                      (x1, y1 - lh - 12),
+                      (x1 + lw + 8, y1),
+                      PLATE_COLOR, -1)
+        cv2.putText(output, label_text, (x1 + 4, y1 - 6),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+
     return output
 
 
-def _process_detections(image: np.ndarray, plates_raw: list) -> list:
+def _process_detections(plates_raw: list) -> list:
     """
     Procesa detecciones raw: ejecuta OCR y formatea resultados.
-    
+
     Args:
-        image: imagen original (para contexto)
         plates_raw: lista de dicts con "image", "bbox", "confidence"
-        
+
     Returns:
         Lista de dicts con plate, ocr_confidence, detector_confidence, bbox
     """
     results = []
-    
     for plate in plates_raw:
-        # OCR sobre el recorte
         ocr = read_plate(plate["image"])
-        
         if ocr is None:
-            continue  # Descartar detecciones sin texto legible
-        
+            continue
         results.append({
-            "plate":                ocr["plate"],
-            "ocr_confidence":       ocr["confidence"],
-            "detector_confidence":  plate["confidence"],
-            "bbox":                 plate["bbox"]
+            "plate":               ocr["plate"],
+            "ocr_confidence":      round(float(ocr["confidence"]), 4),
+            "detector_confidence": round(float(plate["confidence"]), 4),
+            "bbox":                plate["bbox"],
         })
-    
     return results
+
+
+def _run_detector(image: np.ndarray, detector_fn, model_name: str) -> dict:
+    """
+    Ejecuta un detector completo y devuelve su bloque de respuesta.
+    Si el detector falla, retorna resultado vacío sin romper el endpoint.
+    """
+    try:
+        plates_raw = detector_fn(image)
+        detections = _process_detections(plates_raw)
+        annotated  = _draw_plates_on_image(image, detections, model_name)
+        image_b64  = _frame_to_base64(annotated)
+    except Exception as e:
+        print(f"[detect] Error en {model_name}: {e}")
+        detections = []
+        image_b64  = _frame_to_base64(image)   # imagen original sin anotar
+
+    return {
+        "model":        model_name,
+        "total":        len(detections),
+        "detections":   detections,
+        "image_base64": image_b64,
+    }
 
 
 @router.post("/detect")
 async def detect(file: UploadFile = File(...)):
     """
-    Detección con ambos modelos: YOLOv11n y RT-DETR.
-    
-    Retorna:
+    Detección con los tres modelos: YOLOv11n, RT-DETR y EfficientDet-D2.
+
+    Pipeline por cada modelo:
+      1. Detectar placa en la imagen completa
+      2. OCR con EasyOCR sobre cada recorte
+      3. Retornar imagen anotada + métricas
+
+    Response:
         {
-          "yolo": {
-            "total": int,
-            "detections": [...],
-            "image_base64": str
-          },
-          "rtdetr": {
-            "total": int,
-            "detections": [...],
-            "image_base64": str
-          }
+          "yolo":         { model, total, detections, image_base64 },
+          "rtdetr":       { model, total, detections, image_base64 },
+          "efficientdet": { model, total, detections, image_base64 },
+          "summary":      { yolo_plates, rtdetr_plates,
+                            efficientdet_plates, total_unique }
         }
     """
-    # Validar tipo de archivo
     if file.content_type not in ("image/jpeg", "image/png", "image/jpg"):
         raise HTTPException(status_code=400, detail="Solo se aceptan imágenes JPG o PNG")
 
     contents = await file.read()
-
-    # Decodificar imagen
-    npimg = np.frombuffer(contents, np.uint8)
-    image = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+    npimg    = np.frombuffer(contents, np.uint8)
+    image    = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
     if image is None:
         raise HTTPException(status_code=422, detail="No se pudo decodificar la imagen")
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # DETECTOR 1: YOLOv11n
-    # ──────────────────────────────────────────────────────────────────────────
-    plates_yolo_raw = detect_plate_yolo(image)
-    yolo_detections = _process_detections(image, plates_yolo_raw)
-    image_yolo_annotated = _draw_plates_on_image(image, yolo_detections, "YOLOv11n")
-    image_yolo_b64 = _frame_to_base64(image_yolo_annotated)
-    
-    # ──────────────────────────────────────────────────────────────────────────
-    # DETECTOR 2: RT-DETR
-    # ──────────────────────────────────────────────────────────────────────────
-    plates_rtdetr_raw = detect_plate_rtdetr(image)
-    rtdetr_detections = _process_detections(image, plates_rtdetr_raw)
-    image_rtdetr_annotated = _draw_plates_on_image(image, rtdetr_detections, "RT-DETR")
-    image_rtdetr_b64 = _frame_to_base64(image_rtdetr_annotated)
+    # ── Ejecutar los tres detectores ──────────────────────────────────────────
+    yolo_result   = _run_detector(image, detect_plate_yolo,         "YOLOv11n")
+    rtdetr_result = _run_detector(image, detect_plate_rtdetr,       "RT-DETR")
+    eff_result    = _run_detector(image, detect_plate_efficientdet, "EfficientDet-D2")
+
+    # Placas únicas detectadas entre los tres modelos
+    all_plates = set(
+        d["plate"]
+        for block in [yolo_result, rtdetr_result, eff_result]
+        for d in block["detections"]
+        if d.get("plate")
+    )
 
     return {
-        "yolo": {
-            "model": "YOLOv11n",
-            "total": len(yolo_detections),
-            "detections": yolo_detections,
-            "image_base64": image_yolo_b64
-        },
-        "rtdetr": {
-            "model": "RT-DETR",
-            "total": len(rtdetr_detections),
-            "detections": rtdetr_detections,
-            "image_base64": image_rtdetr_b64
-        },
+        "yolo":         yolo_result,
+        "rtdetr":       rtdetr_result,
+        "efficientdet": eff_result,
         "summary": {
-            "yolo_plates": len(yolo_detections),
-            "rtdetr_plates": len(rtdetr_detections),
-            "total_unique": len(set(
-                d["plate"] for d in yolo_detections + rtdetr_detections
-                if d.get("plate")
-            ))
-        }
+            "yolo_plates":         yolo_result["total"],
+            "rtdetr_plates":       rtdetr_result["total"],
+            "efficientdet_plates": eff_result["total"],
+            "total_unique":        len(all_plates),
+        },
     }

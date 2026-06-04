@@ -26,7 +26,13 @@ OCR_MIN_CONF    = 0.10
 INNER_MARGIN_X  = 4
 INNER_MARGIN_Y  = 2
 
-_reader = easyocr.Reader(['en'], gpu=False)
+_reader = None  # inicializado de forma lazy por _get_reader()
+
+def _get_reader():
+    global _reader
+    if _reader is None:
+        _reader = easyocr.Reader(['en'], gpu=False)
+    return _reader
 
 # ── Super-Resolución ───────────────────────────────────────────────────────────
 _sr        = None
@@ -240,7 +246,7 @@ def _format_plate(raw: str) -> str:
 
 # ── OCR runner ────────────────────────────────────────────────────────────────
 def _run_ocr(image: np.ndarray) -> list[tuple[str, float]]:
-    raw = _reader.readtext(
+    raw = _get_reader().readtext(
         image,
         allowlist='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
         detail=1,
