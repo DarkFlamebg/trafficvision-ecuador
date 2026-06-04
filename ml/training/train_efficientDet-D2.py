@@ -148,6 +148,10 @@ class YOLODataset(Dataset):
             image = transformed['image']
             boxes = np.array(transformed['bboxes'], dtype=np.float32)
             labels = np.array(transformed['labels'], dtype=np.int64)
+            
+            # 🔥 CORRECCIÓN CRÍTICA: Convertir [xmin, ymin, xmax, ymax] -> [ymin, xmin, ymax, xmax]
+            if len(boxes) > 0:
+                boxes = boxes[:, [1, 0, 3, 2]]
         
         # Validar boxes
         if len(boxes) == 0:
@@ -189,6 +193,30 @@ def collate_fn(batch):
     images, targets = zip(*batch)
     images = torch.stack(images)
     return images, targets
+
+def collate_targets(targets, device):
+    """Apila targets con padding para manejar cantidad variable de boxes."""
+    batch = {}
+    
+    # bbox y cls necesitan padding
+    max_boxes = max(t['bbox'].shape[0] for t in targets)
+    max_boxes = max(max_boxes, 1)  # evitar tensor vacío
+    
+    bboxes, clses = [], []
+    for t in targets:
+        n = t['bbox'].shape[0]
+        pad = max_boxes - n
+        bboxes.append(torch.cat([t['bbox'], torch.zeros(pad, 4)], dim=0))
+        clses.append(torch.cat([t['cls'], torch.zeros(pad, dtype=torch.int64)], dim=0))
+    
+    batch['bbox'] = torch.stack(bboxes).to(device)
+    batch['cls']  = torch.stack(clses).to(device)
+    
+    # img_scale e img_size son siempre (1,) y (2,) → stack directo
+    batch['img_scale'] = torch.stack([t['img_scale'] for t in targets]).to(device)
+    batch['img_size']  = torch.stack([t['img_size']  for t in targets]).to(device)
+    
+    return batch
 
 # ── Crear YAMLs combinados ─────────────────────────────────────────────────────
 def create_combined_yaml() -> str:
@@ -279,9 +307,7 @@ def train_one_epoch(model, dataloader, optimizer, device, epoch):
         images = images.to(device)
         
         # Preparar targets para EfficientDet
-        batch_targets = {}
-        for key in ['bbox', 'cls', 'img_scale', 'img_size']:
-            batch_targets[key] = torch.stack([t[key] for t in targets]).to(device)
+        batch_targets = collate_targets(targets, device)
         
         optimizer.zero_grad()
         
@@ -308,9 +334,7 @@ def validate(model, dataloader, device):
     for images, targets in tqdm(dataloader, desc="Validating"):
         images = images.to(device)
         
-        batch_targets = {}
-        for key in ['bbox', 'cls', 'img_scale', 'img_size']:
-            batch_targets[key] = torch.stack([t[key] for t in targets]).to(device)
+        batch_targets = collate_targets(targets, device)
         
         loss_dict = model(images, batch_targets)
         loss = loss_dict['loss']
@@ -372,12 +396,29 @@ def train(dataset_key: str):
     weights_dir = save_dir / "weights"
     weights_dir.mkdir(exist_ok=True)
     
-    # Training loop
+    # ── Mecanismo de Auto-Resiliencia (Resume) ──
+    start_epoch = 0
     best_val_loss = float('inf')
+    last_checkpoint_path = weights_dir / "last.pt"
+    
+    if last_checkpoint_path.exists():
+        print(f"🔄 Encontrado checkpoint de sesión anterior: {last_checkpoint_path}")
+        print("   Cargando pesos, optimizador y época para continuar...")
+        checkpoint = torch.load(last_checkpoint_path, map_location=DEVICE)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        start_epoch = checkpoint['epoch'] + 1
+        best_val_loss = checkpoint.get('val_loss', float('inf'))
+        
+        # Ajustar el scheduler al estado de época actual
+        for _ in range(start_epoch):
+            scheduler.step()
+        print(f"✅ Reanudación exitosa desde Época {start_epoch + 1}")
+    
     patience = 10
     patience_counter = 0
     
-    for epoch in range(EPOCHS):
+    for epoch in range(start_epoch, EPOCHS):
         print(f"\n[Epoch {epoch+1}/{EPOCHS}]")
         
         train_loss = train_one_epoch(model, train_loader, optimizer, DEVICE, epoch)
