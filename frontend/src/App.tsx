@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Home from "./pages/Home"
 import ReadPlate from "./pages/ReadPlate"
 import ModelComparison from "./pages/ModelComparison"
+import Benchmark from "./pages/Benchmark"
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/read-plate" element={<ReadPlate />} />
         <Route path="/model-comparison" element={<ModelComparison />} />
+        <Route path="/benchmark" element={<Benchmark />} />
       </Routes>
     </BrowserRouter>
   )

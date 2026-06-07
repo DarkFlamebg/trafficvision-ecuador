@@ -17,6 +17,7 @@ from app.ai.plate_classifier import classify_plate
 from app.ai.model_loader     import load_all_models, get_status as model_status
 from app.routes.detect       import router as detect_router
 from app.routes.compare      import router as compare_router
+from app.routes.benchmark    import router as benchmark_router
 from dotenv import load_dotenv
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -68,8 +69,9 @@ ALLOWED_IMAGE_TYPES = ("image/jpeg", "image/png", "image/jpg")
 ALLOWED_VIDEO_TYPES = ("video/mp4", "video/mpeg", "video/x-msvideo", "video/quicktime")
 
 # ── Routers ────────────────────────────────────────────────────────────────────
-app.include_router(detect_router,  prefix="/api/v1", tags=["Detección"])
-app.include_router(compare_router, prefix="/api/v1", tags=["Comparativa"])  
+app.include_router(detect_router, prefix="/api/v1", tags=["Detección"])
+app.include_router(compare_router, prefix="/api/v1", tags=["Comparativa"])
+app.include_router(benchmark_router, prefix="/api/v1", tags=["Benchmark"])
 
 # ── Endpoints base ─────────────────────────────────────────────────────────────
 @app.get("/")
