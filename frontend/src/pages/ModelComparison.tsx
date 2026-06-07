@@ -36,14 +36,6 @@ function ModelComparison() {
 
       {/* ── HEADER ── */}
       <header className="comparison-header" role="banner">
-        <a href="/" className="comparison-back" aria-label="Volver al inicio">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M9 2.5L4.5 7L9 11.5" stroke="currentColor" strokeWidth="1.5"
-              strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Inicio
-        </a>
-
         <div className="comparison-title-wrap">
           <div className="comparison-logo-row">
             <div className="comparison-logo-icon" aria-hidden="true">

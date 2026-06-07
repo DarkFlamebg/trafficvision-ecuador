@@ -152,14 +152,14 @@
   border-radius: 10px;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 0 24px rgba(99,102,241,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   white-space: nowrap;
 }
 
 .bm-btn-run:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 0 32px rgba(99,102,241,0.45);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
 }
 
 .bm-btn-run:disabled {

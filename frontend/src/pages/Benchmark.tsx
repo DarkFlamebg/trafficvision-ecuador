@@ -2,7 +2,7 @@
 // Página de Benchmark en Tiempo Real — TrafficVision
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { Skeleton, SkeletonBlock } from "../components/Skeleton"
 import "./Benchmark.css"
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
@@ -80,8 +80,6 @@ function fmtMs(ms: number) {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function Benchmark() {
-  const navigate = useNavigate()
-
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState(0)
   const [current, setCurrent] = useState(0)
@@ -182,16 +180,6 @@ export default function Benchmark() {
   return (
     <div className="bm-root">
 
-      {/* NAV */}
-      <nav className="bm-nav">
-        <span className="bm-logo">
-          Traffic<span className="bm-logo-accent">Vision</span>
-        </span>
-        <button className="bm-nav-back" onClick={() => navigate("/")}>
-          ← Volver al inicio
-        </button>
-      </nav>
-
       {/* MAIN */}
       <main className="bm-main">
 
@@ -287,6 +275,18 @@ export default function Benchmark() {
                 </div>
               ))}
               <div ref={feedEndRef} />
+            </div>
+          </div>
+        )}
+
+        {/* Skeletons while running */}
+        {running && feed.length > 0 && !summary && (
+          <div className="bm-results" style={{ opacity: 0.6, marginTop: "2rem" }}>
+            <h2 className="bm-results-title">Calculando Resultados...</h2>
+            <div className="bm-cards">
+              <div className="bm-card"><SkeletonBlock lines={4} /></div>
+              <div className="bm-card"><SkeletonBlock lines={4} /></div>
+              <div className="bm-card"><SkeletonBlock lines={4} /></div>
             </div>
           </div>
         )}

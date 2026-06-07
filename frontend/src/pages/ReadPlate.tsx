@@ -27,13 +27,6 @@ function ReadPlate() {
 
       {/* ── HEADER ── */}
       <header className="rp-header" role="banner">
-        <a href="/" className="rp-back" aria-label="Volver al inicio">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span>Inicio</span>
-        </a>
-
         <div className="rp-title-wrap">
           <div className="rp-logo-row">
             <div className="rp-logo-icon" aria-hidden="true">

@@ -1,4 +1,5 @@
 import { LabelBadge } from "./LabelBadge"
+import { Skeleton, SkeletonBlock } from "./Skeleton"
 import type { ApiResponse } from "../types/readplate.types"
 
 interface ResultsPanelProps {
@@ -27,9 +28,22 @@ export function ResultsPanel({ result, loading, fileType }: ResultsPanelProps) {
 
       {/* Loading state */}
       {loading && !result && (
-        <div className="rp-empty" role="status" aria-live="polite">
-          <div className="rp-loading-dots" aria-hidden="true"><span /><span /><span /></div>
-          <p>Procesando {fileType === "video" ? "video fotograma a fotograma" : "imagen"}...</p>
+        <div className="rp-loading-skeleton" role="status" aria-live="polite">
+          <div style={{ marginBottom: "1rem" }}>
+            <Skeleton width="40%" height="1.5rem" />
+            <Skeleton width="70%" height="0.875rem" style={{ marginTop: "0.5rem" }} />
+          </div>
+          <div className="rp-results-grid" style={{ marginBottom: "2rem" }}>
+            <div className="rp-plate-card">
+              <SkeletonBlock lines={4} />
+            </div>
+            <div className="rp-plate-card">
+              <SkeletonBlock lines={4} />
+            </div>
+          </div>
+          <p style={{ color: "var(--text-mid)", fontSize: "0.85rem", textAlign: "center" }}>
+            Procesando {fileType === "video" ? "video fotograma a fotograma" : "imagen"}...
+          </p>
         </div>
       )}
 

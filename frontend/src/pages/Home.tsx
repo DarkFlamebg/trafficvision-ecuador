@@ -105,22 +105,6 @@ export default function Home() {
 
   return (
     <div className="home-root">
-
-      {/* NAV */}
-      <nav className="home-nav">
-        <span className="home-logo">
-          Traffic<span className="home-logo-accent">Vision</span>
-        </span>
-        <a
-          className="home-nav-link"
-          
-          target="_blank"
-          rel="noreferrer"
-        >
-          docs ↗
-        </a>
-      </nav>
-
       {/* HERO */}
       <header className="home-hero">
         <div className="home-hero-inner">
