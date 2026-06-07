@@ -16,7 +16,6 @@ interface BoundingBoxImageProps {
 
 // Colores internos fijos para vehículo vs placa
 const VEHICLE_COLOR = "#3b82f6"   // azul — vehículo
-const PLATE_COLOR_ALPHA = 0.9
 
 export function BoundingBoxImage({
   src, alt, modelName, color, vehicles = [], plates = [],
@@ -37,7 +36,6 @@ export function BoundingBoxImage({
       canvas.height = img.naturalHeight
       ctx.drawImage(img, 0, 0)
 
-      const scale     = img.naturalWidth / 640  // factor si el backend normaliza a 640
       const lineWidth = Math.max(2, img.naturalWidth * 0.003)
       const fontSize  = Math.max(13, img.naturalWidth * 0.018)
 

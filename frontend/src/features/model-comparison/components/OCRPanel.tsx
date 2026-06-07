@@ -26,7 +26,7 @@ function SinglePlateCard({
 }) {
   const [feedback, setFeedback] = useState<boolean | null>(null)
 
-  const isValid   = plate.ocr_valid !== false   // undefined treated as valid (backwards compat)
+  const isValid   = (plate as any).ocr_valid !== false   // undefined treated as valid (backwards compat)
   const textColor = plate.plate ? (isValid ? color : "#f59e0b") : "var(--text-lo)"
   const isCorrect = !!(realPlate && plate.plate && plate.plate === realPlate)
 

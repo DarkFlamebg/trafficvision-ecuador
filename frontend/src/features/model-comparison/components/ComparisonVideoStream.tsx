@@ -1,5 +1,5 @@
 interface ComparisonVideoStreamProps {
-  model:      "YOLO" | "RT-DETR"
+  model:      "YOLO" | "RT-DETR" | "EfficientDet-D2"
   frameSrc:   string | null
   progress:   number
   status:     string
@@ -15,7 +15,6 @@ export function ComparisonVideoStream({
   status,
   loading,
   color,
-  telemetry,
 }: ComparisonVideoStreamProps) {
   if (!loading && !frameSrc) return null
 

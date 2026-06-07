@@ -2,7 +2,7 @@
 // Página de Benchmark en Tiempo Real — TrafficVision
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { Skeleton, SkeletonBlock } from "../components/Skeleton"
+import { SkeletonBlock } from "../../components/Skeleton"
 import "./Benchmark.css"
 
 // ── Tipos ──────────────────────────────────────────────────────────────────

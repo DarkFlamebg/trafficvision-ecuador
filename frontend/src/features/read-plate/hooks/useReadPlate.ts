@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { FFmpeg } from "@ffmpeg/ffmpeg"
 import { fetchFile, toBlobURL } from "@ffmpeg/util"
-import API from "../services/api"
+import API from "../../../services/api"
 import { drawBoxes, extractVideoFrames, exportReportCSV } from "../utils/readplate.utils"
 import type { ApiResponse, DetectionReport, VideoTypeMetric } from "../types/readplate.types"
 

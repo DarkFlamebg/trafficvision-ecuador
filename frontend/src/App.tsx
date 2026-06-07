@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
-import Home from "./pages/Home"
-import ReadPlate from "./pages/ReadPlate"
-import ModelComparison from "./pages/ModelComparison"
-import Benchmark from "./pages/Benchmark"
+import Home from "./features/home/Home"
+import ReadPlate from "./features/read-plate/ReadPlate"
+import ModelComparison from "./features/model-comparison/ModelComparison"
+import Benchmark from "./features/benchmark/Benchmark"
 import { Layout } from "./components/Layout"
 
 function App() {

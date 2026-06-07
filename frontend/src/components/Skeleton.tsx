@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react"
 import "./Skeleton.css"
 
 interface SkeletonProps {
@@ -5,13 +6,14 @@ interface SkeletonProps {
   height?: string | number
   borderRadius?: string | number
   className?: string
+  style?: CSSProperties
 }
 
-export function Skeleton({ width = "100%", height = "1rem", borderRadius = "6px", className = "" }: SkeletonProps) {
+export function Skeleton({ width = "100%", height = "1rem", borderRadius = "6px", className = "", style }: SkeletonProps) {
   return (
     <div 
       className={`skeleton-base ${className}`} 
-      style={{ width, height, borderRadius }}
+      style={{ width, height, borderRadius, ...style }}
     />
   )
 }

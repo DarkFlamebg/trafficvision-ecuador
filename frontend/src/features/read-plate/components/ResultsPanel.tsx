@@ -1,5 +1,5 @@
-import { LabelBadge } from "./LabelBadge"
-import { Skeleton, SkeletonBlock } from "./Skeleton"
+import { LabelBadge } from "../../../components/LabelBadge"
+import { Skeleton, SkeletonBlock } from "../../../components/Skeleton"
 import type { ApiResponse } from "../types/readplate.types"
 
 interface ResultsPanelProps {

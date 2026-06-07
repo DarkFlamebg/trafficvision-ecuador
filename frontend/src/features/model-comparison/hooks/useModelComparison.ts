@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react"
-import API from "../services/api"
+import API from "../../../services/api"
 import type {
   ModelType,
   ComparisonResult,

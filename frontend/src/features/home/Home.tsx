@@ -1,6 +1,27 @@
 import { useNavigate } from "react-router-dom"
 import "./Home.css"
 
+// --- Nuevas constantes explicativas -------------------------------------------------
+// Descripción de cada métrica que se muestra en la tabla de modelos.
+const METRIC_EXPLANATIONS = {
+  "mAP@50": "Mean Average Precision a un umbral de IoU=0.5. Indica la proporción de detecciones correctas.",
+  "mAP@50-95": "Promedio de mAP desde IoU 0.5 hasta 0.95 (paso 0.05). Mide la precisión global del detector.",
+  "Precisión": "Porcentaje de detecciones correctas respecto al total detectado.",
+  "Recall": "Porcentaje de objetos reales que fueron detectados.",
+  "speed": "Tiempo medio de inferencia por imagen (CPU/GPU).",
+  "fps": "Frames por segundo estimados a partir del tiempo de inferencia.",
+};
+
+// Descripción ampliada de cada capa tecnológica del stack.
+const TOOL_EXPLANATIONS = {
+  Frontend: "Interfaz reactiva con React + Vite, experiencia fluida y componentes reutilizables.",
+  Backend: "API REST con FastAPI, manejo de peticiones de detección y streaming WebSocket.",
+  Detección: "Modelos de detección de objetos basados en Ultralytics (YOLOv11n, RT‑DETR) ejecutados con PyTorch y CUDA.",
+  "Deep learning": "Entrenamiento y afinado de modelos en PyTorch 2.10, aprovechando GPUs Tesla T4.",
+  OCR: "Extracción de texto de placas usando EasyOCR, compatible con múltiples alfabetos.",
+  Visión: "Pre‑y post‑procesado de imágenes con OpenCV, ajuste de contraste y normalización.",
+};
+
 const MODELS = [
   {
     id: "efficientdet-d2-combined",
@@ -62,26 +83,6 @@ const MODELS = [
     size: "15 MB",
     note: "Inferencia ultrarrápida. Ideal para tiempo real, edge devices y alta concurrencia.",
   },
-  // {
-  //   id: "rtdetr-ec",
-  //   tag: "RT-DETR EC",
-  //   tagClass: "tag--ec",
-  //   name: "RT-DETR Ecuador",
-  //   arch: "Fine-tune local · 310 layers · 32M params · 103 GFLOPs",
-  //   badge: "Especializado",
-  //   badgeClass: "badge--ec",
-  //   featured: false,
-  //   metrics: [
-  //     { key: "mAP@50",    val: "23.3%", bar: 23.3 },
-  //     { key: "mAP@50-95", val: "17.0%", bar: 17.0 },
-  //     { key: "Precisión", val: "16.7%", bar: 16.7 },
-  //     { key: "Recall",    val: "46.7%", bar: 46.7 },
-  //   ],
-  //   speed: "~70 ms",
-  //   fps: "~14 FPS",
-  //   size: "63 MB",
-  //   note: "Fine-tune sobre placas ecuatorianas. Dataset reducido (21 imgs) limita generalización actual.",
-  // },
 ]
 
 const STACK = [
@@ -94,10 +95,23 @@ const STACK = [
 ]
 
 const WHY = [
-  { title: "Control de tránsito",       desc: "Automatiza la identificación de vehículos en peajes, parqueaderos y zonas restringidas sin intervención humana." },
-  { title: "Fiscalización vial",        desc: "Detecta infracciones y vehículos con registros pendientes en tiempo real, integrándose con bases de datos oficiales." },
-  { title: "Inteligencia de movilidad", desc: "Genera datos de flujo vehicular y patrones de tránsito para planificación urbana y optimización de vías." },
-  { title: "Alta velocidad",            desc: "Desde 3.7 ms por imagen. Apto para cámaras de vigilancia sin hardware especializado adicional." },
+  { icon: "01", title: "Control de tránsito",       desc: "Automatiza la identificación de vehículos en peajes, parqueaderos y zonas restringidas sin intervención humana." },
+  { icon: "02", title: "Fiscalización vial",        desc: "Detecta infracciones y vehículos con registros pendientes en tiempo real, integrándose con bases de datos oficiales." },
+  { icon: "03", title: "Inteligencia de movilidad", desc: "Genera datos de flujo vehicular y patrones de tránsito para planificación urbana y optimización de vías." },
+  { icon: "04", title: "Alta velocidad",            desc: "Desde 3.7 ms por imagen. Apto para cámaras de vigilancia sin hardware especializado adicional." },
+]
+
+const QUICK_STATS = [
+  { val: "96.8%",  lbl: "mAP@50 mejor modelo" },
+  { val: "3.7 ms", lbl: "Inferencia YOLO11n" },
+  { val: "2 048",  lbl: "Imágenes validación" },
+  { val: "32 M",   lbl: "Params RT-DETR-L" },
+]
+
+const ACTIONS = [
+  { label: "Analizar placa",     route: "/read-plate",         primary: true  },
+  { label: "Comparar Modelos",   route: "/model-comparison",   primary: false },
+  { label: "Benchmark Live",     route: "/benchmark",          primary: false },
 ]
 
 export default function Home() {
@@ -105,90 +119,65 @@ export default function Home() {
 
   return (
     <div className="home-root">
-      {/* HERO */}
+      <div className="global-aurora-bg" aria-hidden="true" />
+
       <header className="home-hero">
         <div className="home-hero-inner">
+
           <div className="home-eyebrow">
             <span className="home-dot" aria-hidden="true" />
             Sistema activo · Detección en tiempo real
           </div>
 
           <h1 className="home-title">
-            Reconocimiento automático<br />
-            de <span>placas vehiculares</span>
+            Reconocimiento<br />
+            automático de<br />
+            <span>placas vehiculares</span>
           </h1>
 
           <p className="home-sub">
             Sistema de visión por computadora que detecta y lee placas en imágenes
-            y video usando redes neuronales de última generación. Diseñado para
-            control de acceso, fiscalización vial y monitoreo de tránsito urbano.
+            y video usando redes neuronales de última generación.
           </p>
 
           <div className="home-cta-row">
-            <button
-              className="home-btn-primary"
-              onClick={() => navigate("/read-plate")}
-            >
-              Analizar placa
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              className="home-btn-primary"
-              onClick={() => navigate("/model-comparison")}
-            >
-              Comparar Modelos IA
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              className="home-btn-primary"
-              onClick={() => navigate("/benchmark")}
-            >
-              Benchmark Live
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <a
-              className="home-btn-ghost"
-              
-              target="_blank"
-              rel="noreferrer"
-            >
-              Ver docs
-            </a>
-          </div>
-
-          {/* quick stats */}
-          <div className="home-stats">
-            {[
-              { val: "96.8%",  lbl: "mAP@50 mejor modelo" },
-              { val: "3.7 ms", lbl: "Inferencia YOLO11n" },
-              { val: "2 048",  lbl: "Imágenes validación" },
-              { val: "32 M",   lbl: "Params RT-DETR-L" },
-            ].map((s) => (
-              <div key={s.lbl} className="home-stat">
-                <span className="home-stat-val">{s.val}</span>
-                <span className="home-stat-lbl">{s.lbl}</span>
-              </div>
+            {ACTIONS.map((a) => (
+              <button
+                key={a.route}
+                className={a.primary ? "home-btn-primary" : "home-btn-secondary"}
+                onClick={() => navigate(a.route)}
+              >
+                {a.label}
+                {a.primary && (
+                  <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
             ))}
           </div>
         </div>
+
+        <div className="home-stats-strip">
+          {QUICK_STATS.map((s) => (
+            <div key={s.lbl} className="home-stat">
+              <span className="home-stat-val">{s.val}</span>
+              <span className="home-stat-lbl">{s.lbl}</span>
+            </div>
+          ))}
+        </div>
       </header>
 
-      <div className="home-divider" />
-
-      {/* WHY */}
       <section className="home-section">
         <div className="home-section-inner">
-          <p className="home-section-label">Antecedente</p>
-          <h2 className="home-section-title">¿Por qué existe este sistema?</h2>
+          <header className="home-section-header">
+            <span className="home-label">Antecedente</span>
+            <h2 className="home-section-title">¿Por qué existe<br />este sistema?</h2>
+          </header>
           <div className="home-why-grid">
             {WHY.map((w) => (
               <div key={w.title} className="home-why-card">
+                <span className="home-why-num">{w.icon}</span>
                 <h3 className="home-why-title">{w.title}</h3>
                 <p className="home-why-desc">{w.desc}</p>
               </div>
@@ -199,14 +188,15 @@ export default function Home() {
 
       <div className="home-divider" />
 
-      {/* MODELS */}
       <section className="home-section">
         <div className="home-section-inner">
-          <p className="home-section-label">Modelos · Resultados reales</p>
-          <h2 className="home-section-title">Benchmark comparativo</h2>
-          <p className="home-section-sub">
-            Evaluación sobre 2 048 imágenes. Hardware: Tesla T4 · CUDA 12.8 · Ultralytics 8.4.46.
-          </p>
+          <header className="home-section-header">
+            <span className="home-label">Resultados reales</span>
+            <h2 className="home-section-title">Benchmark comparativo</h2>
+            <p className="home-section-sub">
+              Evaluación sobre 10 048 imágenes · Hardware: Tesla T4 · CUDA 12.8 · Ultralytics 8.4.46
+            </p>
+          </header>
 
           <div className="home-models-grid">
             {MODELS.map((m) => (
@@ -216,7 +206,7 @@ export default function Home() {
               >
                 <div className="home-model-head">
                   <span className={`home-model-tag ${m.tagClass}`}>{m.tag}</span>
-                  <span className={`home-model-badge ${m.badgeClass}`}>{m.badge}</span>
+                  <span className="home-model-badge">{m.badge}</span>
                 </div>
 
                 <h3 className="home-model-name">{m.name}</h3>
@@ -241,7 +231,7 @@ export default function Home() {
 
                 <div className="home-model-footer">
                   <div className="home-speed-row">
-                    <span>⚡ {m.speed} · GPU T4</span>
+                    <span>⚡ {m.speed}</span>
                     <span>{m.fps}</span>
                     <span>{m.size}</span>
                   </div>
@@ -252,7 +242,7 @@ export default function Home() {
           </div>
 
           <div className="home-callout">
-            <span className="home-callout-icon" aria-hidden="true"></span>
+            <span className="home-callout-icon" aria-hidden="true">→</span>
             <p>
               <strong>RT-DETR Combined supera al modelo Ecuador en +73.5 pp de mAP@50.</strong>{" "}
               El dataset global aporta generalización crítica. RT-DETR y YOLO11n rinden de forma
@@ -264,28 +254,11 @@ export default function Home() {
 
       <div className="home-divider" />
 
-      {/* STACK */}
-      <section className="home-section">
-        <div className="home-section-inner">
-          <p className="home-section-label">Arquitectura</p>
-          <h2 className="home-section-title">Stack tecnológico</h2>
-          <div className="home-stack-grid">
-            {STACK.map((s) => (
-              <div key={s.layer} className="home-stack-item">
-                <span className="home-stack-layer">{s.layer}</span>
-                <span className="home-stack-tech">{s.tech}</span>
-                <span className="home-stack-desc">{s.desc}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
       <footer className="home-footer">
         <span>Backend · <code>localhost:8000</code></span>
         <span>TrafficVision · 2026</span>
       </footer>
+
     </div>
   )
 }

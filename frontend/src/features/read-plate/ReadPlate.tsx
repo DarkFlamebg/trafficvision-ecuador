@@ -1,12 +1,12 @@
 import "./ReadPlate.css"
-import { useReadPlate }           from "../hooks/useReadPlate"
-import { ProcessStepper }         from "../components/ProcessStepper"
-import { DropZone }               from "../components/DropZone"
-import { VideoFrameStrip }        from "../components/VideoFrameStrip"
-import { ImageDetectionCanvas }   from "../components/ImageDetectionCanvas"
-import { VideoStreamPanel }       from "../components/VideoStreamPanel"
-import { ResultsPanel }           from "../components/ResultsPanel"
-import { DetectionReportTable }   from "../components/DetectionReportTable"
+import { useReadPlate }           from "./hooks/useReadPlate"
+import { ProcessStepper }         from "./components/ProcessStepper"
+import { DropZone }               from "./components/DropZone"
+import { VideoFrameStrip }        from "./components/VideoFrameStrip"
+import { ImageDetectionCanvas }   from "./components/ImageDetectionCanvas"
+import { VideoStreamPanel }       from "./components/VideoStreamPanel"
+import { ResultsPanel }           from "./components/ResultsPanel"
+import { DetectionReportTable }   from "./components/DetectionReportTable"
 
 function ReadPlate() {
   const rp = useReadPlate()

@@ -1,11 +1,11 @@
 import "./ModelComparison.css"
-import { useModelComparison } from "../hooks/useModelComparison"
-import { MetricsCard } from "../components/MetricsCards"
-import { ComparisonVideoStream } from "../components/ComparisonVideoStream"
-import { OCRPanel } from "../components/OCRPanel"
-import { ValidationTable } from "../components/ValidationTable"
-import { BoundingBoxImage } from "../components/BoundingBoxImage"
-import type { ComparisonMetrics, ComparisonImageResponse } from "../types/comparison_types"
+import { useModelComparison } from "./hooks/useModelComparison"
+import { MetricsCard } from "./components/MetricsCards"
+import { ComparisonVideoStream } from "./components/ComparisonVideoStream"
+import { OCRPanel } from "./components/OCRPanel"
+import { ValidationTable } from "./components/ValidationTable"
+import { BoundingBoxImage } from "./components/BoundingBoxImage"
+import type { ComparisonMetrics, ComparisonImageResponse } from "./types/comparison_types"
 
 function ModelComparison() {
   const mc = useModelComparison()
@@ -18,9 +18,6 @@ function ModelComparison() {
   const rtdetrMetrics = rtdetrData ? ("metrics" in rtdetrData ? rtdetrData.metrics : rtdetrData) : null
   const efficientdetMetrics = efficientdetData ? ("metrics" in efficientdetData ? efficientdetData.metrics : efficientdetData) : null
 
-  const yoloPlate   = yoloData?.plates?.[0]   || null
-  const rtdetrPlate = rtdetrData?.plates?.[0] || null
-  const efficientdetPlate = efficientdetData?.plates?.[0] || null
 
   const yoloImage   = yoloData?.processed_image   || (mc.fileType === "image" ? mc.preview : mc.yoloFrame)
   const rtdetrImage = rtdetrData?.processed_image || (mc.fileType === "image" ? mc.preview : mc.rtdetrFrame)
@@ -507,7 +504,7 @@ function ModelResultRow({
 
       {/* Col 2 — Metrics */}
       <MetricsCard
-        model={modelLabel as "YOLO" | "RT-DETR"}
+        model={modelLabel as "YOLO" | "RT-DETR" | "EfficientDet-D2"}
         metrics={metrics}
         color={color}
       />
@@ -538,9 +535,8 @@ function renderWinner(yolo: ComparisonMetrics, rtdetr: ComparisonMetrics, effici
     { name: "EfficientDet-D2", time: efficientdetTime, color: "#10b981" }
   ].sort((a, b) => a.time - b.time)
 
-  const winner = times[0]
+  const winner  = times[0]
   const slowest = times[2]
-  const timeDiff = Math.abs(winner.time - slowest.time).toFixed(2)
   const pctDiff  = (
     ((slowest.time - winner.time) / slowest.time) * 100
   ).toFixed(1)
