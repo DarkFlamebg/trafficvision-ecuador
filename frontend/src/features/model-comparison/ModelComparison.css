@@ -2,9 +2,9 @@
    DESIGN TOKENS (Matching Home Theme)
    ══════════════════════════════════════════════════════════════ */
 :root {
-  --yolo: #d97706;
+  --yolo: #0ea5e9;
   --rtdetr: #7c3aed;
-  --efficientdet: #0ea5e9;
+  --efficientdet:  #06d934;
   --ok: #10b981;
   --err: #ef4444;
 
@@ -96,7 +96,7 @@
 
 .comparison-back:hover {
   color: var(--yolo);
-  border-color: rgba(34, 211, 238, 0.35);
+  border-color: rgba(62, 13, 238, 0.35);
 }
 
 .comparison-title-wrap {
@@ -140,7 +140,7 @@
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  background: linear-gradient(135deg, var(--yolo), var(--rtdetr));
+  background: linear-gradient(135deg, var(--yolo));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -254,8 +254,8 @@
 
 .comparison-model-tag--rtdetr {
   color: var(--rtdetr);
-  border-color: rgba(245, 158, 11, 0.35);
-  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(11, 112, 245, 0.35);
+  background: rgba(11, 112, 245, 0.06);
 }
 
 .comparison-model-tag--efficientdet {

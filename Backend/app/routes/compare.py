@@ -26,6 +26,8 @@ from app.ai.plate_detector_rtdetr import detect_plate_rtdetr
 from app.ai.plate_reader        import read_plate
 from app.ai.plate_detector_efficientdet import detect_plate_efficientdet
 from app.ai.plate_classifier    import classify_plates_batch
+from app.database.connection    import SessionLocal
+from app.database.models        import PlateDetection, DetectionQuality, AuditLog, ModelIA, VehicleType, QualityLabel
 
 
 router = APIRouter(prefix="/compare", tags=["Comparativa"])
@@ -244,6 +246,59 @@ async def compare_image(
                 del p["_crop"]  # limpiar imagen temporal
 
         metrics = _build_image_metrics(model_name, vehicles, plates_found, inference_ms)
+
+        # ── Guardar detecciones en base de datos ──────────────────────────
+        if plates_found:
+            db = SessionLocal()
+            try:
+                model_row = db.query(ModelIA).filter_by(name=model_name).first()
+
+                for plate in plates_found:
+                    vtype_name = plate["vehicle_type"] if plate["vehicle_type"] else "Desconocido"
+                    vtype = db.query(VehicleType).filter_by(name=vtype_name).first()
+                    vtype_id = vtype.id if vtype else None
+
+                    new_detection = PlateDetection(
+                        plate_text=(plate["plate"] or "No detectado")[:15],
+                        confidence=plate["ocr_confidence"],
+                        model_id=model_row.id if model_row else None,
+                        vehicle_type_id=vtype_id,
+                        inference_time_ms=inference_ms,
+                        image_path=path,
+                    )
+                    db.add(new_detection)
+                    db.flush()
+
+                    labels_dict = plate.get("labels") or {}
+                    if labels_dict:
+                        quality_map = {
+                            "oclusion": "Oclusión",
+                            "reflejo": "Reflejo",
+                            "sucia": "Suciedad",
+                            "legible": "Legibilidad",
+                        }
+                        for key, db_name in quality_map.items():
+                            if key in labels_dict:
+                                q_label = db.query(QualityLabel).filter_by(name=db_name).first()
+                                if q_label:
+                                    db.add(DetectionQuality(
+                                        detection_id=new_detection.id,
+                                        quality_label_id=q_label.id,
+                                        value=str(labels_dict[key]),
+                                    ))
+
+                    db.add(AuditLog(
+                        detection_id=new_detection.id,
+                        checked_by="TrafficVision AI",
+                        check_reason="Comparativa de imagen"
+                    ))
+
+                db.commit()
+            except Exception as e:
+                print(f"[BD] Error al guardar comparativa: {e}")
+                db.rollback()
+            finally:
+                db.close()
 
         return {
             "model":    model_name,

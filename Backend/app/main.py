@@ -199,8 +199,8 @@ async def detect_plate_api(file: UploadFile):
                     quality_map = {
                         "oclusion": "Oclusión",
                         "reflejo": "Reflejo",
-                        "suciedad": "Suciedad",
-                        "is_legible": "Legibilidad"
+                        "sucia": "Suciedad",
+                        "legible": "Legibilidad"
                     }
                     for key, db_name in quality_map.items():
                         if key in labels_dict:

@@ -16,8 +16,6 @@
   width: 2px;
   height: 100%;
 }
-.diag-compact--clean::before { background: #10b981; }
-.diag-compact--issues::before { background: #f59e0b; }
 
 .diag-compact-header {
   display: flex;

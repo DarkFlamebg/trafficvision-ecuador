@@ -40,6 +40,9 @@ Ejemplo de formato:
 # ── Helper: parseo seguro de JSON ──────────────────────────────────────────────
 def _parse_json(raw_text: str):
     """Limpia bloques ```json ... ``` y parsea el JSON."""
+    if raw_text is None:
+        raise ValueError("Respuesta de Gemini vacía")
+
     text = raw_text.strip()
     if "```" in text:
         text = text.split("```")[1].replace("json", "").strip()
