@@ -215,7 +215,7 @@ npm run dev
 - [x] Crear Dashboard Dinámico de Métricas de Entrenamiento con `Chart.js`
 - [x] Completar redacción del Capítulo 3 de la Tesis (Metodología)
 - [ ] Implementar dataset_service como microservicio independiente
-- [ ] Agregar base de datos para logs de detecciones
+- [x] Agregar base de datos para logs de detecciones
 
 ---
 

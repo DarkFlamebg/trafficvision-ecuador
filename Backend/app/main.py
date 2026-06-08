@@ -21,6 +21,9 @@ from app.routes.benchmark    import router as benchmark_router
 from dotenv import load_dotenv
 from fastapi import WebSocket, WebSocketDisconnect
 
+from app.database.connection import SessionLocal
+from app.database.models import PlateDetection, DetectionQuality, AuditLog, ModelIA, VehicleType, QualityLabel
+
 import base64
 import asyncio
 import cv2
@@ -168,6 +171,62 @@ async def detect_plate_api(file: UploadFile):
                     "labels":          labels,
                     "vehicle":         None
                 })
+
+        # --- GUARDAR EN BASE DE DATOS (POSTGRESQL) ---
+        db = SessionLocal()
+        try:
+            yolo_model = db.query(ModelIA).filter_by(name="YOLOv11n").first()
+            
+            for plate in plates_found:
+                vtype_name = plate["vehicle"]["type_es"] if plate["vehicle"] else "Desconocido"
+                vtype = db.query(VehicleType).filter_by(name=vtype_name).first()
+                vtype_id = vtype.id if vtype else None
+                
+                new_detection = PlateDetection(
+                    plate_text=plate["plate"][:15],  # Evitar overflow
+                    confidence=plate["ocr_confidence"],
+                    model_id=yolo_model.id if yolo_model else None,
+                    vehicle_type_id=vtype_id,
+                    inference_time_ms=120.0, # Ejemplo (calculable en el futuro)
+                    image_path=path
+                )
+                db.add(new_detection)
+                db.flush() # Obtener el ID
+                
+                # Guardar etiquetas de Gemini
+                labels_dict = plate["labels"]
+                if labels_dict:
+                    quality_map = {
+                        "oclusion": "Oclusión",
+                        "reflejo": "Reflejo",
+                        "suciedad": "Suciedad",
+                        "is_legible": "Legibilidad"
+                    }
+                    for key, db_name in quality_map.items():
+                        if key in labels_dict:
+                            q_label = db.query(QualityLabel).filter_by(name=db_name).first()
+                            if q_label:
+                                db.add(DetectionQuality(
+                                    detection_id=new_detection.id,
+                                    quality_label_id=q_label.id,
+                                    value=str(labels_dict[key])
+                                ))
+                
+                # Log de auditoría
+                db.add(AuditLog(
+                    detection_id=new_detection.id,
+                    checked_by="TrafficVision AI",
+                    check_reason="Detección en tiempo real"
+                ))
+            
+            db.commit()
+            print(f"[BD] {len(plates_found)} placas guardadas en Supabase.")
+        except Exception as e:
+            print(f"[BD] Error al guardar: {e}")
+            db.rollback()
+        finally:
+            db.close()
+        # ---------------------------------------------
 
         return {
             "total":    len(plates_found),
