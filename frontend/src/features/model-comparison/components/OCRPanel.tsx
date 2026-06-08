@@ -1,5 +1,6 @@
 import { useState } from "react"
 import type { PlateDetection } from "../types/comparison_types"
+import { DiagnosticPanelCompact } from "./DiagnosticPanelCompact"
 
 interface OCRPanelProps {
   plates: PlateDetection[]        // array — puede tener 0, 1 o N placas
@@ -78,48 +79,7 @@ function SinglePlateCard({
 
       {/* ── Etiquetas de Calidad (Gemini) ── */}
       {plate.labels && (
-        <div style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.3rem", 
-          marginTop: "0.75rem", marginBottom: "0.25rem",
-          fontSize: "0.62rem", fontFamily: "var(--font-mono)", letterSpacing: "0.02em"
-        }}>
-          {/* Legibilidad */}
-          <div style={{
-            background: plate.labels.legible === "Legible" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-            color: plate.labels.legible === "Legible" ? "var(--ok)" : "var(--err)",
-            padding: "0.35rem", borderRadius: "var(--radius-sm)", textAlign: "center",
-            border: `1px solid ${plate.labels.legible === "Legible" ? "var(--ok)44" : "var(--err)44"}`
-          }}>
-            {plate.labels.legible.toUpperCase()}
-          </div>
-          {/* Oclusión */}
-          <div style={{
-            background: plate.labels.oclusion === "Severa" ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.03)",
-            color: plate.labels.oclusion === "Severa" ? "var(--err)" : "var(--text-mid)",
-            padding: "0.35rem", borderRadius: "var(--radius-sm)", textAlign: "center",
-            border: `1px solid ${plate.labels.oclusion === "Severa" ? "var(--err)44" : "var(--border)"}`
-          }}>
-            OCLUS: {plate.labels.oclusion.toUpperCase()}
-          </div>
-          {/* Reflejo */}
-          <div style={{
-            background: plate.labels.reflejo === "Sí" ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.03)", 
-            color: plate.labels.reflejo === "Sí" ? "#f59e0b" : "var(--text-mid)",
-            padding: "0.35rem", borderRadius: "var(--radius-sm)", textAlign: "center",
-            border: `1px solid ${plate.labels.reflejo === "Sí" ? "#f59e0b44" : "var(--border)"}`
-          }}>
-            REFL: {plate.labels.reflejo.toUpperCase()}
-          </div>
-          {/* Sucia */}
-          <div style={{
-            background: plate.labels.sucia === "Sí" ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.03)",
-            color: plate.labels.sucia === "Sí" ? "#f59e0b" : "var(--text-mid)",
-            padding: "0.35rem", borderRadius: "var(--radius-sm)", textAlign: "center",
-            border: `1px solid ${plate.labels.sucia === "Sí" ? "#f59e0b44" : "var(--border)"}`
-          }}>
-            SUCIA: {plate.labels.sucia.toUpperCase()}
-          </div>
-        </div>
+        <DiagnosticPanelCompact labels={plate.labels} color={color} />
       )}
 
       {/* Validación automática */}

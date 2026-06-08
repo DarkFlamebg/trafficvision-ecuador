@@ -23,6 +23,9 @@ export function Navbar() {
           <NavLink to="/benchmark" className={({ isActive }) => `global-nav-link ${isActive ? "active" : ""}`}>
             Benchmark
           </NavLink>
+          <NavLink to="/training-metrics" className={({ isActive }) => `global-nav-link ${isActive ? "active" : ""}`}>
+            Validación
+          </NavLink>
         </div>
       </div>
     </nav>

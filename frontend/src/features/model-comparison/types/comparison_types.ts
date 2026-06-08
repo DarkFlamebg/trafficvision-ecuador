@@ -1,4 +1,5 @@
 // ── Comparison Types ────────────────────────────────────────────────────────
+import type { PlateLabels } from "../../read-plate/types/readplate.types"
 
 export type ModelType = "yolo" | "rtdetr" | "efficientdet"
 
@@ -42,12 +43,7 @@ export interface PlateDetection {
   // Para OCR visual por carácter (si el backend lo soporta)
   char_confidences?:   number[]
   image_base64?:       string
-  labels?: {
-    legible: string
-    oclusion: string
-    reflejo: string
-    sucia: string
-  }
+  labels?: PlateLabels
 }
 
 export interface VehicleDetection {

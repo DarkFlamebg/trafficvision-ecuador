@@ -1,0 +1,118 @@
+.diag-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.diag-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+}
+
+.diag-panel--clean::before { background: #10b981; }
+.diag-panel--issues::before { background: #f59e0b; }
+
+.diag-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.diag-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-main);
+}
+
+.diag-sparkle {
+  color: #a855f7;
+}
+
+.diag-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.diag-model {
+  font-size: 0.7rem;
+  background: rgba(168, 85, 247, 0.1);
+  color: #c084fc;
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.diag-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.diag-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: transform 0.2s;
+}
+.diag-item:hover {
+  transform: translateY(-1px);
+}
+
+.diag-icon {
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.diag-success { color: #34d399; }
+.diag-warning { color: #fbbf24; }
+.diag-danger  { color: #f87171; }
+
+.diag-item-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.diag-item-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-bottom: 0.1rem;
+}
+
+.diag-item-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.diag-alert {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: #fbbf24;
+  line-height: 1.5;
+}

@@ -1,5 +1,5 @@
-import { LabelBadge } from "../../../components/LabelBadge"
 import { Skeleton, SkeletonBlock } from "../../../components/Skeleton"
+import { DiagnosticPanel } from "./DiagnosticPanel"
 import type { ApiResponse } from "../types/readplate.types"
 
 interface ResultsPanelProps {
@@ -144,22 +144,7 @@ export function ResultsPanel({ result, loading, fileType }: ResultsPanelProps) {
                     </div>
 
                     {plate.labels && (
-                      <div style={{ marginBottom: "1rem" }}>
-                        <div style={{
-                          fontSize: 9, color: "var(--text-dim)",
-                          textTransform: "uppercase", letterSpacing: "0.1em",
-                          fontWeight: 700, marginBottom: "0.5rem",
-                          fontFamily: "var(--font-mono)",
-                        }}>
-                          Calidad de imagen
-                        </div>
-                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                          <LabelBadge name="Legibilidad" value={plate.labels.legible}  />
-                          <LabelBadge name="Oclusión"   value={plate.labels.oclusion} />
-                          <LabelBadge name="Reflejo"    value={plate.labels.reflejo}  />
-                          <LabelBadge name="Suciedad"   value={plate.labels.sucia}    />
-                        </div>
-                      </div>
+                      <DiagnosticPanel labels={plate.labels} />
                     )}
 
                     <div className="rp-metrics" aria-label="Métricas de confianza">
