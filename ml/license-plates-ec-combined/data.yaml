@@ -1,6 +1,0 @@
-path: ml/license-plates-ec-combined
-train: train/images
-val: valid/images
-nc: 1
-names:
-  0: license_plate
