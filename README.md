@@ -213,7 +213,7 @@ npm run dev
 
 - [x] Implementar RT-DETR y EfficientDet-D2 para comparativa de detección
 - [x] Crear Dashboard Dinámico de Métricas de Entrenamiento con `Chart.js`
-- [ ] Completar redacción del Capítulo 3 de la Tesis (Metodología)
+- [x] Completar redacción del Capítulo 3 de la Tesis (Metodología)
 - [ ] Implementar dataset_service como microservicio independiente
 - [ ] Agregar base de datos para logs de detecciones
 
