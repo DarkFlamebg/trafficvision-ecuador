@@ -8,11 +8,11 @@ Control Anticorrupción · Seguridad Vial · Ecuador 2026
 
 | Componente | Estado | Métrica |
 |---|---|---|
-| Detección YOLO | ✅ Activo | mAP@50: 97.4% |
+| Detección (Modelos) | ✅ Activo | YOLOv11n, RT-DETR, EfficientDet |
 | Lectura OCR | ✅ Activo | EasyOCR + preprocesamiento por color |
 | Clasificación IA | ✅ Activo | Google Gemini Flash (gratuito) |
 | API Backend | ✅ Activo | FastAPI + Python 3.11 |
-| Frontend | ✅ Activo | React + TypeScript + MUI |
+| Frontend | ✅ Activo | React + TS + MUI + Chart.js |
 
 ---
 
@@ -21,8 +21,8 @@ Control Anticorrupción · Seguridad Vial · Ecuador 2026
 TrafficVision es un sistema de inteligencia artificial para la **detección, lectura y clasificación de placas vehiculares ecuatorianas** en tiempo real. Está orientado al control anticorrupción y la seguridad vial, permitiendo identificar vehículos en imágenes tomadas desde cámaras estáticas o en movimiento, incluyendo condiciones nocturnas y lluvia.
 
 Desarrollado como proyecto de tesis con énfasis en:
-- Comparación de **4 arquitecturas de detección** (YOLOv8n, RT-DETR, Faster R-CNN, EfficientDet-D2)
-- Comparación de **4 motores OCR** (EasyOCR, PaddleOCR, Tesseract 5, TrOCR)
+- Comparación de **arquitecturas de detección** (YOLOv11, RT-DETR, EfficientDet-D2)
+- Sistema OCR optimizado (EasyOCR)
 - Clasificación multi-atributo de calidad de imagen usando visión artificial
 - Entrenamiento con datasets ecuatorianos propios y globales
 
@@ -85,16 +85,15 @@ Google Gemini Flash Vision clasifica 4 atributos:
 
 ---
 
-## 📊 Modelos Entrenados
+## 📊 Modelos Entrenados y Comparados
 
-| Modelo | Imágenes | mAP@50 | Recall | Estado |
-|---|---|---|---|---|
-| yolov8n_ec_combined | 234 | 38.5% | 16.7% | ❌ Insuficiente |
-| yolov8n_ecuador43 | 375 | 67.2% | 61.6% | ⚠️ Aceptable |
-| yolov8n_combined_all | 10,734 | **97.4%** | 94.2% | ✅ **En uso** |
-| yolov8n_ecuador_combined (Colab) | 609 | 93.7% | 90.0% | ✅ Respaldo |
+| Modelo | Descripción | Estado |
+|---|---|---|
+| **YOLOv11n** | Single-shot CNN - Máxima velocidad | ✅ Principal |
+| **RT-DETR** | Transformer + CNN - Alta precisión | ✅ Comparativa |
+| **EfficientDet-D2** | BiFPN + EfficientNet - Balance eficiente | ✅ Comparativa |
 
-El modelo principal fue entrenado en **Google Colab con GPU Tesla T4** (15GB VRAM).
+El entrenamiento se gestiona comparando mAP, Precisión, Recall y F1-Score usando un dashboard interactivo en React + Chart.js leyendo directamente los `results.csv`.
 
 ---
 
@@ -210,12 +209,11 @@ npm run dev
 
 ---
 
-## 📈 Próximos Pasos
+## 📈 Próximos Pasos / Progreso
 
-- [ ] Implementar RT-DETR, Faster R-CNN y EfficientDet-D2 para comparativa
-- [ ] Migrar EasyOCR → PaddleOCR para mejor precisión
-- [ ] Usar dataset ec-3 para fine-tuning OCR con caracteres ecuatorianos
-- [ ] Completar entrenamiento combined_all a 100 épocas en Colab
+- [x] Implementar RT-DETR y EfficientDet-D2 para comparativa de detección
+- [x] Crear Dashboard Dinámico de Métricas de Entrenamiento con `Chart.js`
+- [ ] Completar redacción del Capítulo 3 de la Tesis (Metodología)
 - [ ] Implementar dataset_service como microservicio independiente
 - [ ] Agregar base de datos para logs de detecciones
 
