@@ -20,8 +20,18 @@ CREATE TABLE models (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     architecture_type VARCHAR(50), -- ej. YOLO, RT-DETR, EasyOCR
-    model_type VARCHAR(50)         -- ej. identification, classification
+    model_type VARCHAR(50),        -- ej. identification, classification
+    CONSTRAINT uq_models_name_arch UNIQUE (name, architecture_type)
 );
+
+-- Catálogo base de modelos usados por detección / OCR / clasificación
+INSERT INTO models (name, architecture_type, model_type) VALUES
+    ('YOLOv11n', 'YOLOv11n', 'plate_detection'),
+    ('RT-DETR', 'RT-DETR', 'plate_detection'),
+    ('EfficientDet-D2', 'EfficientDet-D2', 'plate_detection'),
+    ('EasyOCR', 'EasyOCR', 'ocr'),
+    ('Gemini 2.5 Flash', 'Gemini', 'classification')
+ON CONFLICT (name, architecture_type) DO NOTHING;
 
 -- 3. Tabla Maestra: Etiquetas de Calidad (Gemini)
 CREATE TABLE quality_labels (
@@ -29,6 +39,14 @@ CREATE TABLE quality_labels (
     name VARCHAR(50) NOT NULL UNIQUE,  -- ej. Legibilidad, Oclusión, Reflejo
     description TEXT
 );
+
+-- Registros base para la clasificación de placas
+INSERT INTO quality_labels (name, description) VALUES
+    ('Legibilidad', 'Estado general de lectura de la placa'),
+    ('Oclusión', 'Si la placa está parcialmente o totalmente tapada'),
+    ('Reflejo', 'Si hay reflejo o destello que impide leer la placa'),
+    ('Suciedad', 'Si la placa tiene lodo, polvo o deterioro')
+ON CONFLICT (name) DO NOTHING;
 
 -- ==========================================
 -- SECCIÓN 2: GESTIÓN DE DATASETS Y ENTRENAMIENTO

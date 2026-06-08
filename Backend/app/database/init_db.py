@@ -9,11 +9,13 @@ def seed_db():
     
     db = SessionLocal()
     try:
-        # Seed Modelos
+        # Seed Modelos usados por el pipeline de detección
         model_names = [
-            ("YOLOv11n", "CNN", "identification"),
-            ("EasyOCR", "CNN+LSTM", "ocr"),
-            ("Gemini 2.5 Flash", "Multimodal", "classification")
+            ("YOLOv11n", "YOLOv11n", "plate_detection"),
+            ("RT-DETR", "RT-DETR", "plate_detection"),
+            ("EfficientDet-D2", "EfficientDet-D2", "plate_detection"),
+            ("EasyOCR", "EasyOCR", "ocr"),
+            ("Gemini 2.5 Flash", "Gemini", "classification"),
         ]
         for name, arch, mtype in model_names:
             if not db.query(ModelIA).filter_by(name=name).first():

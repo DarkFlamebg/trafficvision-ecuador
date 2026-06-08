@@ -16,11 +16,26 @@ class ModelIA(Base):
     architecture_type = Column(String(50))
     model_type = Column(String(50))
 
+    detections = relationship("PlateDetection", back_populates="model")
+    training_runs = relationship("ModelTraining", back_populates="model")
+
 class QualityLabel(Base):
     __tablename__ = "quality_labels"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=False, unique=True)
     description = Column(Text)
+
+class ModelTraining(Base):
+    __tablename__ = "model_training"
+    id = Column(Integer, primary_key=True, index=True)
+    model_id = Column(Integer, ForeignKey("models.id", ondelete="CASCADE"), nullable=False)
+    dataset_id = Column(Integer, nullable=False)
+    accuracy = Column(Double)
+    loss = Column(Double)
+    training_date = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    model = relationship("ModelIA", back_populates="training_runs")
+
 
 class PlateDetection(Base):
     __tablename__ = "plate_detections"
@@ -34,7 +49,7 @@ class PlateDetection(Base):
     detection_date = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     # Relaciones
-    model = relationship("ModelIA")
+    model = relationship("ModelIA", back_populates="detections")
     vehicle = relationship("VehicleType")
     quality_checks = relationship("DetectionQuality", back_populates="detection", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="detection", cascade="all, delete-orphan")
