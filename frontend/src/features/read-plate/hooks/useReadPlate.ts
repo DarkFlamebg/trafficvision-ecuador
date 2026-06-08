@@ -44,24 +44,23 @@ export function useReadPlate() {
   const imgRef    = useRef(new Image())
   const videoRef  = useRef<HTMLVideoElement>(null)
 
-  // ── Cargar FFmpeg desde CDN ────────────────────────────────────────────────
-  useEffect(() => {
-    const loadFFmpeg = async () => {
-      const ffmpeg = ffmpegRef.current
-      if (ffmpeg.loaded) return
+  // ── Helper para Carga Diferida (Lazy Load) de FFmpeg ──────────────────────
+  const ensureFFmpegLoaded = async () => {
+    const ffmpeg = ffmpegRef.current
+    if (ffmpeg.loaded) return true
 
-      try {
-        await ffmpeg.load({
-          coreURL: await toBlobURL(`${FFMPEG_CDN}/ffmpeg-core.js`, "text/javascript"),
-          wasmURL: await toBlobURL(`${FFMPEG_CDN}/ffmpeg-core.wasm`, "application/wasm"),
-        })
-      } catch (err) {
-        console.error("Error cargando FFmpeg:", err)
-        setError("No se pudo cargar el conversor de video. Reintentá recargando la página.")
-      }
+    try {
+      await ffmpeg.load({
+        coreURL: await toBlobURL(`${FFMPEG_CDN}/ffmpeg-core.js`, "text/javascript"),
+        wasmURL: await toBlobURL(`${FFMPEG_CDN}/ffmpeg-core.wasm`, "application/wasm"),
+      })
+      return true
+    } catch (err) {
+      console.error("Error cargando FFmpeg:", err)
+      setError("No se pudo cargar el conversor de video. Reintentá recargando la página.")
+      return false
     }
-    loadFFmpeg()
-  }, [])
+  }
 
   // Dibuja bboxes cuando llega resultado de imagen
   useEffect(() => {
@@ -100,15 +99,15 @@ export function useReadPlate() {
         return
       }
 
-      const ffmpeg = ffmpegRef.current
-      if (!ffmpeg.loaded) {
-        setError("El conversor de video no está listo.")
+      const ffmpegReady = await ensureFFmpegLoaded()
+      if (!ffmpegReady) {
         setIsRecording(false)
         return
       }
 
       setIsConverting(true)
       try {
+        const ffmpeg = ffmpegRef.current
         const webmBlob = new Blob(recordedChunksRef.current, { type: "video/webm" })
 
         await ffmpeg.writeFile("input.webm", await fetchFile(webmBlob))
@@ -266,6 +265,8 @@ export function useReadPlate() {
       ws.onopen = async () => {
         setWsStatus("Enviando video al servidor...")
         ws.send(await file.arrayBuffer())
+        // Iniciamos la descarga pesada de FFmpeg en background (sin bloquear)
+        ensureFFmpegLoaded()
       }
 
       ws.onmessage = (event) => {

@@ -1,27 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
-
 /* ══════════════════════════════════════════════════════════════
-   DESIGN TOKENS
+   DESIGN TOKENS (Matching Home Theme)
    ══════════════════════════════════════════════════════════════ */
 :root {
-  --yolo: #22d3ee;
-  --rtdetr: #f59e0b;
-  --efficientdet: #10b981;
-  --ok: #22c55e;
+  --yolo: #d97706;
+  --rtdetr: #7c3aed;
+  --efficientdet: #0ea5e9;
+  --ok: #10b981;
   --err: #ef4444;
 
-  --bg: #07090f;
-  --bg-card: #0d1117;
-  --bg-panel: #111720;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-md: rgba(255, 255, 255, 0.12);
+  --bg: #0a0a0b;
+  --bg-card: #111113;
+  --bg-panel: #17171a;
+  --border: #222226;
+  --border-md: #2a2a30;
 
-  --text-hi: #e8edf2;
-  --text-mid: #8a9ab0;
-  --text-lo: #4a5668;
+  --text-hi: #f0f0f1;
+  --text-mid: #c7c7e4;
+  --text-lo: #8a9ab0;
 
-  --font-ui: 'Space Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -48,38 +46,19 @@
   position: relative;
 }
 
-/* Subtle grid background */
 .comparison-grid-bg {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(34, 211, 238, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 211, 238, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
 .comparison-scan-line {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background: linear-gradient(to bottom,
-      transparent 0%, rgba(34, 211, 238, 0.04) 50%, transparent 100%);
-  animation: scan 10s linear infinite;
-}
-
-@keyframes scan {
-
-  0%,
-  100% {
-    transform: translateY(-100%);
-  }
-
-  50% {
-    transform: translateY(100%);
-  }
+  display: none;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -135,43 +114,26 @@
 
 .comparison-logo-icon {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
+  background: var(--bg-card);
+  border-radius: 4px;
+  border: 1px solid var(--border-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .comparison-logo-ring {
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid var(--yolo);
-  border-radius: 50%;
-  animation: pulse 2.5s ease-in-out infinite;
+  display: none;
 }
 
 .comparison-logo-dot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   background: var(--yolo);
-  color: var(--bg-card);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.45;
-    transform: scale(1.18);
-  }
+  border-radius: 2px;
 }
 
 .comparison-title {
@@ -239,7 +201,7 @@
   flex-wrap: wrap;
   padding: 0.9rem 1.5rem;
   border-bottom: 1px solid var(--border);
-  background: rgba(13, 17, 23, 0.6);
+  background: rgba(10, 10, 11, 0.6);
 }
 
 /* CARGAR IMAGEN button */
@@ -313,14 +275,14 @@
 /* INICIAR COMPARACIÓN */
 .comparison-btn-analyze {
   padding: 0.55rem 1.25rem;
-  background: linear-gradient(135deg, var(--yolo), var(--rtdetr));
+  background: var(--text-hi);
   border: none;
   border-radius: var(--radius-sm);
-  color: #07090f;
+  color: var(--bg);
   font-family: var(--font-ui);
   font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -333,8 +295,8 @@
 }
 
 .comparison-btn-analyze:not(:disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  background: #fff;
+  transform: translateY(-1px);
 }
 
 .comparison-btn-inner {
@@ -348,22 +310,14 @@
 .comparison-spinner {
   width: 13px;
   height: 13px;
-  border: 2px solid rgba(7, 9, 15, 0.25);
-  border-top-color: #07090f;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-top-color: #000;
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
 }
 
 .comparison-btn-shine {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.55s;
-}
-
-.comparison-btn-analyze:not(:disabled):hover .comparison-btn-shine {
-  transform: translateX(100%);
+  display: none;
 }
 
 .comparison-btn-cancel {

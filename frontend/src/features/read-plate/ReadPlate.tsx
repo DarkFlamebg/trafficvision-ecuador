@@ -1,12 +1,22 @@
+import React, { Suspense } from "react"
 import "./ReadPlate.css"
 import { useReadPlate }           from "./hooks/useReadPlate"
 import { ProcessStepper }         from "./components/ProcessStepper"
 import { DropZone }               from "./components/DropZone"
-import { VideoFrameStrip }        from "./components/VideoFrameStrip"
-import { ImageDetectionCanvas }   from "./components/ImageDetectionCanvas"
-import { VideoStreamPanel }       from "./components/VideoStreamPanel"
-import { ResultsPanel }           from "./components/ResultsPanel"
-import { DetectionReportTable }   from "./components/DetectionReportTable"
+
+// Componentes pesados cargados bajo demanda para optimizar la página
+const VideoFrameStrip = React.lazy(() => import("./components/VideoFrameStrip").then(m => ({ default: m.VideoFrameStrip })))
+const ImageDetectionCanvas = React.lazy(() => import("./components/ImageDetectionCanvas").then(m => ({ default: m.ImageDetectionCanvas })))
+const VideoStreamPanel = React.lazy(() => import("./components/VideoStreamPanel").then(m => ({ default: m.VideoStreamPanel })))
+const ResultsPanel = React.lazy(() => import("./components/ResultsPanel").then(m => ({ default: m.ResultsPanel })))
+const DetectionReportTable = React.lazy(() => import("./components/DetectionReportTable").then(m => ({ default: m.DetectionReportTable })))
+
+const LoaderFallback = () => (
+  <div style={{ padding: "1rem", textAlign: "center", color: "var(--text-dim)", fontSize: "0.8rem", display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem" }}>
+    <span className="rp-spinner" style={{ width: 14, height: 14, borderTopColor: "var(--accent-blue)" }} />
+    <span>Cargando módulo...</span>
+  </div>
+)
 
 function ReadPlate() {
   const rp = useReadPlate()
@@ -77,11 +87,13 @@ function ReadPlate() {
 
           {rp.fileType === "video" && (
             <div className="rp-card rp-card--frames">
-              <VideoFrameStrip
-                frames={rp.videoFrames}
-                currentFrame={rp.currentFrame}
-                onSelect={rp.setCurrentFrame}
-              />
+              <Suspense fallback={<LoaderFallback />}>
+                <VideoFrameStrip
+                  frames={rp.videoFrames}
+                  currentFrame={rp.currentFrame}
+                  onSelect={rp.setCurrentFrame}
+                />
+              </Suspense>
             </div>
           )}
 
@@ -140,23 +152,27 @@ function ReadPlate() {
           {/* ── DETECCIÓN VISUAL IMAGEN ── */}
           {rp.result && rp.result.total > 0 && rp.fileType === "image" && (
             <div className="rp-card rp-card--detection">
-              <ImageDetectionCanvas canvasRef={rp.canvasRef} onDownload={rp.downloadCanvas} />
+              <Suspense fallback={<LoaderFallback />}>
+                <ImageDetectionCanvas canvasRef={rp.canvasRef} onDownload={rp.downloadCanvas} />
+              </Suspense>
             </div>
           )}
 
           {/* ── STREAMING VIDEO ── */}
           {rp.fileType === "video" && (
             <div className="rp-card rp-card--stream">
-              <VideoStreamPanel
-                wsFrameSrc={rp.wsFrameSrc}
-                wsProgress={rp.wsProgress}
-                wsStatus={rp.wsStatus}
-                isRecording={rp.isRecording}
-                isConverting={rp.isConverting}
-                downloadUrl={rp.downloadUrl}
-                loading={rp.loading}
-                fileName={rp.file?.name}
-              />
+              <Suspense fallback={<LoaderFallback />}>
+                <VideoStreamPanel
+                  wsFrameSrc={rp.wsFrameSrc}
+                  wsProgress={rp.wsProgress}
+                  wsStatus={rp.wsStatus}
+                  isRecording={rp.isRecording}
+                  isConverting={rp.isConverting}
+                  downloadUrl={rp.downloadUrl}
+                  loading={rp.loading}
+                  fileName={rp.file?.name}
+                />
+              </Suspense>
             </div>
           )}
 
@@ -192,7 +208,9 @@ function ReadPlate() {
             <span className="rp-panel-label" aria-hidden="true">02</span>
             <h2 className="rp-panel-title">RESULTADOS</h2>
           </div>
-          <ResultsPanel result={rp.result} loading={rp.loading} fileType={rp.fileType} />
+          <Suspense fallback={<LoaderFallback />}>
+            <ResultsPanel result={rp.result} loading={rp.loading} fileType={rp.fileType} />
+          </Suspense>
         </section>
       </main>
 
@@ -203,7 +221,9 @@ function ReadPlate() {
             <span className="rp-panel-label" aria-hidden="true">03</span>
             <h2 className="rp-panel-title">REPORTE DE DETECCIÓN</h2>
           </div>
-          <DetectionReportTable report={rp.report} onDownload={rp.downloadReportCSV} />
+          <Suspense fallback={<LoaderFallback />}>
+            <DetectionReportTable report={rp.report} onDownload={rp.downloadReportCSV} />
+          </Suspense>
         </section>
       )}
     </div>

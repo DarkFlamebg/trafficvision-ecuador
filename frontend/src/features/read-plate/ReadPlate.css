@@ -1,54 +1,47 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   ReadPlate.css — Dark Industrial Tech Redesign
-   Fonts: Syne (display) + JetBrains Mono (code/data) + Instrument Sans (body)
+   ReadPlate.css — Professional Clean Redesign (Matching Home Theme)
    ═══════════════════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap');
 
 /* ── TOKENS ─────────────────────────────────────────────────────────────── */
 :root {
-  --bg-base:        #060A0F;
-  --bg-surface:     #0B1018;
-  --bg-card:        #0F1724;
-  --bg-card-hover:  #131e2e;
-  --bg-elevated:    #182236;
+  --bg-base:        #0a0a0b;
+  --bg-surface:     #111113;
+  --bg-card:        #111113;
+  --bg-card-hover:  #17171a;
+  --bg-elevated:    #17171a;
 
-  --border-dim:     rgba(255,255,255,0.05);
-  --border-sub:     rgba(255,255,255,0.09);
-  --border-mid:     rgba(255,255,255,0.13);
-  --border-accent:  rgba(0,255,136,0.25);
+  --border-dim:     #1a1a1e;
+  --border-sub:     #222226;
+  --border-mid:     #2a2a30;
+  --border-accent:  rgba(59,130,246,0.3);
 
-  --text-primary:   #E8EDF5;
-  --text-secondary: #7A90A8;
-  --text-dim:       #3D5168;
-  --text-accent:    #00FF88;
-  --text-cyan:      #22D3EE;
-  --text-blue:      #60A5FA;
-  --text-amber:     #FBBF24;
-  --text-red:       #F87171;
+  --text-primary:   #f0f0f1;
+  --text-secondary: #c7c7e4;
+  --text-dim:       #8a9ab0;
+  --text-accent:    #3b82f6;
 
-  --accent-green:   #00FF88;
-  --accent-cyan:    #22D3EE;
-  --accent-blue:    #3B82F6;
-  --accent-purple:  #8B5CF6;
-  --accent-amber:   #F59E0B;
-  --accent-red:     #EF4444;
+  --accent-green:   #3b82f6; /* mapped to primary accent blue for consistency */
+  --accent-cyan:    #0ea5e9;
+  --accent-blue:    #3b82f6;
+  --accent-purple:  #7c3aed;
+  --accent-amber:   #d97706;
+  --accent-red:     #ef4444;
 
-  --gradient-main:  linear-gradient(135deg, #00FF88 0%, #22D3EE 50%, #3B82F6 100%);
-  --gradient-card:  linear-gradient(135deg, rgba(0,255,136,0.04) 0%, rgba(34,211,238,0.02) 100%);  
+  --font-body:      'Inter', system-ui, -apple-system, sans-serif;
+  --font-display:   'Inter', system-ui, sans-serif;
+  --font-mono:      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --radius-sm:      6px;
   --radius-md:      10px;
   --radius-lg:      14px;
   --radius-xl:      20px;
 
-  --shadow-card:    0 0 0 1px var(--border-dim), 0 4px 24px rgba(0,0,0,0.4);
-  --shadow-accent:  0 0 20px rgba(0,255,136,0.12), 0 0 60px rgba(0,255,136,0.04);
-  --shadow-glow:    0 0 0 1px var(--border-accent), 0 4px 24px rgba(0,0,0,0.5), 0 0 40px rgba(0,255,136,0.08);
+  --shadow-card:    0 4px 12px rgba(0,0,0,0.15);
+  --shadow-accent:  0 4px 12px rgba(0,0,0,0.15);
+  --shadow-glow:    0 4px 12px rgba(0,0,0,0.15);
 
   --transition-fast:   150ms cubic-bezier(0.4,0,0.2,1);
   --transition-smooth: 250ms cubic-bezier(0.4,0,0.2,1);
-  --transition-spring: 400ms cubic-bezier(0.34,1.56,0.64,1);
 }
 
 /* ── RESET & BASE ───────────────────────────────────────────────────────── */
@@ -75,8 +68,8 @@
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(0,255,136,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,136,0.025) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%);
 }
@@ -259,39 +252,30 @@
 
 .rp-logo-icon {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
+  background: var(--bg-card);
+  border-radius: 4px;
+  border: 1px solid var(--border-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .rp-logo-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1.5px solid var(--accent-green);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  opacity: 0.7;
-  animation: rp-rotate 8s linear infinite;
+  display: none;
 }
 .rp-logo-dot {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
   width: 8px; height: 8px;
-  border-radius: 50%;
+  border-radius: 2px;
   background: var(--accent-green);
-  box-shadow: 0 0 10px var(--accent-green);
-}
-
-@keyframes rp-rotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
 }
 
 .rp-title {
   font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
   line-height: 1;
 }
@@ -327,8 +311,6 @@
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--accent-green);
-  box-shadow: 0 0 6px var(--accent-green);
-  animation: rp-pulse 2s ease-in-out infinite;
 }
 
 /* ── MAIN BODY ──────────────────────────────────────────────────────────── */
@@ -592,13 +574,13 @@
   width: 100%;
   padding: 0.9rem 1.5rem;
   border: none;
-  border-radius: var(--radius-md);
-  background: var(--gradient-main);
-  color: #000;
+  border-radius: var(--radius-sm);
+  background: var(--text-primary);
+  color: var(--bg-base);
   font-family: var(--font-display);
   font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
   overflow: hidden;
   transition: all var(--transition-smooth);
@@ -630,14 +612,7 @@
 }
 
 .rp-btn-shine {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
-  transform: translateX(-100%);
-  transition: transform 600ms ease;
-}
-.rp-btn-analyze:hover:not(:disabled) .rp-btn-shine {
-  transform: translateX(100%);
+  display: none;
 }
 
 /* ── CANCEL BUTTON ──────────────────────────────────────────────────────── */
