@@ -1,6 +1,6 @@
 import "./TrainingMetrics.css"
 
-import yoloResults from "../../assets/images/yolov11/BoxF1_curve.png"
+import yoloResults from "../../assets/images/yolov11/results.png"
 import yoloPR from "../../assets/images/yolov11/BoxPR_curve.png"
 import yoloCM from "../../assets/images/yolov11/confusion_matrix_normalized.png"
 
@@ -18,7 +18,7 @@ const MODELS = [
     name: "YOLOv11n",
     desc: "Single-shot CNN - Máxima velocidad",
     metrics: { map50: "94.2%", map95: "71.5%", f1: "0.92" },
-    images: { results: yoloResults, pr: yoloPR, confusion: yoloCM, resultsTitle: "F1-Confidence Curve" }
+    images: { results: yoloResults, pr: yoloPR, confusion: yoloCM, resultsTitle: "Curva de Pérdida (Loss)" }
   },
   {
     id: "rtdetr",
