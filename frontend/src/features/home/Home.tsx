@@ -4,12 +4,13 @@ import "./Home.css"
 // --- Nuevas constantes explicativas -------------------------------------------------
 // Descripción de cada métrica que se muestra en la tabla de modelos.
 const METRIC_EXPLANATIONS = {
-  "mAP@50": "Mean Average Precision a un umbral de IoU=0.5. Indica la proporción de detecciones correctas.",
+  "mAP@50":    "Mean Average Precision a un umbral de IoU=0.5. Indica la proporción de detecciones correctas.",
   "mAP@50-95": "Promedio de mAP desde IoU 0.5 hasta 0.95 (paso 0.05). Mide la precisión global del detector.",
   "Precisión": "Porcentaje de detecciones correctas respecto al total detectado.",
-  "Recall": "Porcentaje de objetos reales que fueron detectados.",
-  "speed": "Tiempo medio de inferencia por imagen (CPU/GPU).",
-  "fps": "Frames por segundo estimados a partir del tiempo de inferencia.",
+  "Recall":    "Porcentaje de objetos reales que fueron detectados.",
+  "F1-Score":  "Media armónica entre Precisión y Recall. Indicador de balance óptimo del modelo.",
+  "speed":     "Tiempo medio de inferencia por imagen (CPU/GPU).",
+  "fps":       "Frames por segundo estimados a partir del tiempo de inferencia.",
 };
 
 
@@ -28,6 +29,7 @@ const MODELS = [
       { key: "mAP@50-95", val: "78.4%", bar: 78.4 },
       { key: "Precisión", val: "97.1%", bar: 97.1 },
       { key: "Recall",    val: "94.7%", bar: 94.7 },
+      { key: "F1-Score",  val: "0.959", bar: 95.9 },
     ],
     speed: "~47 ms (CPU) / ~5 ms (GPU)",
     fps: "~21 FPS (CPU) / ~208 FPS (GPU)",
@@ -48,6 +50,7 @@ const MODELS = [
       { key: "mAP@50-95", val: "68.6%", bar: 68.6 },
       { key: "Precisión", val: "97.1%", bar: 97.1 },
       { key: "Recall",    val: "94.7%", bar: 94.7 },
+      { key: "F1-Score",  val: "0.959", bar: 95.9 },
     ],
     speed: "~47 ms",
     fps: "~30 FPS",
@@ -68,6 +71,7 @@ const MODELS = [
       { key: "mAP@50-95", val: "65.7%", bar: 65.7 },
       { key: "Precisión", val: "98.2%", bar: 98.2 },
       { key: "Recall",    val: "92.3%", bar: 92.3 },
+      { key: "F1-Score",  val: "0.951", bar: 95.1 },
     ],
     speed: "~3.7 ms",
     fps: "~200 FPS",

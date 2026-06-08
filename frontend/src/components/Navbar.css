@@ -57,6 +57,24 @@
   font-weight: 600;
 }
 
+.global-nav-link--download {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 100px;
+  color: #a5b4fc;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.global-nav-link--download:hover,
+.global-nav-link--download.active {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #c7d2fe;
+}
+
 @media (max-width: 768px) {
   .global-nav-links {
     gap: 1rem;

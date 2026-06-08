@@ -5,6 +5,7 @@ import ReadPlate from "./features/read-plate/ReadPlate"
 import ModelComparison from "./features/model-comparison/ModelComparison"
 import Benchmark from "./features/benchmark/Benchmark"
 import TrainingMetrics from "./features/training-metrics/TrainingMetrics"
+import Resources from "./features/resources/Resources"
 import { Layout } from "./components/Layout"
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/model-comparison" element={<ModelComparison />} />
           <Route path="/benchmark" element={<Benchmark />} />
           <Route path="/training-metrics" element={<TrainingMetrics />} />
+          <Route path="/resources" element={<Resources />} />
         </Routes>
       </Layout>
     </BrowserRouter>
