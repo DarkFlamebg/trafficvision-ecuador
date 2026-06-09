@@ -14,7 +14,12 @@ const MODELS = [
     speed: "~3.7 ms",
     desc: "Modelo ultraliviano ideal para tiempo real y edge devices. Excelente para despliegue en cámaras de seguridad con recursos limitados.",
     files: [
-      { label: "Pesos entrenados (.pt)", filename: "yolo11n_trafficvision.pt", size: "15 MB" },
+      {
+        label: "Pesos entrenados (.pt)",
+        filename: "yolo11n_trafficvision.pt",
+        size: "15 MB",
+        download_url: "https://drive.google.com/file/d/1N-dWPaI6gwyLVFZuf3GFYr3e55Tux0qZ/view?usp=sharing",
+      },
     ],
   },
   {
@@ -30,7 +35,12 @@ const MODELS = [
     speed: "~47 ms",
     desc: "Máxima generalización gracias a mecanismos de atención Vision Transformer. Recomendado cuando la precisión es prioritaria sobre la velocidad.",
     files: [
-      { label: "Pesos entrenados (.pt)", filename: "rtdetr_l_trafficvision.pt", size: "251 MB" },
+      {
+        label: "Pesos entrenados (.pt)",
+        filename: "rtdetr_l_trafficvision.pt",
+        size: "251 MB",
+        download_url: "https://drive.google.com/file/d/1KlVNqrV0onpSA4ZkZaCsm069BCaU9QF1/view?usp=sharing",
+      },
     ],
   },
   {
@@ -46,7 +56,12 @@ const MODELS = [
     speed: "~47 ms / ~5 ms GPU",
     desc: "El mejor equilibrio entre tamaño de modelo, costo computacional y precisión. Especialmente destacado en el dataset ecuatoriano.",
     files: [
-      { label: "Pesos entrenados (.pt)", filename: "efficientdet_d2_trafficvision.pt", size: "94.4 MB" },
+      {
+        label: "Pesos entrenados (.pt)",
+        filename: "efficientdet_d2_trafficvision.pt",
+        size: "94.4 MB",
+        download_url: "https://drive.google.com/file/d/11x5N1TbPzKnKJVbmNrLXMuN-SYZx_PdX/view?usp=sharing",
+      },
     ],
   },
 ]
@@ -155,10 +170,23 @@ export default function Resources() {
                       <span className="res-file-name">{f.label}</span>
                       <span className="res-file-meta">{f.filename} · {f.size}</span>
                     </div>
-                    <button className="res-download-btn" style={{ borderColor: m.color + "44", color: m.color }} disabled title="Próximamente disponible">
-                      <DownloadIcon />
-                      Descargar
-                    </button>
+                    {f.download_url ? (
+                      <a
+                        className="res-download-btn enabled"
+                        href={f.download_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ borderColor: m.color + "44", color: m.color }}
+                      >
+                        <DownloadIcon />
+                        Descargar
+                      </a>
+                    ) : (
+                      <button className="res-download-btn" style={{ borderColor: m.color + "44", color: m.color }} disabled title="Próximamente disponible">
+                        <DownloadIcon />
+                        Descargar
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
