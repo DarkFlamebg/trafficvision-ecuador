@@ -9,6 +9,7 @@ const ReadPlate = React.lazy(() => import("./features/read-plate/ReadPlate"))
 const ModelComparison = React.lazy(() => import("./features/model-comparison/ModelComparison"))
 const Benchmark = React.lazy(() => import("./features/benchmark/Benchmark"))
 const TrainingMetrics = React.lazy(() => import("./features/training-metrics/TrainingMetrics"))
+const TrainingMetricsDynamic = React.lazy(() => import("./features/training-metrics/components/Trainingmetricsdynamic"))
 const Resources = React.lazy(() => import("./features/resources/Resources"))
 
 const PageLoader = () => (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/model-comparison" element={<ModelComparison />} />
             <Route path="/benchmark" element={<Benchmark />} />
             <Route path="/training-metrics" element={<TrainingMetrics />} />
+            <Route path="/training-metrics-dynamic" element={<TrainingMetricsDynamic />} />
             <Route path="/resources" element={<Resources />} />
           </Routes>
         </Suspense>

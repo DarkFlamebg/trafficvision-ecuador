@@ -1,0 +1,417 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   TrainingMetricsDynamic.css
+   Hereda las variables CSS de tu proyecto (--text-main, --accent, --card-bg,
+   --border, --border-subtle, --radius, --radius-sm, --bg, --text-muted,
+   --font-mono). Si alguna no existe en tu proyecto, añádela al :root.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Contenedor raíz ───────────────────────────────────────────────────────── */
+.tmd-container {
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Estado carga / error ─────────────────────────────────────────────────── */
+.tmd-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 200px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.tmd-state--error { color: #c0392b; }
+
+.tmd-spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: tmd-spin 0.7s linear infinite;
+}
+@keyframes tmd-spin { to { transform: rotate(360deg); } }
+
+/* ── Encabezado ────────────────────────────────────────────────────────────── */
+.tmd-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.tmd-header-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tmd-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(to right, var(--text-main), var(--accent));
+  -webkit-background-clip: text;
+  color: transparent;
+  letter-spacing: -0.02em;
+}
+.tmd-model-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.tmd-header-desc {
+  color: var(--text-muted);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.tmd-model-selector {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 auto 2rem;
+  max-width: 780px;
+}
+
+.tmd-model-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
+}
+
+.tmd-model-option:hover {
+  border-color: rgba(59,130,246,0.45);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+
+.tmd-model-option.active {
+  background: rgba(59,130,246,0.1);
+  border-color: var(--accent);
+  color: var(--text-main);
+}
+
+.tmd-model-option-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.tmd-model-option-desc {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+/* ── KPI pills ─────────────────────────────────────────────────────────────── */
+.tmd-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 2.5rem;
+}
+.tmd-kpi {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1rem;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.2s;
+}
+.tmd-kpi:hover { border-color: rgba(59,130,246,0.35); }
+.tmd-kpi-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.tmd-kpi-value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  line-height: 1.1;
+}
+.tmd-kpi-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+/* ── Tabs principales ──────────────────────────────────────────────────────── */
+.tmd-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0;
+}
+.tmd-tab {
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  border-radius: 0;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1px;
+  font-family: inherit;
+}
+.tmd-tab:hover { color: var(--text-main); }
+.tmd-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Sección genérica ──────────────────────────────────────────────────────── */
+.tmd-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: tmd-fade-in 0.25s ease;
+}
+@keyframes tmd-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Sub-tabs ──────────────────────────────────────────────────────────────── */
+.tmd-sub-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.tmd-sub-tab {
+  padding: 5px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.tmd-sub-tab:hover { border-color: var(--accent); color: var(--text-main); }
+.tmd-sub-tab.active {
+  background: rgba(59,130,246,0.08);
+  border-color: rgba(59,130,246,0.35);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Área de gráfica ───────────────────────────────────────────────────────── */
+.tmd-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  margin-bottom: 1rem;
+}
+.tmd-chart-title {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── AUC badge ─────────────────────────────────────────────────────────────── */
+.tmd-auc-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(29,158,117,0.1);
+  border: 1px solid rgba(29,158,117,0.3);
+  color: #1D9E75;
+}
+
+/* ── Leyenda ───────────────────────────────────────────────────────────────── */
+.tmd-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0.5rem 0 1.25rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.tmd-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tmd-legend-square {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ── Explain callout ───────────────────────────────────────────────────────── */
+.tmd-explain {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  background: rgba(59,130,246,0.04);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+.tmd-explain-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+.tmd-explain strong { color: var(--text-main); font-weight: 600; }
+.tmd-explain em { font-style: italic; }
+
+/* ── PR grid (dos columnas) ────────────────────────────────────────────────── */
+.tmd-pr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+.tmd-pr-col { display: flex; flex-direction: column; }
+
+/* ── Matriz de confusión ───────────────────────────────────────────────────── */
+.tmd-cm-outer {
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+}
+.tmd-cm-table {
+  border-collapse: separate;
+  border-spacing: 6px;
+  width: auto;
+  min-width: 360px;
+}
+.tmd-cm-corner,
+.tmd-cm-th,
+.tmd-cm-row-th {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  white-space: nowrap;
+  text-align: center;
+}
+.tmd-cm-corner { text-align: left; }
+.tmd-cm-row-th {
+  text-align: right;
+  padding-right: 12px;
+}
+.tmd-cm-cell {
+  width: 160px;
+  height: 90px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  vertical-align: middle;
+  padding: 10px 8px;
+  transition: filter 0.15s;
+  cursor: default;
+}
+.tmd-cm-cell:hover { filter: brightness(1.08); }
+.tmd-cm-pct {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1.1;
+}
+.tmd-cm-abbr {
+  display: block;
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.tmd-cm-tag {
+  display: block;
+  font-size: 0.68rem;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+
+/* ── Stats de la CM ────────────────────────────────────────────────────────── */
+.tmd-cm-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 1rem 0 1.25rem;
+}
+.tmd-cm-stat {
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+}
+.tmd-cm-stat-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.tmd-cm-stat-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .tmd-container { padding: 2.5rem 1rem; }
+  .tmd-header h1 { font-size: 1.6rem; }
+  .tmd-model-selector { grid-template-columns: 1fr; }
+  .tmd-pr-grid   { grid-template-columns: 1fr; }
+  .tmd-chart-wrap { height: 220px; }
+  .tmd-cm-cell   { width: 120px; height: 80px; }
+  .tmd-cm-pct    { font-size: 1.2rem; }
+}
+@media (max-width: 480px) {
+  .tmd-kpis { grid-template-columns: repeat(3, 1fr); }
+  .tmd-tabs { gap: 0; }
+  .tmd-tab  { font-size: 0.78rem; padding: 0.5rem 0.6rem; }
+}
