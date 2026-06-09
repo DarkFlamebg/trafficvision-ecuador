@@ -131,6 +131,28 @@ export function useModelComparison() {
     return res.data
   }
 
+  const submitPlateFeedback = useCallback(async (
+    plate: { detection_id?: number },
+    isCorrect: boolean,
+    correctedPlateText?: string
+  ) => {
+    if (!plate.detection_id) {
+      throw new Error("No detection_id disponible para enviar feedback")
+    }
+
+    const payload = {
+      detection_id: plate.detection_id,
+      is_correct: isCorrect,
+      corrected_plate_text: correctedPlateText || null,
+    }
+
+    await API.post(
+      "/api/v1/compare/feedback",
+      payload,
+      { headers: { "Content-Type": "application/json" } }
+    )
+  }, [])
+
   // ─────────────────────────────────────────────────────────────────────────
   // Comparación de VIDEO
   // ─────────────────────────────────────────────────────────────────────────
@@ -346,6 +368,7 @@ export function useModelComparison() {
     inputRef,
     handleFile, handleDrop,
     runImageComparison, runVideoComparison,
+    submitPlateFeedback,
     cancelComparison, reset, setRealPlate,
   }
 }

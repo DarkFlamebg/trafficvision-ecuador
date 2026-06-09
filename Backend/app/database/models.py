@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, Double
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, Double, Boolean
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 
@@ -46,6 +46,11 @@ class PlateDetection(Base):
     vehicle_type_id = Column(Integer, ForeignKey("vehicle_types.id", ondelete="SET NULL"))
     inference_time_ms = Column(Double)
     image_path = Column(Text)
+    user_validated = Column(Boolean, nullable=False, default=False, server_default="false")
+    user_is_correct = Column(Boolean, nullable=True)
+    user_corrected_text = Column(String(15), nullable=True)
+    user_feedback_date = Column(DateTime(timezone=True), nullable=True)
+    user_feedback_by = Column(String(100), nullable=True)
     detection_date = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     # Relaciones

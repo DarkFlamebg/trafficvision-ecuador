@@ -103,6 +103,11 @@ CREATE TABLE plate_detections (
     vehicle_type_id INTEGER,
     inference_time_ms DOUBLE PRECISION,
     image_path TEXT,                       -- Ruta de la captura en el Storage
+    user_validated BOOLEAN DEFAULT FALSE,
+    user_is_correct BOOLEAN,
+    user_corrected_text VARCHAR(15),
+    user_feedback_date TIMESTAMP WITH TIME ZONE,
+    user_feedback_by VARCHAR(100),
     detection_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_detection_model FOREIGN KEY (model_id) 

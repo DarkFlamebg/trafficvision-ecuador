@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import type { PlateDetection } from "../types/comparison_types"
 import { DiagnosticPanelCompact } from "./DiagnosticPanelCompact"
 
@@ -7,7 +7,7 @@ interface OCRPanelProps {
   realPlate?: string
   color: string
   modelName: string
-  onFeedback?: (plate: PlateDetection, isCorrect: boolean) => void
+  onFeedback?: (plate: PlateDetection, isCorrect: boolean, correctedPlateText?: string) => Promise<void>
 }
 
 function SinglePlateCard({
@@ -21,25 +21,58 @@ function SinglePlateCard({
   plate: PlateDetection
   realPlate?: string
   color: string
-  onFeedback?: (plate: PlateDetection, isCorrect: boolean) => void
+  onFeedback?: (plate: PlateDetection, isCorrect: boolean, correctedPlateText?: string) => Promise<void>
   index: number
   total: number
 }) {
   const [feedback, setFeedback] = useState<boolean | null>(null)
+  const [correctedText, setCorrectedText] = useState<string>("")
+  const [submitting, setSubmitting] = useState(false)
+  const [popupMessage, setPopupMessage] = useState<string | null>(null)
+  const [popupType, setPopupType] = useState<"success" | "error" | null>(null)
+  const timeoutRef = useRef<number | null>(null)
 
   const isValid   = (plate as any).ocr_valid !== false   // undefined treated as valid (backwards compat)
   const textColor = plate.plate ? (isValid ? color : "#f59e0b") : "var(--text-lo)"
   const isCorrect = !!(realPlate && plate.plate && plate.plate === realPlate)
 
-  const handleFeedback = (correct: boolean) => {
+  const showPopup = (message: string, type: "success" | "error") => {
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current)
+    }
+    setPopupMessage(message)
+    setPopupType(type)
+    timeoutRef.current = window.setTimeout(() => {
+      setPopupMessage(null)
+      setPopupType(null)
+      timeoutRef.current = null
+    }, 2800)
+  }
+
+  const handleSelectFeedback = (correct: boolean) => {
     setFeedback(correct)
-    onFeedback?.(plate, correct)
+    setPopupMessage(null)
+    setPopupType(null)
+  }
+
+  const handleSubmitFeedback = async () => {
+    if (feedback === null || !plate.detection_id || !onFeedback) return
+
+    setSubmitting(true)
+    try {
+      await onFeedback(plate, feedback, correctedText.trim() || undefined)
+      showPopup("Feedback enviado correctamente.", "success")
+    } catch (error) {
+      showPopup("Error al enviar feedback. Intenta de nuevo.", "error")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <div
       className="ocr-plate-card"
-      style={{ borderColor: (plate.plate ? textColor : "var(--border)") + "44" }}
+      style={{ position: "relative", borderColor: (plate.plate ? textColor : "var(--border)") + "44" }}
     >
       {/* Indicador de placa N/Total si hay más de una */}
       {total > 1 && (
@@ -106,7 +139,7 @@ function SinglePlateCard({
       {/* Feedback manual */}
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
         <button
-          onClick={() => handleFeedback(true)}
+          onClick={() => handleSelectFeedback(true)}
           style={{
             flex: 1, padding: "0.45rem",
             background: feedback === true ? "rgba(34,197,94,0.12)" : "rgba(255,255,255,0.03)",
@@ -120,7 +153,7 @@ function SinglePlateCard({
           ✓ CORRECTO
         </button>
         <button
-          onClick={() => handleFeedback(false)}
+          onClick={() => handleSelectFeedback(false)}
           style={{
             flex: 1, padding: "0.45rem",
             background: feedback === false ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.03)",
@@ -134,6 +167,75 @@ function SinglePlateCard({
           ✕ INCORRECTO
         </button>
       </div>
+
+      {feedback === false && (
+        <div style={{ marginTop: "0.75rem" }}>
+          <label style={{ display: "block", marginBottom: "0.4rem", fontSize: "0.72rem", color: "var(--text-mid)" }}>
+            Corregir texto (opcional)
+          </label>
+          <input
+            value={correctedText}
+            onChange={(event) => setCorrectedText(event.target.value)}
+            placeholder="Ej. ABC-1234"
+            style={{
+              width: "100%",
+              padding: "0.55rem 0.75rem",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--border)",
+              background: "var(--bg-panel)",
+              color: "var(--text)",
+              fontSize: "0.88rem",
+            }}
+          />
+        </div>
+      )}
+
+      <button
+        onClick={handleSubmitFeedback}
+        disabled={feedback === null || submitting || !plate.detection_id || !onFeedback}
+        style={{
+          width: "100%",
+          marginTop: "0.75rem",
+          padding: "0.65rem",
+          borderRadius: "var(--radius-sm)",
+          border: "1px solid var(--border)",
+          background: plate.detection_id ? "var(--primary)" : "var(--bg-panel)",
+          color: plate.detection_id ? "white" : "var(--text-lo)",
+          cursor: feedback === null || submitting || !plate.detection_id ? "not-allowed" : "pointer",
+          fontSize: "0.85rem",
+          fontWeight: 700,
+        }}
+      >
+        {submitting ? "Enviando..." : "Aceptar feedback"}
+      </button>
+
+      {plate.detection_id == null && (
+        <div style={{ marginTop: "0.5rem", color: "var(--text-lo)", fontSize: "0.75rem" }}>
+          Esta placa no se guardó como detección válida, por lo que no puede enviar feedback.
+        </div>
+      )}
+
+      {popupMessage && (
+        <div
+          role="status"
+          style={{
+            position: "absolute",
+            top: "0.75rem",
+            left: "0.75rem",
+            right: "0.75rem",
+            padding: "0.85rem 1rem",
+            borderRadius: "0.9rem",
+            background: popupType === "success" ? "rgba(16,185,129,0.95)" : "rgba(239,68,68,0.95)",
+            color: "white",
+            boxShadow: "0 18px 40px rgba(0,0,0,0.16)",
+            zIndex: 10,
+            fontSize: "0.85rem",
+            textAlign: "center",
+          }}
+        >
+          {popupMessage}
+        </div>
+      )}
     </div>
   )
 }

@@ -32,17 +32,18 @@ export interface VideoTypeMetric {
 }
 
 export interface PlateDetection {
-  bbox:                [number, number, number, number]
-  plate:               string
-  ocr_confidence:      number
-  detector_confidence: number
-  vehicle_type:        string | null
-  frame?:              number
-  timestamp_video?:    number
-  vehicle_bbox?:       [number, number, number, number] | null
+  detection_id?:        number
+  bbox:                 [number, number, number, number]
+  plate:                string
+  ocr_confidence:       number
+  detector_confidence:  number
+  vehicle_type:         string | null
+  frame?:               number
+  timestamp_video?:     number
+  vehicle_bbox?:        [number, number, number, number] | null
   // Para OCR visual por carácter (si el backend lo soporta)
-  char_confidences?:   number[]
-  image_base64?:       string
+  char_confidences?:    number[]
+  image_base64?:        string
   labels?: PlateLabels
 }
 

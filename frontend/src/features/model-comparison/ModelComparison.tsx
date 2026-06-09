@@ -297,6 +297,7 @@ function ModelComparison() {
                     realPlate={mc.realPlate}
                     vehicles={yoloData?.vehicles || []}
                     allPlates={yoloData?.plates || []}
+                    onFeedback={mc.submitPlateFeedback}
                 />
 
                 <div className="prototype-model-divider" />
@@ -311,6 +312,7 @@ function ModelComparison() {
                     realPlate={mc.realPlate}
                     vehicles={rtdetrData?.vehicles || []}
                     allPlates={rtdetrData?.plates || []}
+                    onFeedback={mc.submitPlateFeedback}
                 />
 
                 <div className="prototype-model-divider" />
@@ -325,6 +327,7 @@ function ModelComparison() {
                     realPlate={mc.realPlate}
                     vehicles={efficientdetData?.vehicles || []}
                     allPlates={efficientdetData?.plates || []}
+                    onFeedback={mc.submitPlateFeedback}
                 />
 
                 {/* Winner */}
@@ -472,10 +475,11 @@ interface ModelResultRowProps {
   realPlate:  string
   vehicles?:  any[]
   allPlates?: any[]
+  onFeedback?: (plate: any, isCorrect: boolean, correctedPlateText?: string) => Promise<void>
 }
 
 function ModelResultRow({
-  modelLabel, color, imageSrc, metrics, realPlate, vehicles = [], allPlates = []
+  modelLabel, color, imageSrc, metrics, realPlate, vehicles = [], allPlates = [], onFeedback
 }: ModelResultRowProps) {
   return (
     <div className="prototype-model-row">
@@ -516,6 +520,7 @@ function ModelResultRow({
         realPlate={realPlate}
         color={color}
         modelName={modelLabel}
+        onFeedback={onFeedback}
       />
     </div>
   )

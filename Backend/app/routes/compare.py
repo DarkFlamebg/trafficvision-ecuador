@@ -15,10 +15,12 @@ import base64
 import asyncio
 import shutil
 import re
+from datetime import datetime, timezone
 
 import cv2
 import numpy as np
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 
 from app.ai.vehicle_detector    import detect_vehicles
 from app.ai.plate_detector      import detect_plate      as detect_plate_yolo
@@ -28,6 +30,14 @@ from app.ai.plate_detector_efficientdet import detect_plate_efficientdet
 from app.ai.plate_classifier    import classify_plates_batch
 from app.database.connection    import SessionLocal
 from app.database.models        import PlateDetection, DetectionQuality, AuditLog, ModelIA, VehicleType, QualityLabel
+
+
+class PlateFeedbackRequest(BaseModel):
+    detection_id: int
+    is_correct: bool
+    corrected_plate_text: str | None = None
+    user_id: str | None = None
+    comments: str | None = None
 
 
 router = APIRouter(prefix="/compare", tags=["Comparativa"])
@@ -312,6 +322,7 @@ async def compare_image(
                     )
                     db.add(new_detection)
                     db.flush()
+                    plate["detection_id"] = new_detection.id
 
                     labels_dict = plate.get("labels") or DEFAULT_QUALITY_LABELS
                     for key, q_label in quality_labels.items():
@@ -352,6 +363,52 @@ async def compare_image(
     finally:
         if os.path.exists(path):
             os.remove(path)
+
+
+@router.post("/feedback")
+async def submit_plate_feedback(feedback: PlateFeedbackRequest):
+    db = SessionLocal()
+    try:
+        detection = db.query(PlateDetection).filter_by(id=feedback.detection_id).first()
+        if not detection:
+            raise HTTPException(status_code=404, detail="Detection not found")
+
+        detection.user_validated = True
+        detection.user_is_correct = feedback.is_correct
+        detection.user_corrected_text = (
+            feedback.corrected_plate_text.strip()[:15]
+            if feedback.corrected_plate_text and feedback.corrected_plate_text.strip()
+            else None
+        )
+        detection.user_feedback_date = datetime.now(timezone.utc)
+        detection.user_feedback_by = feedback.user_id or "usuario"
+
+        reason = "Validación usuario: placa correcta" if feedback.is_correct else "Validación usuario: placa incorrecta"
+        if feedback.comments:
+            reason = f"{reason} - {feedback.comments.strip()}"
+
+        db.add(AuditLog(
+            detection_id=detection.id,
+            checked_by=detection.user_feedback_by,
+            check_reason=reason,
+        ))
+        db.commit()
+
+        return {
+            "status": "ok",
+            "detection_id": detection.id,
+            "user_validated": detection.user_validated,
+            "user_is_correct": detection.user_is_correct,
+            "user_corrected_text": detection.user_corrected_text,
+        }
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error saving feedback: {e}")
+    finally:
+        db.close()
 
 
 # ── Helpers de tracking y anotación (compartidos por ambos WS) ────────────────

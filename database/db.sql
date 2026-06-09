@@ -31,6 +31,11 @@ CREATE TABLE IF NOT EXISTS plate_detections (
     vehicle_type_id INT,           -- FK a vehicle_types
     inference_time_ms FLOAT,       -- Tiempo de procesamiento
     image_path TEXT,               -- Ruta de la captura
+    user_validated TINYINT(1) DEFAULT 0,
+    user_is_correct TINYINT(1) DEFAULT NULL,
+    user_corrected_text VARCHAR(15) DEFAULT NULL,
+    user_feedback_date TIMESTAMP NULL DEFAULT NULL,
+    user_feedback_by VARCHAR(100) DEFAULT NULL,
     detection_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_plate_detections_model FOREIGN KEY (model_id) 
