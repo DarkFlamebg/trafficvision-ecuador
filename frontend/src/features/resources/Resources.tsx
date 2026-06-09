@@ -51,6 +51,25 @@ const MODELS = [
   },
 ]
 
+const DATASETS = [
+  {
+    id: "plates-ecuadorian-v4",
+    name: "Plates Ecuadorian - v4",
+    source: "Roboflow",
+    summary: "2100 train · 216 valid · 115 test",
+    note: "Dataset ecuatoriano cargado en Roboflow Universe.",
+    url: "https://universe.roboflow.com/stevens-workspace-unaqf/plates-ecuadorian/dataset/4",
+  },
+  {
+    id: "global-ecuador-combined",
+    name: "Global Ecuador Combined",
+    source: "Google Drive",
+    summary: "~10,000 imágenes combinadas de Ecuador",
+    note: "Dataset global combinado referenciado en Drive.",
+    url: "https://drive.google.com/file/d/1UV2moaMn-B3zoQFv-5SwnZ39H7qfvcUp/view?usp=sharing",
+  },
+]
+
 const EXTRAS = [
   {
     icon: (
@@ -63,19 +82,6 @@ const EXTRAS = [
     desc: "Código fuente de entrenamiento para los tres modelos.",
     filename: "training_scripts.zip",
     size: "~120 KB",
-  },
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <ellipse cx="12" cy="5" rx="9" ry="3"/>
-        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-      </svg>
-    ),
-    label: "Dataset (muestra)",
-    desc: "Subconjunto representativo del dataset de validación ecuatoriano.",
-    filename: "trafficvision_sample_dataset.zip",
-    size: "~12 GB",
   },
 ]
 
@@ -161,26 +167,37 @@ export default function Resources() {
         </div>
       </section>
 
-      {/* Extras */}
+      {/* Datasets */}
       <section className="res-section">
         <h2 className="res-section-title">
           <span className="res-section-num">02</span>
-          Documentación y Datos
+          Datasets Remotos
         </h2>
 
         <div className="res-extras-grid">
-          {EXTRAS.map((e) => (
-            <div key={e.label} className="res-extra-card">
-              <div className="res-extra-icon">{e.icon}</div>
-              <div className="res-extra-body">
-                <span className="res-extra-label">{e.label}</span>
-                <span className="res-extra-desc">{e.desc}</span>
-                <span className="res-extra-meta">{e.filename} · {e.size}</span>
+          {DATASETS.map((dataset) => (
+            <div key={dataset.id} className="res-extra-card">
+              <div className="res-extra-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3v18" />
+                  <path d="M5 8l7-5 7 5" />
+                  <path d="M5 16l7 5 7-5" />
+                </svg>
               </div>
-              <button className="res-download-btn res-download-btn--neutral" disabled title="Próximamente disponible">
+              <div className="res-extra-body">
+                <span className="res-extra-label">{dataset.name}</span>
+                <span className="res-extra-desc">{dataset.note}</span>
+                <span className="res-extra-meta">{dataset.summary} · {dataset.source}</span>
+              </div>
+              <a
+                className="res-download-btn res-download-btn--neutral"
+                href={dataset.url}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <DownloadIcon />
-                Descargar
-              </button>
+                Ver enlace
+              </a>
             </div>
           ))}
         </div>

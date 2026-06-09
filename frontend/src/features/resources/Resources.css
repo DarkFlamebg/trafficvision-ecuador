@@ -227,8 +227,8 @@
 }
 
 .res-download-btn--neutral {
-  border-color: var(--border);
-  color: var(--text-muted);
+  border-color: #3cacbb;
+  color: var(--text-main);
 }
 
 /* ── EXTRAS GRID ── */

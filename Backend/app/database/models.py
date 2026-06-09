@@ -37,6 +37,30 @@ class ModelTraining(Base):
     model = relationship("ModelIA", back_populates="training_runs")
 
 
+class Dataset(Base):
+    __tablename__ = "datasets"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text)
+    version = Column(String(20))
+    created_by = Column(String(50))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    files = relationship("DatasetFile", back_populates="dataset", cascade="all, delete-orphan")
+
+
+class DatasetFile(Base):
+    __tablename__ = "dataset_files"
+    id = Column(Integer, primary_key=True, index=True)
+    dataset_id = Column(Integer, ForeignKey("datasets.id", ondelete="CASCADE"), nullable=False)
+    file_name = Column(String(255), nullable=False)
+    file_type = Column(String(50))
+    file_path = Column(Text, nullable=False)
+    uploaded_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    dataset = relationship("Dataset", back_populates="files")
+
+
 class PlateDetection(Base):
     __tablename__ = "plate_detections"
     id = Column(Integer, primary_key=True, index=True)

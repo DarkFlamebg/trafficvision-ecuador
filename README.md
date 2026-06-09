@@ -102,6 +102,8 @@ El entrenamiento se gestiona comparando mAP, Precisión, Recall y F1-Score usand
 | Dataset | Imágenes | Descripción |
 |---|---|---|
 | license-plates (global) | 10,125 | Roboflow Universe — placas mundiales |
+| Plates Ecuadorian - v4 | 2,431 | Roboflow Universe — Ecuador (2100 train / 216 valid / 115 test) |
+| Global Ecuador Combined | ~10,000 | Archivo combinado de Ecuador — Google Drive (referencia remota) |
 | license-plates-ec-1 | 144 | Placas ecuatorianas — Roboflow |
 | license-plates-ec-2 | 90 | Placas ecuatorianas — dataset adicional |
 | license-plates-ec-3 | — | OCR de caracteres (36 clases) — pendiente |

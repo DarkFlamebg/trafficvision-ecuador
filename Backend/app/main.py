@@ -18,6 +18,7 @@ from app.ai.model_loader     import load_all_models, get_status as model_status
 from app.routes.detect       import router as detect_router
 from app.routes.compare      import router as compare_router
 from app.routes.benchmark    import router as benchmark_router
+from app.routes.datasets     import router as datasets_router
 from dotenv import load_dotenv
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -103,6 +104,7 @@ ALLOWED_VIDEO_TYPES = ("video/mp4", "video/mpeg", "video/x-msvideo", "video/quic
 app.include_router(detect_router, prefix="/api/v1", tags=["Detección"])
 app.include_router(compare_router, prefix="/api/v1", tags=["Comparativa"])
 app.include_router(benchmark_router, prefix="/api/v1", tags=["Benchmark"])
+app.include_router(datasets_router, prefix="/api/v1", tags=["Datasets"])
 
 # ── Endpoints base ─────────────────────────────────────────────────────────────
 @app.get("/")
