@@ -29,6 +29,34 @@ import asyncio
 import cv2
 import time
 
+QUALITY_LABEL_MAP = {
+    "oclusion": "Oclusión",
+    "reflejo":  "Reflejo",
+    "sucia":    "Suciedad",
+    "legible":  "Legibilidad",
+}
+
+DEFAULT_QUALITY_LABELS = {
+    "legible":  "Ilegible",
+    "oclusion": "No",
+    "reflejo":  "No",
+    "sucia":    "No",
+}
+
+
+def _ensure_quality_labels(db):
+    labels = db.query(QualityLabel).filter(QualityLabel.name.in_(QUALITY_LABEL_MAP.values())).all()
+    labels_by_name = {label.name: label for label in labels}
+
+    for db_name in QUALITY_LABEL_MAP.values():
+        if db_name not in labels_by_name:
+            new_label = QualityLabel(name=db_name, description="Etiqueta de calidad de placa")
+            db.add(new_label)
+            db.flush()
+            labels_by_name[db_name] = new_label
+
+    return {key: labels_by_name[db_name] for key, db_name in QUALITY_LABEL_MAP.items()}
+
 
 load_dotenv()
 
@@ -192,26 +220,16 @@ async def detect_plate_api(file: UploadFile):
                 )
                 db.add(new_detection)
                 db.flush() # Obtener el ID
-                
-                # Guardar etiquetas de Gemini
-                labels_dict = plate["labels"]
-                if labels_dict:
-                    quality_map = {
-                        "oclusion": "Oclusión",
-                        "reflejo": "Reflejo",
-                        "sucia": "Suciedad",
-                        "legible": "Legibilidad"
-                    }
-                    for key, db_name in quality_map.items():
-                        if key in labels_dict:
-                            q_label = db.query(QualityLabel).filter_by(name=db_name).first()
-                            if q_label:
-                                db.add(DetectionQuality(
-                                    detection_id=new_detection.id,
-                                    quality_label_id=q_label.id,
-                                    value=str(labels_dict[key])
-                                ))
-                
+
+                quality_labels = _ensure_quality_labels(db)
+                labels_dict = plate.get("labels") or DEFAULT_QUALITY_LABELS
+                for key, q_label in quality_labels.items():
+                    db.add(DetectionQuality(
+                        detection_id=new_detection.id,
+                        quality_label_id=q_label.id,
+                        value=str(labels_dict.get(key, DEFAULT_QUALITY_LABELS[key]))
+                    ))
+
                 # Log de auditoría
                 db.add(AuditLog(
                     detection_id=new_detection.id,

@@ -157,9 +157,9 @@ def compare_models(images_dir: str):
         images_dir: directorio con imágenes de prueba
     """
     print(f"\n{'#'*70}")
-    print(f"🔬 BENCHMARK: Comparación de Detectores de Placas")
+    print(f" BENCHMARK: Comparación de Detectores de Placas")
     print(f"{'#'*70}")
-    print(f"\n📁 Dataset: {images_dir}")
+    print(f"\n Dataset: {images_dir}")
     
     all_results = []
     
@@ -172,29 +172,29 @@ def compare_models(images_dir: str):
         yolo_results.print_summary()
         all_results.append(yolo_results)
     else:
-        print("\n⚠️  YOLOv11n no disponible (saltar test)")
+        print("\n YOLOv11n no disponible (saltar test)")
     
     # Test 2: RT-DETR
     if detect_plate_rtdetr:
         print("\n" + "─"*70)
-        print("🟩 Test 2/3: RT-DETR")
+        print(" Test 2/3: RT-DETR")
         print("─"*70)
         rtdetr_results = benchmark_detector(detect_plate_rtdetr, images_dir, "RT-DETR")
         rtdetr_results.print_summary()
         all_results.append(rtdetr_results)
     else:
-        print("\n⚠️  RT-DETR no disponible (saltar test)")
+        print("\n  RT-DETR no disponible (saltar test)")
     
     # Test 3: Ensemble
     if detect_plate_ensemble:
         print("\n" + "─"*70)
-        print("🟪 Test 3/3: Ensemble (YOLO + RT-DETR)")
+        print(" Test 3/3: Ensemble (YOLO + RT-DETR)")
         print("─"*70)
         ensemble_results = benchmark_detector(detect_plate_ensemble, images_dir, "Ensemble")
         ensemble_results.print_summary()
         all_results.append(ensemble_results)
     else:
-        print("\n⚠️  Ensemble no disponible (saltar test)")
+        print("\n  Ensemble no disponible (saltar test)")
     
     # Comparación final
     if len(all_results) > 1:
@@ -204,7 +204,7 @@ def compare_models(images_dir: str):
 def print_comparison_table(results_list: List[BenchmarkResults]):
     """Imprime tabla comparativa de todos los modelos."""
     print(f"\n{'='*70}")
-    print(f"📊 TABLA COMPARATIVA")
+    print(f" TABLA COMPARATIVA")
     print(f"{'='*70}\n")
     
     # Headers
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     import sys
     
     if len(sys.argv) < 2:
-        print("\n❌ Error: Debes proporcionar un directorio de imágenes")
+        print("\n Error: Debes proporcionar un directorio de imágenes")
         print("\nUso:")
         print("   python plate_detector_benchmark.py <directorio_imagenes>")
         print("\nEjemplo:")
@@ -272,14 +272,14 @@ if __name__ == "__main__":
     images_directory = sys.argv[1]
     
     if not os.path.exists(images_directory):
-        print(f"\n❌ Error: El directorio no existe: {images_directory}")
+        print(f"\n Error: El directorio no existe: {images_directory}")
         sys.exit(1)
     
     if not os.path.isdir(images_directory):
-        print(f"\n❌ Error: La ruta no es un directorio: {images_directory}")
+        print(f"\n Error: La ruta no es un directorio: {images_directory}")
         sys.exit(1)
     
     # Ejecutar comparación
     compare_models(images_directory)
     
-    print(f"\n✅ Benchmark completado\n")
+    print(f"\n Benchmark completado\n")

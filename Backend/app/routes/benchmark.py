@@ -13,7 +13,8 @@ router = APIRouter(prefix="/benchmark", tags=["Benchmark"])
 
 # Construir ruta absoluta al dataset (raíz del proyecto -> ml/...)
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-TEST_IMAGES_DIR = os.path.join(PROJECT_ROOT, "ml/license-plates-ec-combined/test/images")
+TEST_IMAGES_DIR = os.path.join(PROJECT_ROOT, "frontend", "src", "assets", "license-plates-ec-combined", "test", "images")
+
 
 @router.websocket("/ws")
 async def benchmark_ws(websocket: WebSocket, num_images: int = 10):

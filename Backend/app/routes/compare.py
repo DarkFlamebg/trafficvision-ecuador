@@ -34,6 +34,34 @@ router = APIRouter(prefix="/compare", tags=["Comparativa"])
 
 TEMP_DIR = "temp"
 
+QUALITY_LABEL_MAP = {
+    "oclusion": "Oclusión",
+    "reflejo":  "Reflejo",
+    "sucia":    "Suciedad",
+    "legible":  "Legibilidad",
+}
+
+DEFAULT_QUALITY_LABELS = {
+    "legible":  "Ilegible",
+    "oclusion": "No",
+    "reflejo":  "No",
+    "sucia":    "No",
+}
+
+
+def _ensure_quality_labels(db):
+    labels = db.query(QualityLabel).filter(QualityLabel.name.in_(QUALITY_LABEL_MAP.values())).all()
+    labels_by_name = {label.name: label for label in labels}
+
+    for db_name in QUALITY_LABEL_MAP.values():
+        if db_name not in labels_by_name:
+            new_label = QualityLabel(name=db_name, description="Etiqueta de calidad de placa")
+            db.add(new_label)
+            db.flush()
+            labels_by_name[db_name] = new_label
+
+    return {key: labels_by_name[db_name] for key, db_name in QUALITY_LABEL_MAP.items()}
+
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/jpg"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/mpeg", "video/x-msvideo", "video/quicktime", "video/webm"}
 
@@ -242,18 +270,34 @@ async def compare_image(
             confs = [p["ocr_confidence"] for p in plates_found]
             labels_batch = classify_plates_batch(crops, confs)
             for i, p in enumerate(plates_found):
-                p["labels"] = labels_batch[i]
+                labels = labels_batch[i]
+                # Asegurar los 4 atributos siempre estén presentes
+                p["labels"] = {
+                    "legible":  labels.get("legible", "Ilegible"),
+                    "oclusion": labels.get("oclusion", "No"),
+                    "reflejo":  labels.get("reflejo", "No"),
+                    "sucia":    labels.get("sucia", "No"),
+                }
                 del p["_crop"]  # limpiar imagen temporal
 
         metrics = _build_image_metrics(model_name, vehicles, plates_found, inference_ms)
 
-        # ── Guardar detecciones en base de datos ──────────────────────────
-        if plates_found:
+        # ── Guardar solo detecciones válidas en base de datos ─────────────
+        valid_plates = [
+            plate for plate in plates_found
+            if plate.get("plate")
+            and str(plate.get("plate", "")).strip().upper() != "NO DETECTADO"
+            and plate.get("ocr_confidence", 0.0) > 0.0
+            and _is_valid_plate_text(str(plate.get("plate", "")))
+        ]
+
+        if valid_plates:
             db = SessionLocal()
             try:
                 model_row = db.query(ModelIA).filter_by(name=model_name).first()
+                quality_labels = _ensure_quality_labels(db)
 
-                for plate in plates_found:
+                for plate in valid_plates:
                     vtype_name = plate["vehicle_type"] if plate["vehicle_type"] else "Desconocido"
                     vtype = db.query(VehicleType).filter_by(name=vtype_name).first()
                     vtype_id = vtype.id if vtype else None
@@ -269,23 +313,13 @@ async def compare_image(
                     db.add(new_detection)
                     db.flush()
 
-                    labels_dict = plate.get("labels") or {}
-                    if labels_dict:
-                        quality_map = {
-                            "oclusion": "Oclusión",
-                            "reflejo": "Reflejo",
-                            "sucia": "Suciedad",
-                            "legible": "Legibilidad",
-                        }
-                        for key, db_name in quality_map.items():
-                            if key in labels_dict:
-                                q_label = db.query(QualityLabel).filter_by(name=db_name).first()
-                                if q_label:
-                                    db.add(DetectionQuality(
-                                        detection_id=new_detection.id,
-                                        quality_label_id=q_label.id,
-                                        value=str(labels_dict[key]),
-                                    ))
+                    labels_dict = plate.get("labels") or DEFAULT_QUALITY_LABELS
+                    for key, q_label in quality_labels.items():
+                        db.add(DetectionQuality(
+                            detection_id=new_detection.id,
+                            quality_label_id=q_label.id,
+                            value=str(labels_dict.get(key, DEFAULT_QUALITY_LABELS[key])),
+                        ))
 
                     db.add(AuditLog(
                         detection_id=new_detection.id,
