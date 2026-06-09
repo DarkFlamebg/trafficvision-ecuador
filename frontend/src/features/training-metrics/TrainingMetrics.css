@@ -73,7 +73,10 @@
 .tm-model-desc {
   font-size: 1rem;
   color: #ffffff;
-  font-family: var(--font-mono);
+  
+}
+span.tm-model-desc{
+  color: #ffffff;
 }
 
 /* Panel Container */

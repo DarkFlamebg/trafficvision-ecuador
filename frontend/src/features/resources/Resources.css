@@ -125,7 +125,7 @@
 .res-model-arch {
   display: block;
   font-size: 0.72rem;
-  color: var(--text-dim);
+  color: #fff;
   font-family: var(--font-mono);
 }
 
@@ -155,7 +155,7 @@
   font-size: 0.62rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-dim);
+  color: #d1d8db;
   font-family: var(--font-mono);
   margin-bottom: 0.1rem;
 }
@@ -202,7 +202,7 @@
 .res-file-meta {
   font-size: 0.68rem;
   font-family: var(--font-mono);
-  color: var(--text-dim);
+  color: #cdecf8;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -283,7 +283,7 @@
 .res-extra-meta {
   font-size: 0.68rem;
   font-family: var(--font-mono);
-  color: var(--text-dim);
+  color: #b1c6ee;
   margin-top: 0.2rem;
 }
 
