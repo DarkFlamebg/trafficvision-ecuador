@@ -11,6 +11,7 @@ const Benchmark = React.lazy(() => import("./features/benchmark/Benchmark"))
 const TrainingMetrics = React.lazy(() => import("./features/training-metrics/TrainingMetrics"))
 const TrainingMetricsDynamic = React.lazy(() => import("./features/training-metrics/components/Trainingmetricsdynamic"))
 const Resources = React.lazy(() => import("./features/resources/Resources"))
+const AntiCorruptionPanel = React.lazy(() => import("./features/anti-corruption/AntiCorruptionPanel"))
 
 const PageLoader = () => (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "var(--bg, #0a0a0b)" }}>
@@ -31,6 +32,7 @@ function App() {
             <Route path="/training-metrics" element={<TrainingMetrics />} />
             <Route path="/training-metrics-dynamic" element={<TrainingMetricsDynamic />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/control-anticorrupcion" element={<AntiCorruptionPanel />} />
           </Routes>
         </Suspense>
       </Layout>

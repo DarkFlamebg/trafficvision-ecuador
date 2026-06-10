@@ -2,9 +2,9 @@
    DESIGN TOKENS (Matching Home Theme)
    ══════════════════════════════════════════════════════════════ */
 :root {
-  --yolo: #0ea5e9;
-  --rtdetr: #7c3aed;
-  --efficientdet:  #06d934;
+  --yolo: #22d3ee;
+  --rtdetr: #f59e0b;
+  --efficientdet: #10b981;
   --ok: #10b981;
   --err: #ef4444;
 
@@ -254,8 +254,8 @@
 
 .comparison-model-tag--rtdetr {
   color: var(--rtdetr);
-  border-color: rgba(11, 112, 245, 0.35);
-  background: rgba(11, 112, 245, 0.06);
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.06);
 }
 
 .comparison-model-tag--efficientdet {

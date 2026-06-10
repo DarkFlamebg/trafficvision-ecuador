@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, HttpUrl
 from typing import List, Optional
@@ -39,7 +40,7 @@ class DatasetResponse(BaseModel):
     description: Optional[str] = None
     version: Optional[str] = None
     created_by: Optional[str] = None
-    created_at: str
+    created_at: datetime
     files: List[DatasetFileResponse] = []
 
     class Config:

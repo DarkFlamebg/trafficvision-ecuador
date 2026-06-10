@@ -19,6 +19,7 @@ from app.routes.detect       import router as detect_router
 from app.routes.compare      import router as compare_router
 from app.routes.benchmark    import router as benchmark_router
 from app.routes.datasets     import router as datasets_router
+from app.routes.anti_corruption import router as anti_corruption_router
 from dotenv import load_dotenv
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -105,6 +106,7 @@ app.include_router(detect_router, prefix="/api/v1", tags=["Detección"])
 app.include_router(compare_router, prefix="/api/v1", tags=["Comparativa"])
 app.include_router(benchmark_router, prefix="/api/v1", tags=["Benchmark"])
 app.include_router(datasets_router, prefix="/api/v1", tags=["Datasets"])
+app.include_router(anti_corruption_router, prefix="/api/v1", tags=["Control anticorrupcion"])
 
 # ── Endpoints base ─────────────────────────────────────────────────────────────
 @app.get("/")

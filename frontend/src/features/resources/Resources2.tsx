@@ -1,6 +1,5 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { type CSSProperties } from 'react'
 import "./Resources.css"
-import { getDatasets, type Dataset } from "../../services/datasetService"
 
 const MODELS = [
   {
@@ -67,6 +66,26 @@ const MODELS = [
     ],
   },
 ]
+
+const DATASETS = [
+  {
+    id: "plates-ecuadorian-v4",
+    name: "Plates Ecuadorian - v4",
+    source: "Roboflow",
+    summary: "2100 train · 216 valid · 115 test",
+    note: "Dataset ecuatoriano cargado en Roboflow Universe.",
+    url: "https://universe.roboflow.com/stevens-workspace-unaqf/plates-ecuadorian/dataset/4",
+  },
+  {
+    id: "global-ecuador-combined",
+    name: "Global Ecuador Combined",
+    source: "Google Drive",
+    summary: "~10,000 imágenes combinadas de Ecuador",
+    note: "Dataset global combinado referenciado en Drive.",
+    url: "https://drive.google.com/file/d/1UV2moaMn-B3zoQFv-5SwnZ39H7qfvcUp/view?usp=sharing",
+  },
+]
+
 const EXTRAS = [
   {
     icon: (
@@ -93,37 +112,6 @@ function DownloadIcon() {
 }
 
 export default function Resources() {
-  const [datasets, setDatasets] = useState<Dataset[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-
-    const loadDatasets = async () => {
-      try {
-        const response = await getDatasets()
-        if (mounted) {
-          setDatasets(response)
-          setError(null)
-        }
-      } catch (err) {
-        if (mounted) {
-          setError('No se pudo cargar el catálogo de datasets.')
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    loadDatasets()
-    return () => {
-      mounted = false
-    }
-  }, [])
-
   return (
     <div className="res-container">
       <div className="res-header">
@@ -216,71 +204,34 @@ export default function Resources() {
         </h2>
 
         <div className="res-extras-grid">
-          {loading ? (
-            <div className="res-extra-card">
-              <div className="res-extra-body">
-                <span className="res-extra-label">Cargando datasets...</span>
-                <span className="res-extra-desc">Conectando para leer el catálogo de datasets.</span>
+          {DATASETS.map((dataset) => (
+            <div key={dataset.id} className="res-extra-card">
+              <div className="res-extra-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3v18" />
+                  <path d="M5 8l7-5 7 5" />
+                  <path d="M5 16l7 5 7-5" />
+                </svg>
               </div>
-            </div>
-          ) : error ? (
-            <div className="res-extra-card">
               <div className="res-extra-body">
-                <span className="res-extra-label">Error al cargar datasets</span>
-                <span className="res-extra-desc">{error}</span>
+                <span className="res-extra-label">{dataset.name}</span>
+                <span className="res-extra-desc">{dataset.note}</span>
+                <span className="res-extra-meta">{dataset.summary} · {dataset.source}</span>
               </div>
+              <a
+                className="res-download-btn res-download-btn--neutral"
+                href={dataset.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <DownloadIcon />
+                Ver enlace
+              </a>
             </div>
-          ) : datasets.length === 0 ? (
-            <div className="res-extra-card">
-              <div className="res-extra-body">
-                <span className="res-extra-label">No hay datasets registrados</span>
-                <span className="res-extra-desc">Registre un dataset en el backend para que aparezca aquí.</span>
-              </div>
-            </div>
-          ) : (
-            datasets.map((dataset) => {
-              const file = dataset.files?.[0]
-              const url = file?.file_path
-              const type = file?.file_type || 'Remoto'
-              const version = dataset.version ? `v${dataset.version}` : 'Sin versión'
-
-              return (
-                <div key={dataset.id} className="res-extra-card">
-                  <div className="res-extra-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 3v18" />
-                      <path d="M5 8l7-5 7 5" />
-                      <path d="M5 16l7 5 7-5" />
-                    </svg>
-                  </div>
-                  <div className="res-extra-body">
-                    <span className="res-extra-label">{dataset.name}</span>
-                    <span className="res-extra-desc">{dataset.description || 'Dataset remoto referenciado desde el backend.'}</span>
-                    <span className="res-extra-meta">{version} · {type}</span>
-                  </div>
-                  {url ? (
-                    <a
-                      className="res-download-btn res-download-btn--neutral enabled"
-                      href={url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <DownloadIcon />
-                      Ver enlace
-                    </a>
-                  ) : (
-                    <button className="res-download-btn" disabled>
-                      <DownloadIcon />
-                      Enlace no disponible
-                    </button>
-                  )}
-                </div>
-              )
-            })
-          )}
+          ))}
         </div>
       </section>
-      
+
       {/* Extras */}
       <section className="res-section">
         <h2 className="res-section-title">
@@ -297,7 +248,7 @@ export default function Resources() {
                 <span className="res-extra-desc">{item.desc}</span>
                 <span className="res-extra-meta">{item.filename} · {item.size}</span>
               </div>
-              <button className="res-download-btn res-download-btn--neutral">
+              <button className="res-download-btn res-download-btn--neutral" disabled>
                 <DownloadIcon />
                 Próximamente
               </button>
@@ -305,7 +256,6 @@ export default function Resources() {
           ))}
         </div>
       </section>
-      
 
       {/* Info footer */}
       <div className="res-notice">
