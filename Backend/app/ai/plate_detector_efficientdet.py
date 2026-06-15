@@ -11,13 +11,9 @@ from app.ai.crop_utils import extract_plate_crop
 
 # ── Rutas ──────────────────────────────────────────────────────────────────────
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-_ROOT_DIR = os.path.abspath(os.path.join(_BASE_DIR, "../../.."))
+_ROOT_DIR = os.path.abspath(os.path.join(_BASE_DIR, "../.."))
 
-MODEL_PATH = os.path.join(
-    _ROOT_DIR, "ml", "runs",
-    "detect", "efficientdet_d2_plates_v3",
-    "weights", "best.pt"
-)
+MODEL_PATH = os.path.join(_ROOT_DIR, "app", "models", "trained", "efficientdet_d2_plates_v3", "best.pt")
 
 CONFIDENCE_THRESHOLD = 0.25
 

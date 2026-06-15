@@ -19,8 +19,8 @@ class DetectorConfig:
     
     # Rutas de modelos
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, "../../.."))
-    MODELS_DIR = os.path.join(ROOT_DIR, "ml", "models", "trained")
+    ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", ".."))
+    MODELS_DIR = os.path.join(ROOT_DIR, "backend", "app", "models", "trained")
     
     # YOLOv11n
     YOLO_MODEL_PATH = os.path.join(MODELS_DIR, "yolo11n_combined_all", "best.pt")
@@ -186,17 +186,17 @@ class DetectorFactory:
                 
                 # Si obtuvimos resultados, retornar
                 if results:
-                    print(f"✅ Detección exitosa con: {detector_type.value}")
+                    print(f"OK Detección exitosa con: {detector_type.value}")
                     return results
                 
             except Exception as e:
                 last_error = e
-                print(f"⚠️  Error con {detector_type.value}: {e}")
+                print(f"WARN Error con {detector_type.value}: {e}")
                 continue
         
         # Si llegamos aquí, todos los detectores fallaron
         if last_error:
-            print(f"❌ Todos los detectores fallaron. Último error: {last_error}")
+            print(f"FAIL Todos los detectores fallaron. Último error: {last_error}")
         
         return []
     
@@ -259,16 +259,17 @@ def get_best_available_detector() -> DetectorType:
 
 
 # ── Información del Sistema ────────────────────────────────────────────────────
+# ── Información del Sistema ────────────────────────────────────────────────────
 def print_system_info():
     """Imprime información sobre los detectores disponibles."""
     print("\n" + "="*70)
-    print("🔍 SISTEMA DE DETECCIÓN DE PLACAS")
+    print("SISTEMA DE DETECCION DE PLACAS")
     print("="*70 + "\n")
     
-    print("📋 Detectores Disponibles:")
+    print("Detectores Disponibles:")
     for detector in DetectorType:
         is_available = DetectorConfig.is_model_available(detector)
-        status = "✅" if is_available else "❌"
+        status = "OK" if is_available else "FAIL"
         
         print(f"   {status} {detector.value.upper()}")
         
@@ -278,13 +279,13 @@ def print_system_info():
             print(f"      Modelo: {model_path}")
             print(f"      Umbral: {confidence}")
     
-    print(f"\n🎯 Detector por Defecto: {DetectorConfig.DEFAULT_DETECTOR.value}")
+    print(f"\nDetector por Defecto: {DetectorConfig.DEFAULT_DETECTOR.value}")
     
     try:
         best = get_best_available_detector()
-        print(f"🏆 Mejor Detector Disponible: {best.value}")
+        print(f"Mejor Detector Disponible: {best.value}")
     except RuntimeError as e:
-        print(f"⚠️  {e}")
+        print(f"WARN  {e}")
     
     print("\n" + "="*70 + "\n")
 
@@ -307,15 +308,15 @@ if __name__ == "__main__":
         image_path = sys.argv[1]
         
         if not os.path.exists(image_path):
-            print(f"❌ Error: Imagen no encontrada: {image_path}")
+            print(f"ERROR: Imagen no encontrada: {image_path}")
             sys.exit(1)
         
-        print(f"🧪 Probando detección en: {image_path}\n")
+        print(f"Probando detección en: {image_path}\n")
         
         # Probar con fallback automático
         plates = DetectorFactory.detect_with_fallback(image_path)
         
-        print(f"\n📊 Resultados:")
+        print(f"\nResultados:")
         print(f"   Placas detectadas: {len(plates)}")
         
         for i, plate in enumerate(plates, 1):
@@ -326,5 +327,5 @@ if __name__ == "__main__":
             print(f"      Bbox: {plate['bbox']}")
     
     else:
-        print("💡 Tip: Ejecuta con una imagen para probar:")
+        print("TIP: Ejecuta con una imagen para probar:")
         print("   python plate_detector_config.py imagen.jpg")
