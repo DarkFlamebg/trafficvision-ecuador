@@ -130,8 +130,14 @@ _LETTER_FIXES = str.maketrans({
     # Solo corrige dígitos que aparecen en zona de letras
     '0': 'O',
     '1': 'I',
+    '2': 'Z',
+    '3': 'B',
+    '4': 'A',
     '5': 'S',
+    '6': 'G',
+    '7': 'T',
     '8': 'B',
+    '9': 'P',
     # NO incluir J→algo ni Z→algo aquí: son letras válidas en Ecuador
 })
 
@@ -146,6 +152,8 @@ _DIGIT_FIXES = str.maketrans({
     'A': '4',
     'T': '7',
     'E': '6',
+    'Q': '0',
+    'D': '0',
     # FIX: quitamos 'J': '1' — la J en zona de letras es válida
     # Si aparece J en zona de dígitos sí la corregimos
     'J': '1',
