@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import "./Home.css"
+import ArchitectureDiagram from "./ArchitectureDiagram"
 
 // --- Nuevas constantes explicativas -------------------------------------------------
 // Descripción de cada métrica que se muestra en la tabla de modelos.
@@ -248,17 +249,25 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="home-section">
-        <div className="home-section-inner">
-          <header className="home-section-header">
-            <span className="home-label">Antecedente</span>
-            <h2 className="home-section-title">¿Por qué existe<br />este sistema?</h2>
-            <p className="home-section-sub" style={{ maxWidth: "800px", marginTop: "1rem" }}>
-              Este proyecto es el resultado del Diseño de un sistema de reconocimiento de placas vehiculares basado en múltiples modelos de inteligencia artificial preentrenados, con el objetivo de optimizar la seguridad vial y el control anticorrupción en la ciudad de Guayaquil, Ecuador.
-              Al utilizar datos locales etiquetados, ofrece a las autoridades de tránsito una herramienta automatizada y precisa adaptada a la realidad del país.
+      <section className="home-section--fullwidth">
+        <div className="arch-content-wrap">
+
+          {/* ENCABEZADO CENTRADO */}
+          <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <span className="home-label">Antecedente y Arquitectura</span>
+            <h2 className="home-section-title">Flujo de Trabajo<br />del Sistema</h2>
+            <p className="home-section-sub" style={{ maxWidth: '680px', marginTop: '1rem', marginLeft: 'auto', marginRight: 'auto' }}>
+              Sistema de reconocimiento de placas vehiculares basado en múltiples modelos de IA preentrenados.
+              Diseñado para optimizar la seguridad vial y el control anticorrupción en Guayaquil, Ecuador,
+              adaptado a las condiciones locales de iluminación, desgaste y formatos de placas.
             </p>
           </header>
-          <div className="home-why-grid">
+
+          {/* DIAGRAMA */}
+          <ArchitectureDiagram />
+
+          {/* CARDS DE BENEFICIOS */}
+          <div className="home-why-grid" style={{ marginTop: '3.5rem' }}>
             {WHY.map((w) => (
               <div key={w.title} className="home-why-card">
                 <span className="home-why-num">{w.icon}</span>
@@ -267,6 +276,7 @@ export default function Home() {
               </div>
             ))}
           </div>
+
         </div>
       </section>
 
