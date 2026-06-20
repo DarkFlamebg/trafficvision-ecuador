@@ -4,7 +4,7 @@
 :root {
   --yolo: #22d3ee;
   --rtdetr: #f59e0b;
-  --efficientdet: #10b981;
+  --mamba: #10b981;
   --ok: #10b981;
   --err: #ef4444;
 
@@ -258,8 +258,8 @@
   background: rgba(245, 158, 11, 0.06);
 }
 
-.comparison-model-tag--efficientdet {
-  color: var(--efficientdet);
+.comparison-model-tag--mamba {
+  color: var(--mamba);
   border-color: rgba(16, 185, 129, 0.35);
   background: rgba(16, 185, 129, 0.06);
 }

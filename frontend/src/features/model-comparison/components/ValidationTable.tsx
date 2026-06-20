@@ -57,40 +57,40 @@ function computeScore(
 export function ValidationTable({ results, realPlate }: ValidationTableProps) {
   const yoloMetrics   = getMetrics(results.yolo)
   const rtdetrMetrics = getMetrics(results.rtdetr)
-  const efficientdetMetrics = getMetrics(results.efficientdet)
+  const mambaMetrics = getMetrics(results.mamba)
   
   const yoloPlate     = getBestPlate(results.yolo)
   const rtdetrPlate   = getBestPlate(results.rtdetr)
-  const efficientdetPlate = getBestPlate(results.efficientdet)
+  const mambaPlate = getBestPlate(results.mamba)
   
   const yoloOcr       = getBestOcrConf(results.yolo)
   const rtdetrOcr     = getBestOcrConf(results.rtdetr)
-  const efficientdetOcr = getBestOcrConf(results.efficientdet)
+  const mambaOcr = getBestOcrConf(results.mamba)
 
   // Tiempos para normalizar velocidad
   const yoloTime   = yoloMetrics?.avg_inference_ms   ?? yoloMetrics?.inference_ms   ?? 0
   const rtdetrTime = rtdetrMetrics?.avg_inference_ms ?? rtdetrMetrics?.inference_ms ?? 0
-  const efficientdetTime = efficientdetMetrics?.avg_inference_ms ?? efficientdetMetrics?.inference_ms ?? 0
-  const allTimes   = [yoloTime, rtdetrTime, efficientdetTime].filter(Boolean)
+  const mambaTime = mambaMetrics?.avg_inference_ms ?? mambaMetrics?.inference_ms ?? 0
+  const allTimes   = [yoloTime, rtdetrTime, mambaTime].filter(Boolean)
 
   const yoloScore   = computeScore(yoloMetrics,   yoloOcr,   allTimes)
   const rtdetrScore = computeScore(rtdetrMetrics, rtdetrOcr, allTimes)
-  const efficientdetScore = computeScore(efficientdetMetrics, efficientdetOcr, allTimes)
+  const mambaScore = computeScore(mambaMetrics, mambaOcr, allTimes)
 
   // Veredicto
-  const allReady  = yoloMetrics && rtdetrMetrics && efficientdetMetrics
+  const allReady  = yoloMetrics && rtdetrMetrics && mambaMetrics
   
   let winnerKey: string | null = null
   if (allReady) {
-    const maxScore = Math.max(yoloScore, rtdetrScore, efficientdetScore)
+    const maxScore = Math.max(yoloScore, rtdetrScore, mambaScore)
     if (maxScore === yoloScore) winnerKey = "yolo"
     else if (maxScore === rtdetrScore) winnerKey = "rtdetr"
-    else winnerKey = "efficientdet"
+    else winnerKey = "mamba"
   }
-  const winnerLabel = winnerKey === "yolo" ? "YOLOv11n" : winnerKey === "rtdetr" ? "RT-DETR" : "EfficientDet-D2"
-  const winnerColor = winnerKey === "yolo" ? "var(--yolo)" : winnerKey === "rtdetr" ? "var(--rtdetr)" : "var(--efficientdet)"
+  const winnerLabel = winnerKey === "yolo" ? "YOLOv11n" : winnerKey === "rtdetr" ? "RT-DETR" : "Vision Mamba"
+  const winnerColor = winnerKey === "yolo" ? "var(--yolo)" : winnerKey === "rtdetr" ? "var(--rtdetr)" : "var(--mamba)"
 
-  const maxTotalScore = Math.max(yoloScore, rtdetrScore, efficientdetScore)
+  const maxTotalScore = Math.max(yoloScore, rtdetrScore, mambaScore)
 
   const rows = [
     {
@@ -114,14 +114,14 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
       infTime:   rtdetrTime,
     },
     {
-      key:       "efficientdet",
-      label:     "EfficientDet-D2",
-      color:     "var(--efficientdet)",
-      metrics:   efficientdetMetrics,
-      plate:     efficientdetPlate,
-      ocrConf:   efficientdetOcr,
-      score:     efficientdetScore,
-      infTime:   efficientdetTime,
+      key:       "mamba",
+      label:     "Vision Mamba",
+      color:     "var(--mamba)",
+      metrics:   mambaMetrics,
+      plate:     mambaPlate,
+      ocrConf:   mambaOcr,
+      score:     mambaScore,
+      infTime:   mambaTime,
     },
   ]
 
@@ -240,21 +240,21 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                 label="Conf. detector"
                 yolo={yoloMetrics?.avg_plate_confidence ?? 0}
                 rtdetr={rtdetrMetrics?.avg_plate_confidence ?? 0}
-                efficientdet={efficientdetMetrics?.avg_plate_confidence ?? 0}
+                mamba={mambaMetrics?.avg_plate_confidence ?? 0}
                 format={(v) => `${(v * 100).toFixed(0)}%`}
               />
               <ScoreBreakdown
                 label="Conf. OCR"
                 yolo={yoloOcr}
                 rtdetr={rtdetrOcr}
-                efficientdet={efficientdetOcr}
+                mamba={mambaOcr}
                 format={(v) => `${(v * 100).toFixed(0)}%`}
               />
               <ScoreBreakdown
                 label="Velocidad"
                 yolo={yoloTime}
                 rtdetr={rtdetrTime}
-                efficientdet={efficientdetTime}
+                mamba={mambaTime}
                 format={(v) => `${v.toFixed(1)}ms`}
                 lowerBetter
               />
@@ -278,11 +278,11 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                     {(() => {
                       const yoloDet = yoloMetrics?.avg_plate_confidence ?? 0;
                       const rtDet = rtdetrMetrics?.avg_plate_confidence ?? 0;
-                      const effDet = efficientdetMetrics?.avg_plate_confidence ?? 0;
+                      const effDet = mambaMetrics?.avg_plate_confidence ?? 0;
                       const arr = [
                         { name: 'YOLOv11n', val: yoloDet },
                         { name: 'RT-DETR', val: rtDet },
-                        { name: 'EfficientDet-D2', val: effDet }
+                        { name: 'Vision Mamba', val: effDet }
                       ].sort((a,b) => b.val - a.val);
                       if (arr[0].val === arr[2].val && arr[0].val > 0) return 'Los modelos tuvieron exactamente la misma seguridad al encontrar la placa.';
                       return `${arr[0].name} estuvo más seguro (${(arr[0].val*100).toFixed(0)}%) superando a los demás al señalar la placa.`;
@@ -293,11 +293,11 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                   <div className="summary-item-label">Lectura (OCR)</div>
                   <p className="summary-item-text">
                     {(() => {
-                      if (yoloOcr === 0 && rtdetrOcr === 0 && efficientdetOcr === 0) return 'Tarea difícil: ninguno logró leer nada (0%) en esta imagen.';
+                      if (yoloOcr === 0 && rtdetrOcr === 0 && mambaOcr === 0) return 'Tarea difícil: ninguno logró leer nada (0%) en esta imagen.';
                       const arr = [
                         { name: 'YOLOv11n', val: yoloOcr },
                         { name: 'RT-DETR', val: rtdetrOcr },
-                        { name: 'EfficientDet-D2', val: efficientdetOcr }
+                        { name: 'Vision Mamba', val: mambaOcr }
                       ].sort((a,b) => b.val - a.val);
                       return `${arr[0].name} lideró la lectura de los caracteres (${(arr[0].val*100).toFixed(0)}%) en esta imagen.`;
                     })()}
@@ -310,7 +310,7 @@ export function ValidationTable({ results, realPlate }: ValidationTableProps) {
                       const validTimes = [
                         { name: 'YOLOv11n', val: yoloTime },
                         { name: 'RT-DETR', val: rtdetrTime },
-                        { name: 'EfficientDet-D2', val: efficientdetTime }
+                        { name: 'Vision Mamba', val: mambaTime }
                       ].filter(t => t.val > 0).sort((a,b) => a.val - b.val);
                       if (validTimes.length === 0) return 'No se registraron tiempos de inferencia válidos.';
                       const fast = validTimes[0];
@@ -356,21 +356,21 @@ function ScorePill({ score, isWinner, color }: { score: number; isWinner: boolea
 }
 
 function ScoreBreakdown({
-  label, yolo, rtdetr, efficientdet, format, lowerBetter = false,
+  label, yolo, rtdetr, mamba, format, lowerBetter = false,
 }: {
   label: string
   yolo: number
   rtdetr: number
-  efficientdet: number
+  mamba: number
   format: (v: number) => string
   lowerBetter?: boolean
 }) {
-  const validVals = [yolo, rtdetr, efficientdet].filter(v => v > 0 || !lowerBetter)
+  const validVals = [yolo, rtdetr, mamba].filter(v => v > 0 || !lowerBetter)
   const bestVal = validVals.length > 0 ? (lowerBetter ? Math.min(...validVals) : Math.max(...validVals)) : 0
 
   const yoloWins   = yolo === bestVal && yolo !== 0
   const rtdetrWins = rtdetr === bestVal && rtdetr !== 0
-  const effWins    = efficientdet === bestVal && efficientdet !== 0
+  const effWins    = mamba === bestVal && mamba !== 0
 
   return (
     <div className="validation-breakdown-row" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-start', alignItems: 'center' }}>
@@ -390,9 +390,9 @@ function ScoreBreakdown({
         </span>
         <span
           className={`validation-breakdown-val ${effWins ? "validation-breakdown-val--win" : ""}`}
-          style={{ color: effWins ? "var(--efficientdet)" : "var(--text-hi)", flex: 1, textAlign: 'center' }}
+          style={{ color: effWins ? "var(--mamba)" : "var(--text-hi)", flex: 1, textAlign: 'center' }}
         >
-          {format(efficientdet)}
+          {format(mamba)}
         </span>
       </div>
     </div>

@@ -1,5 +1,5 @@
 interface ComparisonVideoStreamProps {
-  model:      "YOLO" | "RT-DETR" | "EfficientDet-D2"
+  model:      "YOLO" | "RT-DETR" | "Vision Mamba"
   frameSrc:   string | null
   progress:   number
   status:     string

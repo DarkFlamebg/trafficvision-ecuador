@@ -1,7 +1,7 @@
 // ── Comparison Types ────────────────────────────────────────────────────────
 import type { PlateLabels } from "../../read-plate/types/readplate.types"
 
-export type ModelType = "yolo" | "rtdetr" | "efficientdet"
+export type ModelType = "yolo" | "rtdetr" | "mamba"
 
 export interface ComparisonMetrics {
   model:                   string
@@ -66,7 +66,7 @@ export interface ComparisonImageResponse {
 export interface ComparisonResult {
   yolo?:   ComparisonImageResponse | ComparisonMetrics
   rtdetr?: ComparisonImageResponse | ComparisonMetrics
-  efficientdet?: ComparisonImageResponse | ComparisonMetrics
+  mamba?:  ComparisonImageResponse | ComparisonMetrics
 }
 
 export interface WebSocketFrameMessage {

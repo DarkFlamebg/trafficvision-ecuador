@@ -45,10 +45,10 @@ const MODELS = [
     ],
   },
   {
-    id: "efficientdet",
-    name: "EfficientDet-D2",
+    id: "mamba",
+    name: "Vision Mamba",
     tag: "Balance óptimo",
-    arch: "BiFPN + EfficientNet-B2 · 3.5M params · 112 GFLOPs",
+    arch: "Arquitectura Mamba basada en State Space Models (SSMs)",
     color: "#10b981",
     size: "94.4 MB",
     format: ".pt",
@@ -59,7 +59,7 @@ const MODELS = [
     files: [
       {
         label: "Pesos entrenados (.pt)",
-        filename: "efficientdet_d2_trafficvision.pt",
+        filename: "mamba_d2_trafficvision.pt",
         size: "94.4 MB",
         download_url: "https://drive.google.com/file/d/11x5N1TbPzKnKJVbmNrLXMuN-SYZx_PdX/view?usp=sharing",
       },

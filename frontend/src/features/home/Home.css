@@ -13,7 +13,7 @@
   --accent-yolo: #d97706;
   --accent-rtdetr: #7c3aed;
   --accent-ec: #059669;
-  --accent-efficientdet: #0ea5e9;
+  --accent-mamba: #0ea5e9;
   --radius: 10px;
   --radius-sm: 6px;
   --max-w: 1080px;
@@ -473,7 +473,7 @@
 .tag--rtdetr       { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
 .tag--yolo         { background: rgba(217, 119, 6,  0.15); color: #fbbf24; }
 .tag--ec           { background: rgba(5,  150, 105, 0.15); color: #34d399; }
-.tag--efficientdet { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
+.tag--mamba { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
 
 .home-model-badge {
   font-size: 0.72rem;
@@ -535,7 +535,7 @@
 .home-bar-fill.tag--rtdetr       { background: var(--accent-rtdetr); }
 .home-bar-fill.tag--yolo         { background: var(--accent-yolo); }
 .home-bar-fill.tag--ec           { background: var(--accent-ec); }
-.home-bar-fill.tag--efficientdet { background: var(--accent-efficientdet); }
+.home-bar-fill.tag--mamba { background: var(--accent-mamba); }
 
 .home-model-footer {
   margin-top: auto;

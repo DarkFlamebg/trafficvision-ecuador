@@ -15,11 +15,9 @@ import rtdetrPR from "../../assets/images/rtdetr/BoxPR_curve.png"
 import rtdetrCM from "../../assets/images/rtdetr/confusion_matrix_normalized.png"
 import rtdetrCsv from "../../assets/images/rtdetr/results.csv?raw"
 
-// Importar imágenes (EfficientDet)
-import effResults from "../../assets/images/efficient/results.png"
-import effPR from "../../assets/images/efficient/BoxPR_curve.png"
-import effCM from "../../assets/images/efficient/confusion_matrix_normalized.png"
-import effCsv from "../../assets/images/efficient/results.csv?raw"
+// Importar imágenes (Vision Mamba)
+import mambaCsv from "../../assets/images/visiommamba/results.csv?raw"
+import mambaMetricsImage from "../../assets/images/visiommamba/trafficvision_ronda4_metricas.png"
 
 const MODELS_DATA = {
   yolov11n: {
@@ -36,12 +34,12 @@ const MODELS_DATA = {
     csvRaw: rtdetrCsv,
     images: { results: rtdetrResults, pr: rtdetrPR, confusion: rtdetrCM }
   },
-  efficientdet: {
-    id: "efficientdet",
-    name: "EfficientDet-D2",
-    desc: "BiFPN + EfficientNet - Balance eficiente",
-    csvRaw: effCsv,
-    images: { results: effResults, pr: effPR, confusion: effCM }
+  mamba: {
+    id: "mamba",
+    name: "Vision Mamba",
+    desc: "Mamba SSM - Balance eficiente",
+    csvRaw: mambaCsv,
+    images: { results: mambaMetricsImage, pr: mambaMetricsImage, confusion: mambaMetricsImage }
   }
 }
 

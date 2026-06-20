@@ -20,21 +20,21 @@ export function useModelComparison() {
 
   const [yoloFrame,      setYoloFrame]      = useState<string | null>(null)
   const [rtdetrFrame,    setRtdetrFrame]    = useState<string | null>(null)
-  const [efficientdetFrame, setEfficientdetFrame] = useState<string | null>(null)
+  const [mambaFrame, setMambaFrame] = useState<string | null>(null)
   const [yoloProgress,   setYoloProgress]   = useState(0)
   const [rtdetrProgress, setRtdetrProgress] = useState(0)
-  const [efficientdetProgress, setEfficientdetProgress] = useState(0)
+  const [mambaProgress, setMambaProgress] = useState(0)
   const [yoloStatus,     setYoloStatus]     = useState("")
   const [rtdetrStatus,   setRtdetrStatus]   = useState("")
-  const [efficientdetStatus, setEfficientdetStatus] = useState("")
+  const [mambaStatus, setMambaStatus] = useState("")
 
   const [yoloTelemetry,   setYoloTelemetry]   = useState<any>(null)
   const [rtdetrTelemetry, setRtdetrTelemetry] = useState<any>(null)
-  const [efficientdetTelemetry, setEfficientdetTelemetry] = useState<any>(null)
+  const [mambaTelemetry, setMambaTelemetry] = useState<any>(null)
 
   const yoloWsRef   = useRef<WebSocket | null>(null)
   const rtdetrWsRef = useRef<WebSocket | null>(null)
-  const efficientdetWsRef = useRef<WebSocket | null>(null)
+  const mambaWsRef = useRef<WebSocket | null>(null)
 
   // Ref para saber qué modelos ya terminaron (evita stale closures)
   const doneRef = useRef<Set<ModelType>>(new Set())
@@ -50,7 +50,7 @@ export function useModelComparison() {
   // ─────────────────────────────────────────────────────────────────────────
   const markDone = useCallback((model: ModelType) => {
     doneRef.current.add(model)
-    if (doneRef.current.has("yolo") && doneRef.current.has("rtdetr") && doneRef.current.has("efficientdet")) {
+    if (doneRef.current.has("yolo") && doneRef.current.has("rtdetr") && doneRef.current.has("mamba")) {
       setLoading(false)
     }
   }, [])
@@ -64,13 +64,13 @@ export function useModelComparison() {
     setComparisonResult({})
     setYoloFrame(null)
     setRtdetrFrame(null)
-    setEfficientdetFrame(null)
+    setMambaFrame(null)
     setYoloProgress(0)
     setRtdetrProgress(0)
-    setEfficientdetProgress(0)
+    setMambaProgress(0)
     setYoloStatus("")
     setRtdetrStatus("")
-    setEfficientdetStatus("")
+    setMambaStatus("")
 
     const isVideo = f.type.startsWith("video/")
     const isImage = f.type === "image/jpeg" || f.type === "image/png"
@@ -105,12 +105,12 @@ export function useModelComparison() {
     setError(null)
     setComparisonResult({})
     try {
-      const [yoloRes, rtdetrRes, efficientdetRes] = await Promise.all([
+      const [yoloRes, rtdetrRes, mambaRes] = await Promise.all([
         runSingleImageDetection("yolo"),
         runSingleImageDetection("rtdetr"),
-        runSingleImageDetection("efficientdet"),
+        runSingleImageDetection("mamba"),
       ])
-      setComparisonResult({ yolo: yoloRes, rtdetr: rtdetrRes, efficientdet: efficientdetRes })
+      setComparisonResult({ yolo: yoloRes, rtdetr: rtdetrRes, mamba: mambaRes })
     } catch (e: any) {
       setError(e?.response?.data?.detail || "Error al realizar la comparación")
     } finally {
@@ -164,25 +164,25 @@ export function useModelComparison() {
     setComparisonResult({})
     setYoloFrame(null)
     setRtdetrFrame(null)
-    setEfficientdetFrame(null)
+    setMambaFrame(null)
     setYoloProgress(0)
     setRtdetrProgress(0)
-    setEfficientdetProgress(0)
+    setMambaProgress(0)
     setYoloStatus("")
     setRtdetrStatus("")
-    setEfficientdetStatus("")
+    setMambaStatus("")
 
     doneRef.current = new Set()
     lastFrameDataRef.current = {} as any
     setYoloTelemetry(null)
     setRtdetrTelemetry(null)
-    setEfficientdetTelemetry(null)
+    setMambaTelemetry(null)
 
     try {
       const videoBytes = await file.arrayBuffer()
       startVideoWebSocket("yolo",   videoBytes)
       startVideoWebSocket("rtdetr", videoBytes)
-      startVideoWebSocket("efficientdet", videoBytes)
+      startVideoWebSocket("mamba", videoBytes)
     } catch {
       setError("Error al iniciar la comparación de video")
       setLoading(false)
@@ -196,12 +196,12 @@ export function useModelComparison() {
 
     if (model === "yolo") yoloWsRef.current   = ws
     else if (model === "rtdetr") rtdetrWsRef.current = ws
-    else efficientdetWsRef.current = ws
+    else mambaWsRef.current = ws
 
-    const setFrame    = model === "yolo" ? setYoloFrame    : model === "rtdetr" ? setRtdetrFrame : setEfficientdetFrame
-    const setProgress = model === "yolo" ? setYoloProgress : model === "rtdetr" ? setRtdetrProgress : setEfficientdetProgress
-    const setStatus   = model === "yolo" ? setYoloStatus   : model === "rtdetr" ? setRtdetrStatus : setEfficientdetStatus
-    const setTelemetry = model === "yolo" ? setYoloTelemetry : model === "rtdetr" ? setRtdetrTelemetry : setEfficientdetTelemetry
+    const setFrame    = model === "yolo" ? setYoloFrame    : model === "rtdetr" ? setRtdetrFrame : setMambaFrame
+    const setProgress = model === "yolo" ? setYoloProgress : model === "rtdetr" ? setRtdetrProgress : setMambaProgress
+    const setStatus   = model === "yolo" ? setYoloStatus   : model === "rtdetr" ? setRtdetrStatus : setMambaStatus
+    const setTelemetry = model === "yolo" ? setYoloTelemetry : model === "rtdetr" ? setRtdetrTelemetry : setMambaTelemetry
 
     ws.onopen = () => {
       setStatus(`[${model.toUpperCase()}] Enviando video...`)
@@ -325,13 +325,13 @@ export function useModelComparison() {
     yoloWsRef.current = null
     rtdetrWsRef.current?.close()
     rtdetrWsRef.current = null
-    efficientdetWsRef.current?.close()
-    efficientdetWsRef.current = null
+    mambaWsRef.current?.close()
+    mambaWsRef.current = null
     doneRef.current = new Set()
     setLoading(false)
     setYoloStatus("Cancelado")
     setRtdetrStatus("Cancelado")
-    setEfficientdetStatus("Cancelado")
+    setMambaStatus("Cancelado")
   }, [])
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -348,23 +348,23 @@ export function useModelComparison() {
     setComparisonResult({})
     setYoloFrame(null)
     setRtdetrFrame(null)
-    setEfficientdetFrame(null)
+    setMambaFrame(null)
     setYoloProgress(0)
     setRtdetrProgress(0)
-    setEfficientdetProgress(0)
+    setMambaProgress(0)
     setYoloStatus("")
     setRtdetrStatus("")
-    setEfficientdetStatus("")
+    setMambaStatus("")
     setLoading(false)
   }, [cancelComparison, preview, fileType])
 
   return {
     file, fileType, preview, loading, activeModel, error,
     realPlate, comparisonResult,
-    yoloFrame, rtdetrFrame, efficientdetFrame,
-    yoloProgress, rtdetrProgress, efficientdetProgress,
-    yoloStatus, rtdetrStatus, efficientdetStatus,
-    yoloTelemetry, rtdetrTelemetry, efficientdetTelemetry,
+    yoloFrame, rtdetrFrame, mambaFrame,
+    yoloProgress, rtdetrProgress, mambaProgress,
+    yoloStatus, rtdetrStatus, mambaStatus,
+    yoloTelemetry, rtdetrTelemetry, mambaTelemetry,
     inputRef,
     handleFile, handleDrop,
     runImageComparison, runVideoComparison,

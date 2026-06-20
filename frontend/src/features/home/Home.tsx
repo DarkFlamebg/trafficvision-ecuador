@@ -17,11 +17,11 @@ const METRIC_EXPLANATIONS = {
 
 const MODELS = [
   {
-    id: "efficientdet-d2-combined",
-    tag: "EfficientDet-D2",
-    tagClass: "tag--efficientdet",
-    name: "EfficientDet-D2 Combined",
-    arch: "BiFPN + EfficientNet-B2 · 313 layers · 3.5M params · 112 GFLOPs",
+    id: "mamba-d2-combined",
+    tag: "Vision Mamba",
+    tagClass: "tag--mamba",
+    name: "Vision Mamba (Vim-Tiny)",
+    arch: "Arquitectura Mamba basada en State Space Models (SSMs)",
     badge: "Alta Precisión",
     badgeClass: "badge--best",
     featured: true,
@@ -309,8 +309,8 @@ export default function Home() {
                   <p>Aprovecha mecanismos de atención (Vision Transformers) para lograr máxima generalización y precisión global. Útil en condiciones difíciles de iluminación o placas desgastadas.</p>
                 </div>
                 <div className="home-arch-card">
-                  <h4>EfficientDet-D2</h4>
-                  <span className="home-arch-type">BiFPN + EfficientNet</span>
+                  <h4>Vision Mamba</h4>
+                  <span className="home-arch-type">Mamba SSM</span>
                   <p>Arquitectura alternativa que ofrece un excelente equilibrio entre eficiencia computacional y alta precisión, destacando en el conjunto de datos de Ecuador.</p>
                 </div>
               </div>

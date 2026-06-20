@@ -11,6 +11,9 @@ interface ModelMetricsPanelProps {
 }
 
 export function ModelMetricsPanel({ metrics, images }: ModelMetricsPanelProps) {
+  // Si las 3 imágenes son la misma, asumimos que es el dashboard estático consolidado (Mamba)
+  const isConsolidated = images.results === images.confusion && images.results === images.pr;
+
   return (
     <div className="tm-panel-container">
       {/* KPIs Numericos (Convergencia) */}
@@ -38,18 +41,30 @@ export function ModelMetricsPanel({ metrics, images }: ModelMetricsPanelProps) {
       </div>
 
       {/* Graficas */}
-      <div className="tm-graphs-grid">
-        {/* Gráficos dinámicos interactivos (Chart.js) */}
-        <ModelMetricsCharts history={metrics.history} />
-        
-        {/* Matriz de confusión estática */}
-        <div className="tm-graph-card">
-          <div className="tm-graph-overlay">
-            <span>Matriz de Confusión</span>
+      {isConsolidated ? (
+        <div className="tm-graphs-grid" style={{ display: 'block', marginTop: '2rem' }}>
+          <div className="tm-graph-card" style={{ padding: '1rem' }}>
+            <img 
+              src={images.results} 
+              alt="Resultados del Modelo" 
+              style={{ width: '100%', height: 'auto', borderRadius: '8px', objectFit: 'contain' }} 
+            />
           </div>
-          <img src={images.confusion} alt="Matriz de Confusión" className="tm-graph-img" />
         </div>
-      </div>
+      ) : (
+        <div className="tm-graphs-grid">
+          {/* Gráficos dinámicos interactivos (Chart.js) */}
+          <ModelMetricsCharts history={metrics.history} />
+          
+          {/* Matriz de confusión estática */}
+          <div className="tm-graph-card">
+            <div className="tm-graph-overlay">
+              <span>Matriz de Confusión</span>
+            </div>
+            <img src={images.confusion} alt="Matriz de Confusión" className="tm-graph-img" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -13,19 +13,19 @@ function ModelComparison() {
 
   const yoloData   = mc.comparisonResult.yolo   as ComparisonImageResponse | undefined
   const rtdetrData = mc.comparisonResult.rtdetr as ComparisonImageResponse | undefined
-  const efficientdetData = mc.comparisonResult.efficientdet as ComparisonImageResponse | undefined
+  const mambaData = mc.comparisonResult.mamba as ComparisonImageResponse | undefined
 
   const yoloMetrics   = yoloData   ? ("metrics" in yoloData   ? yoloData.metrics   : yoloData)   : null
   const rtdetrMetrics = rtdetrData ? ("metrics" in rtdetrData ? rtdetrData.metrics : rtdetrData) : null
-  const efficientdetMetrics = efficientdetData ? ("metrics" in efficientdetData ? efficientdetData.metrics : efficientdetData) : null
+  const mambaMetrics = mambaData ? ("metrics" in mambaData ? mambaData.metrics : mambaData) : null
 
 
   const yoloImage   = yoloData?.processed_image   || (mc.fileType === "image" ? mc.preview : mc.yoloFrame)
   const rtdetrImage = rtdetrData?.processed_image || (mc.fileType === "image" ? mc.preview : mc.rtdetrFrame)
-  const efficientdetImage = efficientdetData?.processed_image || (mc.fileType === "image" ? mc.preview : mc.efficientdetFrame)
+  const mambaImage = mambaData?.processed_image || (mc.fileType === "image" ? mc.preview : mc.mambaFrame)
 
-  const hasResults      = !!(yoloMetrics || rtdetrMetrics || efficientdetMetrics)
-  const hasVideoActivity = mc.fileType === "video" && (mc.loading || mc.yoloFrame || mc.rtdetrFrame || mc.efficientdetFrame)
+  const hasResults      = !!(yoloMetrics || rtdetrMetrics || mambaMetrics)
+  const hasVideoActivity = mc.fileType === "video" && (mc.loading || mc.yoloFrame || mc.rtdetrFrame || mc.mambaFrame)
 
   return (
     <div className="comparison-page">
@@ -42,7 +42,7 @@ function ModelComparison() {
             </div>
             <h1 className="comparison-title">COMPARACIÓN DE MODELOS</h1>
           </div>
-          <p className="comparison-tag">YOLOv11n vs RT-DETR vs EfficientDet-D2 · Análisis comparativo</p>
+          <p className="comparison-tag">YOLOv11n vs RT-DETR vs Vision Mamba · Análisis comparativo</p>
         </div>
 
         {mc.loading && (
@@ -87,7 +87,7 @@ function ModelComparison() {
         <div className="comparison-model-tags" aria-label="Modelos activos">
           <span className="comparison-model-tag comparison-model-tag--yolo">YOLO</span>
           <span className="comparison-model-tag comparison-model-tag--rtdetr">RTDETR</span>
-          <span className="comparison-model-tag comparison-model-tag--efficientdet">EFFICIENTDET</span>
+          <span className="comparison-model-tag comparison-model-tag--mamba">VISION MAMBA</span>
         </div>
 
         {/* File info */}
@@ -262,10 +262,10 @@ function ModelComparison() {
                 telemetry={mc.rtdetrTelemetry}
                 />
                 <ComparisonVideoStream
-                model="EfficientDet-D2" frameSrc={mc.efficientdetFrame}
-                progress={mc.efficientdetProgress} status={mc.efficientdetStatus}
+                model="Vision Mamba" frameSrc={mc.mambaFrame}
+                progress={mc.mambaProgress} status={mc.mambaStatus}
                 loading={mc.loading} color="#10b981"
-                telemetry={mc.efficientdetTelemetry}
+                telemetry={mc.mambaTelemetry}
                 />
             </div>
             </section>
@@ -317,24 +317,24 @@ function ModelComparison() {
 
                 <div className="prototype-model-divider" />
 
-                {/* ── EFFICIENTDET ROW ── */}
+                {/* ── VISION MAMBA ROW ── */}
                 <ModelResultRow
-                    modelKey="efficientdet"
-                    modelLabel="EfficientDet-D2"
+                    modelKey="mamba"
+                    modelLabel="Vision Mamba"
                     color="#10b981"
-                    imageSrc={efficientdetImage}
-                    metrics={efficientdetMetrics as ComparisonMetrics | null}
+                    imageSrc={mambaImage}
+                    metrics={mambaMetrics as ComparisonMetrics | null}
                     realPlate={mc.realPlate}
-                    vehicles={efficientdetData?.vehicles || []}
-                    allPlates={efficientdetData?.plates || []}
+                    vehicles={mambaData?.vehicles || []}
+                    allPlates={mambaData?.plates || []}
                     onFeedback={mc.submitPlateFeedback}
                 />
 
                 {/* Winner */}
-                {yoloMetrics && rtdetrMetrics && efficientdetMetrics && (
+                {yoloMetrics && rtdetrMetrics && mambaMetrics && (
                     <div className="comparison-winner-section">
                     <div className="comparison-section-label">GANADOR POR VELOCIDAD</div>
-                    {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics, efficientdetMetrics as ComparisonMetrics)}
+                    {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics, mambaMetrics as ComparisonMetrics)}
                     </div>
                 )}
 
@@ -393,22 +393,22 @@ function ModelComparison() {
                     )}
                   </div>
 
-                  {/* EfficientDet Column */}
+                  {/* Vision Mamba Column */}
                   <div className="comparison-model-column">
                     <div className="comparison-model-header-integrated" style={{ color: "#10b981" }}>
-                      EfficientDet-D2
+                      Vision Mamba
                     </div>
                     <MetricsCard
-                      model="EfficientDet-D2"
-                      metrics={efficientdetMetrics as ComparisonMetrics | null}
+                      model="Vision Mamba"
+                      metrics={mambaMetrics as ComparisonMetrics | null}
                       color="#10b981"
                     />
 
-                    {efficientdetData?.plates && efficientdetData.plates.length > 0 && (
+                    {mambaData?.plates && mambaData.plates.length > 0 && (
                       <div className="comparison-integrated-plates">
                         <div className="comparison-section-label">PLACAS DETECTADAS</div>
                         <div className="video-plates-list">
-                          {efficientdetData.plates.map((plate: any, idx: number) => (
+                          {mambaData.plates.map((plate: any, idx: number) => (
                             <VideoPlateCard key={`eff_${idx}`} plate={plate} color="#10b981" />
                           ))}
                         </div>
@@ -417,9 +417,9 @@ function ModelComparison() {
                   </div>
 
                   {/* Winner badge at bottom */}
-                  {yoloMetrics && rtdetrMetrics && efficientdetMetrics && (
+                  {yoloMetrics && rtdetrMetrics && mambaMetrics && (
                     <div className="comparison-winner-row">
-                      {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics, efficientdetMetrics as ComparisonMetrics)}
+                      {renderWinner(yoloMetrics as ComparisonMetrics, rtdetrMetrics as ComparisonMetrics, mambaMetrics as ComparisonMetrics)}
                     </div>
                   )}
                 </div>
@@ -509,7 +509,7 @@ function ModelResultRow({
 
       {/* Col 2 — Metrics */}
       <MetricsCard
-        model={modelLabel as "YOLO" | "RT-DETR" | "EfficientDet-D2"}
+        model={modelLabel as "YOLO" | "RT-DETR" | "Vision Mamba"}
         metrics={metrics}
         color={color}
       />
@@ -529,16 +529,16 @@ function ModelResultRow({
 /* ══════════════════════════════════════════════════════════════
    WINNER HELPER
    ══════════════════════════════════════════════════════════════ */
-function renderWinner(yolo: ComparisonMetrics, rtdetr: ComparisonMetrics, efficientdet: ComparisonMetrics) {
+function renderWinner(yolo: ComparisonMetrics, rtdetr: ComparisonMetrics, mamba: ComparisonMetrics) {
   const yoloTime   = yolo.avg_inference_ms   ?? yolo.inference_ms
   const rtdetrTime = rtdetr.avg_inference_ms ?? rtdetr.inference_ms
-  const efficientdetTime = efficientdet.avg_inference_ms ?? efficientdet.inference_ms
-  if (!yoloTime || !rtdetrTime || !efficientdetTime) return null
+  const mambaTime = mamba.avg_inference_ms ?? mamba.inference_ms
+  if (!yoloTime || !rtdetrTime || !mambaTime) return null
 
   const times = [
     { name: "YOLO", time: yoloTime, color: "#22d3ee" },
     { name: "RT-DETR", time: rtdetrTime, color: "#f59e0b" },
-    { name: "EfficientDet-D2", time: efficientdetTime, color: "#10b981" }
+    { name: "Vision Mamba", time: mambaTime, color: "#10b981" }
   ].sort((a, b) => a.time - b.time)
 
   const winner  = times[0]

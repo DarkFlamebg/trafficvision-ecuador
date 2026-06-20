@@ -1,0 +1,2 @@
+epoch,train/acc,train/base_lr,train/data_time,train/loss,train/loss_bbox,train/loss_cls,train/loss_rpn_bbox,train/loss_rpn_cls,train/lr,train/memory,train/time
+1,95.838887,0.000053,0.029101,-64723019899431462895616.000000,-64723019899431462895616.000000,302113.705253,3.041845,3.913408,0.000005,4897.884615,0.419057

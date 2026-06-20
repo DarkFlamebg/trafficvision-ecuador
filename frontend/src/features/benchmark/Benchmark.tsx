@@ -23,7 +23,7 @@ interface ProgressMsg {
   results: {
     yolo: SingleResult
     rtdetr: SingleResult
-    efficientdet: SingleResult
+    mamba: SingleResult
   }
 }
 
@@ -32,7 +32,7 @@ interface DoneMsg {
   summary: {
     yolo: Summary
     rtdetr: Summary
-    efficientdet: Summary
+    mamba: Summary
     device: string
   }
 }
@@ -54,7 +54,7 @@ interface FeedItem {
   image: string
   yolo_ms: number
   rtdetr_ms: number
-  effdet_ms: number
+  mamba_ms: number
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -63,11 +63,11 @@ const NUM_IMAGES = 10
 
 const WS_URL = `ws://localhost:8000/api/v1/benchmark/ws?num_images=${NUM_IMAGES}`
 
-function getFastest(s: { yolo: Summary; rtdetr: Summary; efficientdet: Summary }) {
+function getFastest(s: { yolo: Summary; rtdetr: Summary; mamba: Summary }) {
   const entries = [
     { key: "YOLOv11n",       ms: s.yolo.avg_time_ms },
     { key: "RT-DETR",        ms: s.rtdetr.avg_time_ms },
-    { key: "EfficientDet-D2", ms: s.efficientdet.avg_time_ms },
+    { key: "Vision Mamba", ms: s.mamba.avg_time_ms },
   ]
   return entries.reduce((a, b) => (a.ms < b.ms ? a : b))
 }
@@ -137,7 +137,7 @@ export default function Benchmark() {
             image:    p.image,
             yolo_ms:  p.results.yolo.inference_time_ms,
             rtdetr_ms: p.results.rtdetr.inference_time_ms,
-            effdet_ms: p.results.efficientdet.inference_time_ms,
+            mamba_ms: p.results.mamba.inference_time_ms,
           },
         ])
       } else if (msg.type === "done") {
@@ -169,11 +169,11 @@ export default function Benchmark() {
 
   // ── Bar chart max values ──────────────────────────────────────────────
   const maxTime = summary
-    ? Math.max(summary.yolo.avg_time_ms, summary.rtdetr.avg_time_ms, summary.efficientdet.avg_time_ms, 1)
+    ? Math.max(summary.yolo.avg_time_ms, summary.rtdetr.avg_time_ms, summary.mamba.avg_time_ms, 1)
     : 1
 
   const maxDet = summary
-    ? Math.max(summary.yolo.total_detections, summary.rtdetr.total_detections, summary.efficientdet.total_detections, 1)
+    ? Math.max(summary.yolo.total_detections, summary.rtdetr.total_detections, summary.mamba.total_detections, 1)
     : 1
 
   // ── Render ────────────────────────────────────────────────────────────
@@ -201,7 +201,7 @@ export default function Benchmark() {
           <div className="bm-panel-info">
             <span className="bm-panel-label">Configuración</span>
             <span className="bm-panel-value">
-              <strong>{NUM_IMAGES} imágenes</strong> &nbsp;·&nbsp; YOLOv11n · RT-DETR · EfficientDet-D2
+              <strong>{NUM_IMAGES} imágenes</strong> &nbsp;·&nbsp; YOLOv11n · RT-DETR · Vision Mamba
             </span>
           </div>
           <div className="bm-panel-info">
@@ -269,8 +269,8 @@ export default function Benchmark() {
                   <span className="bm-feed-chip bm-feed-chip--rtdetr">
                     RT-DETR · {fmtMs(item.rtdetr_ms)}
                   </span>
-                  <span className="bm-feed-chip bm-feed-chip--effdet">
-                    EffDet · {fmtMs(item.effdet_ms)}
+                  <span className="bm-feed-chip bm-feed-chip--mamba">
+                    EffDet · {fmtMs(item.mamba_ms)}
                   </span>
                 </div>
               ))}
@@ -318,7 +318,7 @@ export default function Benchmark() {
                 [
                   { key: "yolo",        label: "YOLOv11n",        cls: "yolo",   badge: "Más rápido", s: summary.yolo },
                   { key: "rtdetr",      label: "RT-DETR",         cls: "rtdetr", badge: "Mejor mAP",  s: summary.rtdetr },
-                  { key: "efficientdet", label: "EfficientDet-D2", cls: "effdet", badge: "Alta precisión", s: summary.efficientdet },
+                  { key: "mamba", label: "Vision Mamba", cls: "mamba", badge: "Alta precisión", s: summary.mamba },
                 ] as const
               ).map(({ label, cls, badge, s }) => (
                 <div key={cls} className={`bm-card bm-card--${cls}`}>
@@ -356,7 +356,7 @@ export default function Benchmark() {
                   {[
                     { label: "YOLOv11n",        val: summary.yolo.avg_time_ms,        cls: "yolo" },
                     { label: "RT-DETR",         val: summary.rtdetr.avg_time_ms,      cls: "rtdetr" },
-                    { label: "EfficientDet-D2", val: summary.efficientdet.avg_time_ms, cls: "effdet" },
+                    { label: "Vision Mamba", val: summary.mamba.avg_time_ms, cls: "mamba" },
                   ].map(({ label, val, cls }) => (
                     <div className="bm-bar-row" key={label}>
                       <span className="bm-bar-label">{label}</span>
@@ -379,7 +379,7 @@ export default function Benchmark() {
                   {[
                     { label: "YOLOv11n",        val: summary.yolo.total_detections,        cls: "yolo" },
                     { label: "RT-DETR",         val: summary.rtdetr.total_detections,      cls: "rtdetr" },
-                    { label: "EfficientDet-D2", val: summary.efficientdet.total_detections, cls: "effdet" },
+                    { label: "Vision Mamba", val: summary.mamba.total_detections, cls: "mamba" },
                   ].map(({ label, val, cls }) => (
                     <div className="bm-bar-row" key={label}>
                       <span className="bm-bar-label">{label}</span>
