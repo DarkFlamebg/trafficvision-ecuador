@@ -425,7 +425,7 @@ export default function Home() {
       <div className="home-divider" />
 
       <footer className="home-footer">
-        <span>Backend · <code>localhost:8000</code></span>
+        <span>@Todos los derechos reservados</span>
         <span>TrafficVision · 2026</span>
       </footer>
 
