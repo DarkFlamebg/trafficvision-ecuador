@@ -1,0 +1,312 @@
+{
+  "timestamp": "2026-06-22T14:09:00.381948",
+  "device": "cpu",
+  "results": {
+    "yolo": [
+      {
+        "detections": 1,
+        "inference_time_ms": 99.12,
+        "memory_mb": 0
+      },
+      {
+        "detections": 0,
+        "inference_time_ms": 214.05,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 199.92,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 131.43,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 229.5,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 171.52,
+        "memory_mb": 0
+      },
+      {
+        "detections": 0,
+        "inference_time_ms": 143.28,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 140.74,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 422.6,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 168.12,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 243.04,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 154.61,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 101.97,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 171.48,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 116.72,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 140.34,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 128.65,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 130.3,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 119.92,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 80.37,
+        "memory_mb": 0
+      }
+    ],
+    "rtdetr": [
+      {
+        "detections": 3,
+        "inference_time_ms": 617.28,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 670.9,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 733.76,
+        "memory_mb": 0
+      },
+      {
+        "detections": 3,
+        "inference_time_ms": 847.35,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 974.94,
+        "memory_mb": 0
+      },
+      {
+        "detections": 4,
+        "inference_time_ms": 610.6,
+        "memory_mb": 0
+      },
+      {
+        "detections": 0,
+        "inference_time_ms": 591.78,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 593.94,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 776.22,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 622.69,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 698.28,
+        "memory_mb": 0
+      },
+      {
+        "detections": 3,
+        "inference_time_ms": 584.96,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 594.93,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 621.39,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 610.1,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 622.19,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 623.24,
+        "memory_mb": 0
+      },
+      {
+        "detections": 3,
+        "inference_time_ms": 549.01,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 556.47,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 555.07,
+        "memory_mb": 0
+      }
+    ],
+    "vm": [
+      {
+        "detections": 1,
+        "inference_time_ms": 1741.23,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1516.27,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1779.5,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 1619.65,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1628.44,
+        "memory_mb": 0
+      },
+      {
+        "detections": 3,
+        "inference_time_ms": 1402.41,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1278.78,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1905.44,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1762.93,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 1477.89,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1376.17,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1318.15,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1311.37,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1322.24,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1290.74,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1292.93,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1365.43,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 1121.71,
+        "memory_mb": 0
+      },
+      {
+        "detections": 2,
+        "inference_time_ms": 1623.77,
+        "memory_mb": 0
+      },
+      {
+        "detections": 1,
+        "inference_time_ms": 1511.72,
+        "memory_mb": 0
+      }
+    ]
+  }
+}

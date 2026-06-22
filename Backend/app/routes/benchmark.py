@@ -97,7 +97,7 @@ async def benchmark_ws(websocket: WebSocket, num_images: int = 10):
         summary = {
             "yolo": _calculate_averages(final_results["yolo"]),
             "rtdetr": _calculate_averages(final_results["rtdetr"]),
-            "efficientdet": _calculate_averages(final_results["efficientdet"]),
+            "vm": _calculate_averages(final_results["vm"]),
             "device": "GPU (CUDA)" if torch.cuda.is_available() else "CPU Local"
         }
 

@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from app.ai.plate_detector import detect_plate as detect_yolo
 from app.ai.plate_detector_rtdetr import detect_plate_rtdetr
-from app.ai.plate_detector_efficientdet import detect_plate_efficientdet
+from app.ai.plate_detector_vm import detect_plate_vision_mamba
 from app.ai.plate_reader import read_plate
 
 
@@ -38,7 +38,7 @@ class BenchmarkRunner:
         self.results = {
             'yolo':         [],
             'rtdetr':       [],
-            'efficientdet': [],
+            'vm':           [],
         }
 
     # ── Ground truth ──────────────────────────────────────────────────────────
@@ -112,7 +112,7 @@ class BenchmarkRunner:
         detectors = [
             ('yolo',         'YOLOv11n       ', detect_yolo),
             ('rtdetr',       'RT-DETR        ', detect_plate_rtdetr),
-            ('efficientdet', 'EfficientDet-D2', detect_plate_efficientdet),
+            ('vm',           'Vision Mamba   ', detect_plate_vision_mamba),
         ]
 
         for idx, (key, label, fn) in enumerate(detectors, 1):
@@ -155,7 +155,7 @@ class BenchmarkRunner:
                   f"device: {'GPU' if torch.cuda.is_available() else 'CPU'}")
             print(f"{'='*70}")
 
-        all_results = {'yolo': [], 'rtdetr': [], 'efficientdet': []}
+        all_results = {'yolo': [], 'rtdetr': [], 'vm': []}
 
         for i, img_path in enumerate(image_files, 1):
             if verbose:
@@ -172,7 +172,7 @@ class BenchmarkRunner:
             if verbose:
                 for key, label in [('yolo',         'YOLOv11n      '),
                                     ('rtdetr',       'RT-DETR       '),
-                                    ('efficientdet', 'EfficientDet  ')]:
+                                    ('vm',           'Vision Mamba  ')]:
                     r = results[key]
                     err = f" ⚠ {r['error']}" if 'error' in r else ''
                     print(f"  {label}  {r['detections']} placas | "
@@ -191,7 +191,7 @@ class BenchmarkRunner:
         labels = {
             'yolo':         'YOLOv11n',
             'rtdetr':       'RT-DETR',
-            'efficientdet': 'EfficientDet-D2',
+            'vm':           'Vision Mamba (Swin+SSM)',
         }
 
         averages = {}

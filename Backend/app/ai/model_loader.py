@@ -57,6 +57,12 @@ def _load_ocr_model():
     print("[model_loader] plate_reader (EasyOCR + SR) listo")
 
 
+def _load_vm_model():
+    from app.ai.plate_detector_vm import _get_model as _get_vm
+    _get_vm()  # Vision Mamba usa mmdet, no YOLO, no hay warmup con imagen dummy aquí
+    print("[model_loader] vision_mamba listo")
+
+
 # ── Carga en paralelo 
 def load_all_models() -> None:
     """
@@ -68,7 +74,7 @@ def load_all_models() -> None:
     t0 = time.perf_counter()
     print("[model_loader] Iniciando carga paralela de modelos...")
 
-    loaders = [_load_vehicle_model, _load_plate_model, _load_ocr_model]
+    loaders = [_load_vehicle_model, _load_plate_model, _load_vm_model, _load_ocr_model]
 
     with ThreadPoolExecutor(max_workers=len(loaders), thread_name_prefix="model_") as pool:
         futures = [pool.submit(fn) for fn in loaders]

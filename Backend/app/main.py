@@ -76,6 +76,7 @@ async def lifespan(app: FastAPI):
     yield
     # ── Shutdown ─────────────────────────────────────────────────────────────
     for f in os.listdir(TEMP_DIR):
+
         try:
             os.remove(os.path.join(TEMP_DIR, f))
         except Exception:
@@ -84,8 +85,8 @@ async def lifespan(app: FastAPI):
 # ── Aplicación ─────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="TrafficVision API",
-    description="Detección de vehículos y placas vehiculares con YOLOv8 + EasyOCR + Gemini",
-    version="1.3.0",
+    description="Detección de vehículos y placas vehiculares con YOLOv8, RT-DETR, Vision Mamba + EasyOCR + Gemini",
+    version="1.4.0",
     lifespan=lifespan
 )
 
@@ -107,14 +108,13 @@ app.include_router(compare_router, prefix="/api/v1", tags=["Comparativa"])
 app.include_router(benchmark_router, prefix="/api/v1", tags=["Benchmark"])
 app.include_router(datasets_router, prefix="/api/v1", tags=["Datasets"])
 app.include_router(anti_corruption_router, prefix="/api/v1", tags=["Control anticorrupcion"])
-
 # ── Endpoints base ─────────────────────────────────────────────────────────────
 @app.get("/")
 def root():
     return {
         "message": "TrafficVision API activa",
         "docs":    "/docs",
-        "version": "1.3.0"
+        "version": "1.4.0"
     }
 
 
@@ -126,7 +126,7 @@ def health():
         "status":        "ok" if status["models_ready"] else "loading",
         "models_ready":  status["models_ready"],
         "load_time_ms":  status["load_time_ms"],
-        "version":       "1.3.0",
+        "version":       "1.4.0",
     }
 
 

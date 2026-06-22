@@ -91,7 +91,7 @@ Google Gemini Flash Vision clasifica 4 atributos:
 |---|---|---|
 | **YOLOv11n** | Single-shot CNN - Máxima velocidad | ✅ Principal |
 | **RT-DETR** | Transformer + CNN - Alta precisión | ✅ Comparativa |
-| **EfficientDet-D2** | BiFPN + EfficientNet - Balance eficiente | ✅ Comparativa |
+| **Vision Mamba** | State Space Model backbone - Efficient vision transformer alternative | ✅ Comparativa |
 
 El entrenamiento se gestiona comparando mAP, Precisión, Recall y F1-Score usando un dashboard interactivo en React + Chart.js leyendo directamente los `results.csv`.
 
