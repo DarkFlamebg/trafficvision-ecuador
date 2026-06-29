@@ -1,0 +1,604 @@
+06/19 11:36:24 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: win32
+    Python: 3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]
+    CUDA available: True
+    MUSA available: False
+    numpy_random_seed: 905698667
+    GPU 0: NVIDIA GeForce RTX 3070
+    CUDA_HOME: None
+    MSVC: Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.50.35730 para x64
+    GCC: n/a
+    PyTorch: 2.1.2+cu118
+    PyTorch compiling details: PyTorch built with:
+  - C++ Version: 199711
+  - MSVC 192930151
+  - Intel(R) Math Kernel Library Version 2020.0.2 Product Build 20200624 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v3.1.1 (Git Hash 64f6bcbcbab628e96f33a62c3e975f8535a7bde4)
+  - OpenMP 2019
+  - LAPACK is enabled (usually provided by MKL)
+  - CPU capability usage: AVX512
+  - CUDA Runtime 11.8
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_90,code=sm_90;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 8.7
+  - Magma 2.5.4
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.8, CUDNN_VERSION=8.7.0, CXX_COMPILER=C:/actions-runner/_work/pytorch/pytorch/builder/windows/tmp_bin/sccache-cl.exe, CXX_FLAGS=/DWIN32 /D_WINDOWS /GR /EHsc /bigobj /FS -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOCUPTI -DLIBKINETO_NOROCTRACER -DUSE_FBGEMM -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE /utf-8 /wd4624 /wd4068 /wd4067 /wd4267 /wd4661 /wd4717 /wd4244 /wd4804 /wd4273, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_DISABLE_GPU_ASSERTS=OFF, TORCH_VERSION=2.1.2, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=OFF, USE_NNPACK=OFF, USE_OPENMP=ON, USE_ROCM=OFF, 
+
+    TorchVision: 0.16.2+cu118
+    OpenCV: 4.13.0
+    MMEngine: 0.10.7
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: 905698667
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+06/19 11:36:24 - mmengine - INFO - Config:
+data_root = 'C:/Users/Luis/Desktop/steven/trafficvision-ecuador/ml/training/dataset/Plates-Ecuadorian-4/'
+dataset_type = 'CocoDataset'
+default_hooks = dict(
+    checkpoint=dict(
+        interval=5,
+        max_keep_ckpts=5,
+        rule='greater',
+        save_best='coco/bbox_mAP',
+        type='CheckpointHook'),
+    logger=dict(interval=10, type='LoggerHook'),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    timer=dict(type='IterTimerHook'),
+    visualization=dict(type='DetVisualizationHook'))
+default_scope = 'mmdet'
+env_cfg = dict(
+    cudnn_benchmark=False,
+    dist_cfg=dict(backend='nccl'),
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0))
+launcher = 'none'
+load_from = 'C:\\Users\\Luis\\Desktop\\steven\\trafficvision-ecuador\\ml\\training\\work_dirs\\vision_mamba_plates_r4\\best_coco_bbox_mAP_epoch_51.pth'
+log_level = 'INFO'
+log_processor = dict(by_epoch=True, type='LogProcessor', window_size=50)
+max_epochs = 100
+metainfo = dict(classes=('license plate', ))
+model = dict(
+    backbone=dict(
+        attn_drop_rate=0.0,
+        convert_weights=True,
+        depths=[
+            2,
+            2,
+            6,
+            2,
+        ],
+        drop_path_rate=0.1,
+        drop_rate=0.0,
+        embed_dims=96,
+        init_cfg=dict(
+            checkpoint=
+            'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth',
+            type='Pretrained'),
+        mlp_ratio=4,
+        num_heads=[
+            3,
+            6,
+            12,
+            24,
+        ],
+        out_indices=(
+            0,
+            1,
+            2,
+            3,
+        ),
+        patch_norm=True,
+        qkv_bias=True,
+        type='SwinTransformer',
+        window_size=7,
+        with_cp=False),
+    data_preprocessor=dict(
+        bgr_to_rgb=True,
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        pad_size_divisor=32,
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        type='DetDataPreprocessor'),
+    neck=dict(
+        in_channels=[
+            96,
+            192,
+            384,
+            768,
+        ],
+        num_outs=5,
+        out_channels=256,
+        type='FPN'),
+    roi_head=dict(
+        bbox_head=dict(
+            bbox_coder=dict(
+                target_means=[
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                ],
+                target_stds=[
+                    0.1,
+                    0.1,
+                    0.2,
+                    0.2,
+                ],
+                type='DeltaXYWHBBoxCoder'),
+            fc_out_channels=1024,
+            in_channels=256,
+            loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+            loss_cls=dict(
+                loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=False),
+            num_classes=1,
+            reg_class_agnostic=False,
+            roi_feat_size=7,
+            type='Shared2FCBBoxHead'),
+        bbox_roi_extractor=dict(
+            featmap_strides=[
+                4,
+                8,
+                16,
+                32,
+            ],
+            out_channels=256,
+            roi_layer=dict(output_size=7, sampling_ratio=0, type='RoIAlign'),
+            type='SingleRoIExtractor'),
+        type='StandardRoIHead'),
+    rpn_head=dict(
+        anchor_generator=dict(
+            ratios=[
+                0.2,
+                0.3,
+                0.5,
+                1.0,
+                2.0,
+            ],
+            scales=[
+                8,
+            ],
+            strides=[
+                4,
+                8,
+                16,
+                32,
+                64,
+            ],
+            type='AnchorGenerator'),
+        bbox_coder=dict(
+            target_means=[
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+            ],
+            target_stds=[
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+            ],
+            type='DeltaXYWHBBoxCoder'),
+        feat_channels=256,
+        in_channels=256,
+        loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+        loss_cls=dict(
+            loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=True),
+        type='RPNHead'),
+    test_cfg=dict(
+        rcnn=dict(
+            max_per_img=100,
+            nms=dict(iou_threshold=0.5, type='nms'),
+            score_thr=0.01),
+        rpn=dict(
+            max_per_img=1000,
+            min_bbox_size=0,
+            nms=dict(iou_threshold=0.7, type='nms'),
+            nms_pre=1000)),
+    train_cfg=dict(
+        rcnn=dict(
+            assigner=dict(
+                ignore_iof_thr=-1,
+                match_low_quality=False,
+                min_pos_iou=0.5,
+                neg_iou_thr=0.5,
+                pos_iou_thr=0.5,
+                type='MaxIoUAssigner'),
+            debug=False,
+            pos_weight=-1,
+            sampler=dict(
+                add_gt_as_proposals=True,
+                neg_pos_ub=-1,
+                num=512,
+                pos_fraction=0.25,
+                type='RandomSampler')),
+        rpn=dict(
+            allowed_border=-1,
+            assigner=dict(
+                ignore_iof_thr=-1,
+                match_low_quality=True,
+                min_pos_iou=0.3,
+                neg_iou_thr=0.3,
+                pos_iou_thr=0.7,
+                type='MaxIoUAssigner'),
+            debug=False,
+            pos_weight=-1,
+            sampler=dict(
+                add_gt_as_proposals=False,
+                neg_pos_ub=-1,
+                num=256,
+                pos_fraction=0.5,
+                type='RandomSampler')),
+        rpn_proposal=dict(
+            max_per_img=1000,
+            min_bbox_size=0,
+            nms=dict(iou_threshold=0.7, type='nms'),
+            nms_pre=2000)),
+    type='FasterRCNN')
+optim_wrapper = dict(
+    optimizer=dict(lr=0.0001, type='AdamW', weight_decay=0.05),
+    paramwise_cfg=dict(
+        custom_keys=dict(backbone=dict(lr_mult=0.1)), norm_decay_mult=0.0),
+    type='OptimWrapper')
+param_scheduler = [
+    dict(
+        begin=0, by_epoch=False, end=500, start_factor=0.001, type='LinearLR'),
+    dict(
+        T_max=100,
+        begin=0,
+        by_epoch=True,
+        end=100,
+        eta_min=1e-06,
+        type='CosineAnnealingLR'),
+]
+resume = False
+test_cfg = dict(type='TestLoop')
+test_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='test/_annotations.coco.json',
+        data_prefix=dict(img='test/'),
+        data_root=
+        'C:/Users/Luis/Desktop/steven/trafficvision-ecuador/ml/training/dataset/Plates-Ecuadorian-4/',
+        metainfo=dict(classes=('license plate', )),
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                640,
+                640,
+            ), type='Resize'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='CocoDataset'),
+    drop_last=False,
+    num_workers=0,
+    persistent_workers=False,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+test_evaluator = dict(
+    ann_file=
+    'C:/Users/Luis/Desktop/steven/trafficvision-ecuador/ml/training/dataset/Plates-Ecuadorian-4/test/_annotations.coco.json',
+    format_only=False,
+    metric='bbox',
+    type='CocoMetric')
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(keep_ratio=True, scale=(
+        640,
+        640,
+    ), type='Resize'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        meta_keys=(
+            'img_id',
+            'img_path',
+            'ori_shape',
+            'img_shape',
+            'scale_factor',
+        ),
+        type='PackDetInputs'),
+]
+train_cfg = dict(max_epochs=100, type='EpochBasedTrainLoop', val_interval=1)
+train_dataloader = dict(
+    batch_sampler=dict(type='AspectRatioBatchSampler'),
+    batch_size=2,
+    dataset=dict(
+        ann_file='train/_annotations.coco.json',
+        data_prefix=dict(img='train/'),
+        data_root=
+        'C:/Users/Luis/Desktop/steven/trafficvision-ecuador/ml/training/dataset/Plates-Ecuadorian-4/',
+        filter_cfg=dict(filter_empty_gt=True, min_size=32),
+        metainfo=dict(classes=('license plate', )),
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(prob=0.5, type='RandomFlip'),
+            dict(
+                transforms=[
+                    [
+                        dict(
+                            keep_ratio=True, scale=(
+                                640,
+                                640,
+                            ), type='Resize'),
+                    ],
+                    [
+                        dict(
+                            keep_ratio=True, scale=(
+                                480,
+                                480,
+                            ), type='Resize'),
+                        dict(
+                            allow_negative_crop=True,
+                            crop_size=(
+                                640,
+                                640,
+                            ),
+                            type='RandomCrop'),
+                    ],
+                ],
+                type='RandomChoice'),
+            dict(
+                brightness_delta=32,
+                contrast_range=(
+                    0.5,
+                    1.5,
+                ),
+                hue_delta=32,
+                saturation_range=(
+                    0.5,
+                    1.5,
+                ),
+                type='PhotoMetricDistortion'),
+            dict(type='PackDetInputs'),
+        ],
+        type='CocoDataset'),
+    num_workers=0,
+    persistent_workers=False,
+    sampler=dict(shuffle=True, type='DefaultSampler'))
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(prob=0.5, type='RandomFlip'),
+    dict(
+        transforms=[
+            [
+                dict(keep_ratio=True, scale=(
+                    640,
+                    640,
+                ), type='Resize'),
+            ],
+            [
+                dict(keep_ratio=True, scale=(
+                    480,
+                    480,
+                ), type='Resize'),
+                dict(
+                    allow_negative_crop=True,
+                    crop_size=(
+                        640,
+                        640,
+                    ),
+                    type='RandomCrop'),
+            ],
+        ],
+        type='RandomChoice'),
+    dict(
+        brightness_delta=32,
+        contrast_range=(
+            0.5,
+            1.5,
+        ),
+        hue_delta=32,
+        saturation_range=(
+            0.5,
+            1.5,
+        ),
+        type='PhotoMetricDistortion'),
+    dict(type='PackDetInputs'),
+]
+val_cfg = dict(type='ValLoop')
+val_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='valid/_annotations.coco.json',
+        data_prefix=dict(img='valid/'),
+        data_root=
+        'C:/Users/Luis/Desktop/steven/trafficvision-ecuador/ml/training/dataset/Plates-Ecuadorian-4/',
+        metainfo=dict(classes=('license plate', )),
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                640,
+                640,
+            ), type='Resize'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='CocoDataset'),
+    drop_last=False,
+    num_workers=0,
+    persistent_workers=False,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+val_evaluator = dict(
+    ann_file=
+    'C:/Users/Luis/Desktop/steven/trafficvision-ecuador/ml/training/dataset/Plates-Ecuadorian-4/valid/_annotations.coco.json',
+    format_only=False,
+    metric='bbox',
+    type='CocoMetric')
+vis_backends = [
+    dict(type='LocalVisBackend'),
+    dict(type='TensorboardVisBackend'),
+]
+visualizer = dict(
+    name='visualizer',
+    type='DetLocalVisualizer',
+    vis_backends=[
+        dict(type='LocalVisBackend'),
+        dict(type='TensorboardVisBackend'),
+    ])
+work_dir = 'C:\\Users\\Luis\\Desktop\\steven\\trafficvision-ecuador\\ml\\training\\work_dirs\\vision_mamba_plates_r4'
+
+06/19 11:36:26 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+06/19 11:36:26 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DetVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DetVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+loading annotations into memory...
+Done (t=0.00s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.00s)
+creating index...
+index created!
+Loads checkpoint by local backend from path: C:\Users\Luis\Desktop\steven\trafficvision-ecuador\ml\training\work_dirs\vision_mamba_plates_r4\best_coco_bbox_mAP_epoch_51.pth
+06/19 11:36:27 - mmengine - INFO - Load checkpoint from C:\Users\Luis\Desktop\steven\trafficvision-ecuador\ml\training\work_dirs\vision_mamba_plates_r4\best_coco_bbox_mAP_epoch_51.pth
+06/19 11:36:28 - mmengine - INFO - Epoch(test) [ 10/115]    eta: 0:00:08  time: 0.0842  data_time: 0.0028  memory: 351  
+06/19 11:36:28 - mmengine - INFO - Epoch(test) [ 20/115]    eta: 0:00:06  time: 0.0636  data_time: 0.0026  memory: 355  
+06/19 11:36:29 - mmengine - INFO - Epoch(test) [ 30/115]    eta: 0:00:04  time: 0.0580  data_time: 0.0025  memory: 351  
+06/19 11:36:30 - mmengine - INFO - Epoch(test) [ 40/115]    eta: 0:00:04  time: 0.0658  data_time: 0.0058  memory: 355  
+06/19 11:36:30 - mmengine - INFO - Epoch(test) [ 50/115]    eta: 0:00:03  time: 0.0603  data_time: 0.0051  memory: 355  
+06/19 11:36:30 - mmengine - INFO - Epoch(test) [ 60/115]    eta: 0:00:03  time: 0.0519  data_time: 0.0051  memory: 359  
+06/19 11:36:31 - mmengine - INFO - Epoch(test) [ 70/115]    eta: 0:00:02  time: 0.0516  data_time: 0.0050  memory: 351  
+06/19 11:36:31 - mmengine - INFO - Epoch(test) [ 80/115]    eta: 0:00:01  time: 0.0500  data_time: 0.0051  memory: 355  
+06/19 11:36:32 - mmengine - INFO - Epoch(test) [ 90/115]    eta: 0:00:01  time: 0.0397  data_time: 0.0025  memory: 355  
+06/19 11:36:32 - mmengine - INFO - Epoch(test) [100/115]    eta: 0:00:00  time: 0.0409  data_time: 0.0026  memory: 351  
+06/19 11:36:32 - mmengine - INFO - Epoch(test) [110/115]    eta: 0:00:00  time: 0.0402  data_time: 0.0025  memory: 359  
+06/19 11:36:33 - mmengine - INFO - Evaluating bbox...
+Loading and preparing results...
+DONE (t=0.00s)
+creating index...
+index created!
+Running per image evaluation...
+Evaluate annotation type *bbox*
+DONE (t=0.03s).
+Accumulating evaluation results...
+DONE (t=0.01s).
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.517
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=1000 ] = 0.680
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=1000 ] = 0.634
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.495
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.794
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.900
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.543
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=300 ] = 0.543
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=1000 ] = 0.543
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=1000 ] = 0.519
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=1000 ] = 0.825
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=1000 ] = 0.900
+06/19 11:36:33 - mmengine - INFO - bbox_mAP_copypaste: 0.517 0.680 0.634 0.495 0.794 0.900
+06/19 11:36:33 - mmengine - INFO - Epoch(test) [115/115]    coco/bbox_mAP: 0.5170  coco/bbox_mAP_50: 0.6800  coco/bbox_mAP_75: 0.6340  coco/bbox_mAP_s: 0.4950  coco/bbox_mAP_m: 0.7940  coco/bbox_mAP_l: 0.9000  data_time: 0.0036  time: 0.0490

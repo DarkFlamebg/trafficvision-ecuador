@@ -47,13 +47,14 @@ async def benchmark_ws(websocket: WebSocket, num_images: int = 10):
             # Limpiar resultados eliminando datos no serializables como las imágenes recortadas
             clean_results = {}
             for model, r in results.items():
-                clean_results[model] = {
+                out_key = "mamba" if model == "vm" else model
+                clean_results[out_key] = {
                     "detections": r.get("detections", 0),
                     "inference_time_ms": r.get("inference_time_ms", 0.0),
                     "memory_mb": r.get("memory_mb", 0.0)
                 }
                 if "error" in r:
-                    clean_results[model]["error"] = r["error"]
+                    clean_results[out_key]["error"] = r["error"]
 
             # Enviar a la cola usando el loop de la petición principal
             asyncio.run_coroutine_threadsafe(
@@ -97,7 +98,7 @@ async def benchmark_ws(websocket: WebSocket, num_images: int = 10):
         summary = {
             "yolo": _calculate_averages(final_results["yolo"]),
             "rtdetr": _calculate_averages(final_results["rtdetr"]),
-            "vm": _calculate_averages(final_results["vm"]),
+            "mamba": _calculate_averages(final_results["vm"]),
             "device": "GPU (CUDA)" if torch.cuda.is_available() else "CPU Local"
         }
 
