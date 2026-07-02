@@ -276,7 +276,7 @@
 
 .bm-feed-chip--yolo    { background: rgba(234,179,8,0.15);   color: #fbbf24; }
 .bm-feed-chip--rtdetr  { background: rgba(99,102,241,0.15);  color: #818cf8; }
-.bm-feed-chip--effdet  { background: rgba(52,211,153,0.15);  color: #34d399; }
+.bm-feed-chip--mamba   { background: rgba(14,165,233,0.15);  color: #38bdf8; }
 
 /* ---------- Error Banner ---------- */
 .bm-error {
@@ -345,7 +345,7 @@
 
 .bm-card--yolo::before    { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
 .bm-card--rtdetr::before  { background: linear-gradient(90deg, #6366f1, #818cf8); }
-.bm-card--effdet::before  { background: linear-gradient(90deg, #10b981, #34d399); }
+.bm-card--mamba::before   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
 
 .bm-card-header {
   display: flex;
@@ -362,7 +362,7 @@
 
 .bm-card--yolo .bm-card-model    { color: #fbbf24; }
 .bm-card--rtdetr .bm-card-model  { color: #818cf8; }
-.bm-card--effdet .bm-card-model  { color: #34d399; }
+.bm-card--mamba .bm-card-model   { color: #38bdf8; }
 
 .bm-card-badge {
   font-size: 0.7rem;
@@ -373,7 +373,7 @@
 
 .bm-card--yolo .bm-card-badge    { background: rgba(251,191,36,0.15);  color: #fbbf24; }
 .bm-card--rtdetr .bm-card-badge  { background: rgba(129,140,248,0.15); color: #818cf8; }
-.bm-card--effdet .bm-card-badge  { background: rgba(52,211,153,0.15);  color: #34d399; }
+.bm-card--mamba .bm-card-badge   { background: rgba(14,165,233,0.15);  color: #38bdf8; }
 
 .bm-card-metrics {
   display: flex;
@@ -456,7 +456,7 @@
 
 .bm-bar-fill--yolo    { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
 .bm-bar-fill--rtdetr  { background: linear-gradient(90deg, #6366f1, #818cf8); }
-.bm-bar-fill--effdet  { background: linear-gradient(90deg, #10b981, #34d399); }
+.bm-bar-fill--mamba   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
 
 .bm-bar-val {
   font-size: 0.78rem;
