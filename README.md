@@ -45,7 +45,7 @@ El núcleo de **TrafficVision** reside en su pipeline secuencial de procesamient
 
 ---
 
-## 📁 Estructura del Monorepo
+## 📁 Estructura del Proyecto
 
 El proyecto está organizado como un monorepositorio para facilitar el desarrollo "Full-Stack AI":
 
