@@ -1,6 +1,14 @@
-# 🚗 TrafficVision
-**Sistema de Identificación y Clasificación de Placas Vehiculares**  
-Control Anticorrupción · Seguridad Vial · Ecuador 2026
+# TrafficVision 🚦
+
+**TrafficVision** es una plataforma integral e inteligente diseñada para la monitorización, análisis y gestión avanzada del tráfico vehicular. Utilizando un pipeline multimodal de Inteligencia Artificial, el sistema no solo detecta vehículos, sino que extrae la información de sus patentes (placas) y evalúa el estado físico de las mismas mediante el uso de Modelos Fundacionales (LLMs).
+
+## ✨ Características Principales
+
+- **Detección Vehicular en Tiempo Real:** Detección de múltiples clases de vehículos utilizando modelos optimizados.
+- **Lectura Automática de Placas (ALPR/OCR):** Extracción precisa de los caracteres de la patente del vehículo.
+- **Análisis de Estado Físico (IA Generativa):** Clasificación del estado de la placa (nivel de oclusión, suciedad, legibilidad general) mediante integración con Gemini 2.5 Flash.
+- **Panel de Control Interactivo:** Visualización de métricas, flujos de tráfico y estadísticas en tiempo real.
+- **Arquitectura Escalable:** Diseño modular basado en microservicios lógicos (Frontend React, Backend FastAPI).
 
 ---
 
@@ -8,7 +16,7 @@ Control Anticorrupción · Seguridad Vial · Ecuador 2026
 
 | Componente | Estado | Métrica |
 |---|---|---|
-| Detección (Modelos) | ✅ Activo | YOLOv11n, RT-DETR, EfficientDet |
+| Detección (Modelos) | ✅ Activo | YOLOv11n, RT-DETR, Vision Mamba |
 | Lectura OCR | ✅ Activo | EasyOCR + preprocesamiento por color |
 | Clasificación IA | ✅ Activo | Google Gemini Flash (gratuito) |
 | API Backend | ✅ Activo | FastAPI + Python 3.11 |
@@ -16,38 +24,45 @@ Control Anticorrupción · Seguridad Vial · Ecuador 2026
 
 ---
 
-## 📌 Descripción
+## 🏗️ Arquitectura y Pipeline de Inteligencia Artificial
 
-TrafficVision es un sistema de inteligencia artificial para la **detección, lectura y clasificación de placas vehiculares ecuatorianas** en tiempo real. Está orientado al control anticorrupción y la seguridad vial, permitiendo identificar vehículos en imágenes tomadas desde cámaras estáticas o en movimiento, incluyendo condiciones nocturnas y lluvia.
+El núcleo de **TrafficVision** reside en su pipeline secuencial de procesamiento de imágenes y video, el cual se compone de tres etapas principales:
 
-Desarrollado como proyecto de tesis con énfasis en:
-- Comparación de **arquitecturas de detección** (YOLOv11, RT-DETR, EfficientDet-D2)
-- Sistema OCR optimizado (EasyOCR)
-- Clasificación multi-atributo de calidad de imagen usando visión artificial
-- Entrenamiento con datasets ecuatorianos propios y globales
+1. **Detección de Objetos (YOLOv11n & Vision Mamba):** 
+   - Se utiliza **YOLOv11n** para la localización rápida y precisa de vehículos y sus respectivas placas en el frame.
+   - Opcionalmente, se integra la arquitectura **Vision Mamba (Vim)** combinada con backbones Swin (`swin_r4`) para tareas específicas de detección avanzada.
+2. **Reconocimiento Óptico de Caracteres (EasyOCR):** 
+   - Una vez recortada la región de la placa, el motor **EasyOCR** extrae el texto alfanumérico.
+3. **Clasificación y Análisis Semántico (Gemini 2.5 Flash):** 
+   - La imagen de la placa junto con el texto extraído se envían a la API de **Google Gemini**. El modelo evalúa el estado físico de la patente, indicando si presenta daños, suciedad u obstrucciones que dificulten su legibilidad.
+
+### Stack Tecnológico
+
+- **Frontend:** React 19, Vite, TypeScript, Material UI (MUI), Chart.js, XYFlow.
+- **Backend:** Python 3.11+, FastAPI, Uvicorn, WebSockets (`python-socketio`).
+- **Base de Datos:** PostgreSQL, gestionada a través de SQLAlchemy (ORM) y Alembic (migraciones).
+- **Inteligencia Artificial:** Ultralytics (YOLOv11), EasyOCR, Google GenAI SDK (`google-genai`).
 
 ---
 
-## 🔄 ¿Qué es un Pipeline?
+## 📁 Estructura del Monorepo
 
-Un **pipeline** (cadena de procesamiento) es una serie de pasos conectados en secuencia, donde la salida de cada etapa se convierte en la entrada de la siguiente. Es como una línea de ensamblaje: cada estación hace una tarea específica y pasa el resultado a la siguiente.
+El proyecto está organizado como un monorepositorio para facilitar el desarrollo "Full-Stack AI":
 
-En TrafficVision el pipeline funciona así:
-
-```
-Imagen JPG/PNG
-      ↓
-[1] Detección de vehículo    → YOLOv8n (clases: car, truck, motorcycle, bus)
-      ↓
-[2] Detección de placa    → YOLOv8n (97.4% mAP@50)
-      ↓
-[3] Filtrado              → Confianza >45% + proporción 1.5-6.0
-      ↓
-[4] Lectura OCR           → EasyOCR + preprocesamiento por color
-      ↓
-[5] Clasificación calidad → Google Gemini Flash Vision
-      ↓
-JSON: vehículo + placa + confianzas + etiquetas de calidad
+```text
+TrafficVision/
+├── backend/            # Lógica central, API REST y servicios de IA (FastAPI)
+│   ├── app/            # Código fuente de la API (routers, models, schemas)
+│   ├── temp/           # Almacenamiento temporal de procesamiento
+│   └── requirements.txt
+├── frontend/           # Interfaz de usuario interactiva (React/Vite)
+│   ├── src/            # Componentes, vistas y hooks
+│   └── package.json
+├── database/           # Scripts y recursos para PostgreSQL
+├── ml/                 # Notebooks, pruebas de concepto y pesos de modelos
+├── storage/            # Volúmenes persistentes (si se usa Docker)
+├── docker-compose.yml  # Orquestador de servicios
+└── README.md           # Este archivo
 ```
 
 ---
@@ -56,7 +71,7 @@ JSON: vehículo + placa + confianzas + etiquetas de calidad
 
 ### Etapa 1 — Detección (`plate_detector.py`)
 
-YOLOv8n entrenado con **10,734 imágenes** (global + ecuatorianas). Red neuronal convolucional one-stage que localiza y clasifica la placa en una sola pasada.
+YOLOv11 entrenado con **10,734 imágenes** (global + ecuatorianas). Red neuronal convolucional one-stage que localiza y clasifica la placa en una sola pasada.
 
 Filtros post-detección:
 - Confianza mínima: **45%**
@@ -111,87 +126,26 @@ El entrenamiento se gestiona comparando mAP, Precisión, Recall y F1-Score usand
 
 ---
 
-## 🏗️ Estructura del Proyecto
+## 🚀 Guía de Instalación y Despliegue
 
-```
-TrafficVision Datasets/
-│
-├── Backend/                    ← API principal (FastAPI)
-│   ├── app/
-│   │   ├── ai/                 ← plate_detector, plate_reader, plate_classifier
-│   │   ├── core/
-│   │   ├── database/
-│   │   ├── routes/
-│   │   ├── schemas/
-│   │   └── services/
-│   ├── temp/
-│   ├── main.py
-│   ├── requirements.txt
-│   └── .env                    ← ROBOFLOW_API_KEY + GEMINI_API_KEY
-│
-├── ml/                         ← todo lo de IA
-│   ├── datasets/raw/           ← datasets originales
-│   ├── models/
-│   │   ├── base/               ← yolov8n.pt
-│   │   └── trained/            ← best.pt de cada experimento
-│   ├── runs/                   ← métricas y gráficas
-│   ├── training/               ← train_yolov8.py
-│   └── notebooks/              ← Google Colab (.ipynb)
-│
-├── dataset_service/            ← microservicio datasets (en desarrollo)
-├── storage/                    ← imágenes y detecciones en producción
-├── frontend/                   ← React + TypeScript + MUI
-└── database/                   ← esquemas de BD
+### Requisitos Previos
+- **Node.js** (v18 o superior)
+- **Python** (v3.11 o superior)
+- **PostgreSQL** (v14 o superior)
+- (Opcional) **Docker** y **Docker Compose**
+
+### Variables de Entorno (`.env`)
+El sistema requiere de configuración externa. Debes crear archivos `.env` tanto en `backend/` como en `frontend/`.
+
+**Ejemplo de `backend/.env`:**
+```env
+DATABASE_URL=postgresql://usuario:password@localhost:5432/trafficvision
+GEMINI_API_KEY=tu_clave_api_de_google_ai_studio
 ```
 
----
-
-## 🚀 Instalación
-
-### Backend
-
-```powershell
-# 1. Crear entorno virtual con Python 3.11
-py -3.11 -m venv venv311
-venv311\Scripts\activate
-
-# 2. Instalar dependencias
-py -m pip install -r requirements.txt
-
-# 3. Configurar .env
-ROBOFLOW_API_KEY
-GEMINI_API_KEY
-
-# 4. Iniciar servidor
-py -m uvicorn app.main:app --reload
-```
-
-### Frontend
-
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-### Ejemplo de respuesta
-
-```json
-{
-  "total": 1,
-  "plates": [{
-    "bbox": [833, 1164, 1027, 1248],
-    "yolo_confidence": 0.8649,
-    "plate": "PFJ-2048",
-    "ocr_confidence": 0.9910,
-    "labels": {
-      "legible": "Legible",
-      "oclusion": "No",
-      "reflejo": "No",
-      "sucia": "No"
-    }
-  }]
-}
+**Ejemplo de `frontend/.env`:**
+```env
+VITE_API_URL=http://localhost:8000
 ```
 
 ---
@@ -200,7 +154,7 @@ npm run dev
 
 | Categoría | Tecnología | Uso |
 |---|---|---|
-| Detección | YOLOv8n (Ultralytics) | Localización de placas |
+| Detección | YOLOv11n-RT DETR-VisiomMamba | Localización de placas |
 | OCR | EasyOCR | Lectura de caracteres |
 | IA Vision | Google Gemini Flash | Clasificación de calidad |
 | Backend | FastAPI + Python 3.11 | API REST |
@@ -211,14 +165,21 @@ npm run dev
 
 ---
 
-## 📈 Próximos Pasos / Progreso
+## 🧪 Validación y Pruebas
 
-- [x] Implementar RT-DETR y EfficientDet-D2 para comparativa de detección
-- [x] Crear Dashboard Dinámico de Métricas de Entrenamiento con `Chart.js`
-- [x] Completar redacción del Capítulo 3 de la Tesis (Metodología)
-- [ ] Implementar dataset_service como microservicio independiente
-- [x] Agregar base de datos para logs de detecciones
+Para asegurar el correcto funcionamiento del pipeline multimodal, asegúrate de que el backend tenga acceso al modelo base de YOLO.
+- El peso de YOLO (`yolov8n.pt`) debe encontrarse descargado en el backend o será descargado automáticamente en la primera ejecución.
+- Las credenciales de Gemini deben estar activas para la etapa de clasificación. Si la API Key falla, el sistema proveerá una lectura OCR básica sin el análisis de estado.
+
+## 🤝 Contribución
+
+1. Haz un Fork del repositorio.
+2. Crea una rama para tu característica (`git checkout -b feature/NuevaCaracteristica`).
+3. Haz commit de tus cambios (`git commit -m 'Añade NuevaCaracteristica'`).
+4. Haz Push a la rama (`git push origin feature/NuevaCaracteristica`).
+5. Abre un Pull Request.
+
 
 ---
 
-*TrafficVision · Tesis de Grado · Ecuador 2026 · Backend: `localhost:8000` · Frontend: `localhost:5173`*
+*TrafficVision · Tesis de Grado · Ecuador 2026 `*

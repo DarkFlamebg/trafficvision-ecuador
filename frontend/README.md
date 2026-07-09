@@ -1,73 +1,49 @@
-# React + TypeScript + Vite
+# TrafficVision - Frontend 🖥️📊
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz de usuario interactiva y panel de control (dashboard) para el sistema **TrafficVision**. Permite a los usuarios visualizar en tiempo real o bajo demanda el análisis de tráfico, estadísticas, y flujos de vehículos.
 
-Currently, two official plugins are available:
+## 🛠️ Stack Tecnológico
+- **Core:** React 19, TypeScript
+- **Build Tool:** Vite
+- **UI / Estilos:** Material UI (MUI), Emotion
+- **Gráficos y Visualización:** Chart.js, React-Chartjs-2, XYFlow
+- **Procesamiento Multimedia:** FFmpeg (WebAssembly)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Características Principales
+- **Dashboard Estadístico:** Visualización de métricas clave (tipos de vehículos, densidad de tráfico) mediante gráficos interactivos.
+- **Procesamiento de Video en Cliente:** Uso de FFmpeg en el navegador para optimizar y pre-procesar medios antes de subirlos.
+- **Diagramas de Flujo interactivos:** Integración de XYFlow para representar reglas lógicas o flujos de tráfico.
+- **Diseño Responsivo y Moderno:** Componentes pulidos utilizando Material UI (MUI) garantizando la accesibilidad.
+- **Conexión en Tiempo Real:** Recepción de eventos desde el backend para actualizar conteos en vivo.
 
-## React Compiler
+## 🚀 Instalación y Configuración Local
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Entrar al directorio del frontend:**
+   ```bash
+   cd TrafficVision/frontend
+   ```
 
-## Expanding the ESLint configuration
+2. **Instalar dependencias:**
+   *Asegúrate de tener Node.js instalado.*
+   ```bash
+   npm install
+   ```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+3. **Variables de entorno:**
+   Crea un archivo `.env` (si aplica) para conectar con el backend local:
+   ```env
+   VITE_API_URL=http://localhost:8000
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+4. **Levantar el entorno de desarrollo:**
+   ```bash
+   npm run dev
+   ```
+   *La aplicación estará disponible típicamente en `http://localhost:5173`.*
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📜 Scripts Disponibles
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `npm run dev`: Inicia el servidor de desarrollo local con Vite (Hot Module Replacement).
+- `npm run build`: Transpila TypeScript y empaqueta la aplicación para producción.
+- `npm run preview`: Sirve localmente los archivos generados en la carpeta dist (para probar el build).
+- `npm run lint`: Ejecuta ESLint para buscar y corregir problemas en el código fuente.
