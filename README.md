@@ -98,6 +98,23 @@ Google Gemini Flash Vision clasifica 4 atributos:
 | Reflejo | No / Sí | Gemini analiza visualmente |
 | Suciedad | No / Sí | Gemini analiza visualmente |
 
+En TrafficVision el pipeline funciona así:
+
+```
+Imagen JPG/PNG
+      ↓
+[1] Detección de vehículo    → YOLOv8n (clases: car, truck, motorcycle, bus)
+      ↓
+[2] Detección de placa    → YOLOv11n - RT DETR - Vision Mamba (97.4% mAP@50)
+      ↓
+[3] Filtrado              → Confianza >45% + proporción 1.5-6.0
+      ↓
+[4] Lectura OCR           → EasyOCR + preprocesamiento por color
+      ↓
+[5] Clasificación calidad → Google Gemini Flash Vision
+      ↓
+JSON: vehículo + placa + confianzas + etiquetas de calidad
+```
 ---
 
 ## 📊 Modelos Entrenados y Comparados
