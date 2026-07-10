@@ -216,7 +216,7 @@ async def detect_plate_api(file: UploadFile):
                 
                 new_detection = PlateDetection(
                     plate_text=plate["plate"][:15],  # Evitar overflow
-                    confidence=plate["ocr_confidence"],
+                    confidence=plate["yolo_confidence"],
                     model_id=yolo_model.id if yolo_model else None,
                     vehicle_type_id=vtype_id,
                     inference_time_ms=120.0, # Ejemplo (calculable en el futuro)

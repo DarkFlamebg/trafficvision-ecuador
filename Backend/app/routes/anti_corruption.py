@@ -5,7 +5,7 @@ from io import StringIO
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.database.connection import get_db
 from app.database.models import DetectionQuality, ModelIA, PlateDetection
@@ -16,7 +16,7 @@ router = APIRouter()
 def _format_dt(value):
     if value is None:
         return ""
-    return value.isoformat()
+    return value.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _detection_query(db: Session):
@@ -25,8 +25,8 @@ def _detection_query(db: Session):
         .options(
             joinedload(PlateDetection.model),
             joinedload(PlateDetection.vehicle),
-            joinedload(PlateDetection.quality_checks).joinedload(DetectionQuality.label),
-            joinedload(PlateDetection.audit_logs),
+            selectinload(PlateDetection.quality_checks).joinedload(DetectionQuality.label),
+            selectinload(PlateDetection.audit_logs),
         )
         .order_by(PlateDetection.detection_date.desc(), PlateDetection.id.desc())
     )
@@ -100,10 +100,12 @@ def list_detections(
     total = query.count()
     detections = query.offset(safe_offset).limit(safe_limit).all()
 
-    validated_count = db.query(PlateDetection).filter(PlateDetection.user_validated.is_(True)).count()
-    pending_count = db.query(PlateDetection).filter(PlateDetection.user_validated.is_(False)).count()
-    incorrect_count = db.query(PlateDetection).filter(PlateDetection.user_is_correct.is_(False)).count()
-    avg_confidence = db.query(func.avg(PlateDetection.confidence)).scalar() or 0
+    base_stats_query = _apply_filters(db.query(PlateDetection), plate, validated, model_id)
+    
+    validated_count = base_stats_query.filter(PlateDetection.user_validated.is_(True)).count()
+    pending_count = base_stats_query.filter(PlateDetection.user_validated.is_(False)).count()
+    incorrect_count = base_stats_query.filter(PlateDetection.user_is_correct.is_(False)).count()
+    avg_confidence = base_stats_query.with_entities(func.avg(PlateDetection.confidence)).scalar() or 0
     models = db.query(ModelIA).order_by(ModelIA.name.asc()).all()
 
     return {
@@ -111,7 +113,7 @@ def list_detections(
         "limit": safe_limit,
         "offset": safe_offset,
         "summary": {
-            "total_detections": db.query(PlateDetection).count(),
+            "total_detections": total,
             "validated": validated_count,
             "pending": pending_count,
             "incorrect": incorrect_count,
@@ -130,61 +132,76 @@ def download_detection_report(
     limit: int = 500,
     db: Session = Depends(get_db),
 ):
-    safe_limit = max(1, min(limit, 5000))
-    detections = _apply_filters(_detection_query(db), plate, validated, model_id).limit(safe_limit).all()
+    safe_limit = max(1, min(limit, 10000))
+    query = _apply_filters(_detection_query(db), plate, validated, model_id).limit(safe_limit)
 
-    buffer = StringIO()
-    writer = csv.writer(buffer)
-    writer.writerow([
-        "id",
-        "plate_text",
-        "confidence",
-        "model",
-        "vehicle_type",
-        "inference_time_ms",
-        "image_path",
-        "detection_date",
-        "user_validated",
-        "user_is_correct",
-        "user_corrected_text",
-        "user_feedback_date",
-        "user_feedback_by",
-        "quality_checks",
-        "audit_logs",
-    ])
-
-    for detection in detections:
-        quality_checks = "; ".join(
-            f"{check.label.name if check.label else check.quality_label_id}: {check.value}"
-            for check in detection.quality_checks
-        )
-        audit_logs = "; ".join(
-            f"{_format_dt(log.check_date)} | {log.checked_by} | {log.check_reason}"
-            for log in _sorted_audit_logs(detection)
-        )
-
+    def iter_csv():
+        # Escribir el BOM (Byte Order Mark) para que Excel lo abra correctamente en UTF-8
+        yield "\ufeff".encode("utf-8")
+        
+        buffer = StringIO()
+        writer = csv.writer(buffer, delimiter=';')
+        
+        # Nombres de columnas más amigables (en español)
         writer.writerow([
-            detection.id,
-            detection.plate_text,
-            detection.confidence,
-            detection.model.name if detection.model else "",
-            detection.vehicle.name if detection.vehicle else "",
-            detection.inference_time_ms,
-            detection.image_path or "",
-            _format_dt(detection.detection_date),
-            "si" if detection.user_validated else "no",
-            "" if detection.user_is_correct is None else ("si" if detection.user_is_correct else "no"),
-            detection.user_corrected_text or "",
-            _format_dt(detection.user_feedback_date),
-            detection.user_feedback_by or "",
-            quality_checks,
-            audit_logs,
+            "ID",
+            "Placa",
+            "Confianza (%)",
+            "Modelo",
+            "Tipo de Vehículo",
+            "Tiempo de Inferencia (ms)",
+            "Ruta de Imagen",
+            "Fecha de Detección",
+            "Validado por Usuario",
+            "Es Correcto",
+            "Texto Corregido",
+            "Fecha de Feedback",
+            "Usuario Auditor",
+            "Control de Calidad",
+            "Historial de Auditoría",
         ])
+        yield buffer.getvalue().encode("utf-8")
+        buffer.seek(0)
+        buffer.truncate(0)
 
-    buffer.seek(0)
+        # Usar yield_per para no cargar todos los registros en memoria a la vez
+        for detection in query.yield_per(100):
+            quality_checks = " | ".join(
+                f"{check.label.name if check.label else check.quality_label_id}: {check.value}"
+                for check in detection.quality_checks
+            )
+            audit_logs = " | ".join(
+                f"{_format_dt(log.check_date)} ({log.checked_by}): {log.check_reason}"
+                for log in _sorted_audit_logs(detection)
+            )
+
+            # Formatear la confianza como porcentaje (ej. 75.2%)
+            conf_percent = f"{detection.confidence * 100:.1f}%" if detection.confidence is not None else ""
+
+            writer.writerow([
+                detection.id,
+                detection.plate_text,
+                conf_percent,
+                detection.model.name if detection.model else "Desconocido",
+                detection.vehicle.name if detection.vehicle else "Desconocido",
+                f"{detection.inference_time_ms:.1f}" if detection.inference_time_ms else "",
+                detection.image_path or "No disponible",
+                _format_dt(detection.detection_date),
+                "Sí" if detection.user_validated else "No",
+                "" if detection.user_is_correct is None else ("Sí" if detection.user_is_correct else "No"),
+                detection.user_corrected_text or "",
+                _format_dt(detection.user_feedback_date),
+                detection.user_feedback_by or "",
+                quality_checks,
+                audit_logs,
+            ])
+            yield buffer.getvalue().encode("utf-8")
+            buffer.seek(0)
+            buffer.truncate(0)
+
     filename = f"reporte-detecciones-{datetime.now(timezone.utc).date().isoformat()}.csv"
     return StreamingResponse(
-        iter([buffer.getvalue().encode("utf-8-sig")]),
+        iter_csv(),
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

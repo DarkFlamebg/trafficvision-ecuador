@@ -311,7 +311,7 @@ async def compare_image(
 
                     new_detection = PlateDetection(
                         plate_text=(plate["plate"] or "No detectado")[:15],
-                        confidence=plate["ocr_confidence"],
+                        confidence=plate["detector_confidence"],
                         model_id=model_row.id if model_row else None,
                         vehicle_type_id=vtype_id,
                         inference_time_ms=inference_ms,
