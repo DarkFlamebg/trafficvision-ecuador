@@ -106,12 +106,7 @@ export function MambaDashboard({ data }: { data: EpochRow[] }) {
   ]}), [data, epochs])
 
   return (
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
-      gap: "1.5rem",
-      marginTop: "2rem",
-    }}>
+    <div className="mamba-charts-grid">
       <ChartCard id="mb-c1" title="Pérdida Total (Train)" explain="Reducción global del error durante el entrenamiento. Una curva decreciente indica convergencia estable del modelo.">
         <Line id="mb-c1" data={c1} options={lineOpts("Loss")} />
       </ChartCard>

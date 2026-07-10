@@ -449,3 +449,73 @@
     overflow-x: auto;
   }
 }
+
+@media (max-width: 768px) {
+  .ac-table,
+  .ac-table thead,
+  .ac-table tbody,
+  .ac-table tr,
+  .ac-table td,
+  .ac-table th {
+    display: block;
+    width: 100%;
+  }
+
+  .ac-table thead {
+    display: none;
+  }
+
+  .ac-table tr {
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem;
+  }
+
+  .ac-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.75rem 0.5rem;
+    text-align: right;
+  }
+
+  .ac-table tr td:last-child {
+    border-bottom: none;
+  }
+
+  .ac-table td::before {
+    font-weight: 700;
+    font-size: 0.65rem;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+
+  .ac-table td:nth-child(1)::before { content: "Fecha"; }
+  .ac-table td:nth-child(2)::before { content: "Placa"; }
+  .ac-table td:nth-child(3)::before { content: "Modelo"; }
+  .ac-table td:nth-child(4)::before { content: "Confianza"; }
+  .ac-table td:nth-child(5)::before { content: "Validado"; }
+  .ac-table td:nth-child(6)::before { content: "Corrección"; }
+  .ac-table td:nth-child(7)::before { content: "Calidad / Auditoría"; }
+  .ac-table td:nth-child(8)::before { content: "Acciones"; }
+
+  .ac-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .ac-search-wrapper, 
+  .ac-search-input {
+    width: 100%;
+  }
+
+  .ac-filters {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}

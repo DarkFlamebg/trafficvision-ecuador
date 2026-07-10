@@ -253,7 +253,7 @@ export default function AntiCorruptionPanel() {
           <span>Incorrectas</span>
         </div>
         <div className="ac-summary-card">
-          <strong>{summary.avg_confidence.toFixed(1)}%</strong>
+          <strong>{(summary.avg_confidence * 100).toFixed(1)}%</strong>
           <span>Confianza promedio</span>
         </div>
       </section>

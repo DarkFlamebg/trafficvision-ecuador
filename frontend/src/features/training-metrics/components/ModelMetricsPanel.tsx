@@ -43,11 +43,11 @@ export function ModelMetricsPanel({ metrics, images }: ModelMetricsPanelProps) {
       {/* Graficas */}
       {isConsolidated ? (
         <div className="tm-graphs-grid" style={{ display: 'block', marginTop: '2rem' }}>
-          <div className="tm-graph-card" style={{ padding: '1rem' }}>
+          <div className="tm-graph-card" style={{ padding: '1rem', aspectRatio: 'auto', overflowX: 'auto', display: 'block' }}>
             <img 
               src={images.results} 
               alt="Resultados del Modelo" 
-              style={{ width: '100%', height: 'auto', borderRadius: '8px', objectFit: 'contain' }} 
+              style={{ minWidth: '700px', width: '100%', height: 'auto', borderRadius: '8px', objectFit: 'contain' }} 
             />
           </div>
         </div>

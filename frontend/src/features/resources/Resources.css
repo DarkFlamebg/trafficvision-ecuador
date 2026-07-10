@@ -299,6 +299,13 @@
   margin-top: 0.2rem;
 }
 
+.res-action-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
 /* ── NOTICE ── */
 .res-notice {
   display: flex;

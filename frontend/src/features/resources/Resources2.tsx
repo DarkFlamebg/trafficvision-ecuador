@@ -97,6 +97,9 @@ const EXTRAS = [
     label: "Scripts de Entrenamiento",
     desc: "Código fuente de entrenamiento para los tres modelos.",
     filename: "training_scripts.zip",
+    url_driveentrenamiento: "https://drive.google.com/drive/folders/1IYv_M0PxpwSCtLpuKmRwwrH0HyLlewwk?usp=drive_link",
+    url_yolov11Colab: "https://colab.research.google.com/drive/1I8tFZuZT-ZXXVZqR85UDLAnk2RPOziSG?usp=sharing",
+    url_rtdetrColab: "https://colab.research.google.com/drive/1g0k6r5J8X3j7Z2n4v9x1Fq5G9Q2y5z6A?usp=sharing",
     size: "~120 KB",
   },
 ]
@@ -248,10 +251,35 @@ export default function Resources() {
                 <span className="res-extra-desc">{item.desc}</span>
                 <span className="res-extra-meta">{item.filename} · {item.size}</span>
               </div>
-              <button className="res-download-btn res-download-btn--neutral" disabled>
-                <DownloadIcon />
-                Próximamente
-              </button>
+              <div className="res-action-links">
+                <a
+                  className="res-download-btn res-download-btn--neutral enabled"
+                  href={item.url_driveentrenamiento}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <DownloadIcon />
+                  Drive
+                </a>
+                <a
+                  className="res-download-btn res-download-btn--neutral enabled"
+                  href={item.url_yolov11Colab}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <DownloadIcon />
+                  YOLO Colab
+                </a>
+                <a
+                  className="res-download-btn res-download-btn--neutral enabled"
+                  href={item.url_rtdetrColab}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <DownloadIcon />
+                  RT-DETR Colab
+                </a>
+              </div>
             </div>
           ))}
         </div>

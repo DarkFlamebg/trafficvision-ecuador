@@ -62,7 +62,7 @@ const MODELS = [
         label: "Pesos entrenados (.pt)",
         filename: "mamba_d2_trafficvision.pt",
         size: "94.4 MB",
-        download_url: "https://drive.google.com/file/d/11x5N1TbPzKnKJVbmNrLXMuN-SYZx_PdX/view?usp=sharing",
+        download_url: "https://drive.google.com/file/d/1GHRNquBMNGDWs-CRClYukey83-gL9jr4/view?usp=sharing",
       },
     ],
   },
@@ -78,6 +78,9 @@ const EXTRAS = [
     label: "Scripts de Entrenamiento",
     desc: "Código fuente de entrenamiento para los tres modelos.",
     filename: "training_scripts.zip",
+    url_driveentrenamiento: "https://drive.google.com/drive/folders/1IYv_M0PxpwSCtLpuKmRwwrH0HyLlewwk?usp=drive_link",
+    url_yolov11Colab: "https://colab.research.google.com/drive/1I8tFZuZT-ZXXVZqR85UDLAnk2RPOziSG?usp=sharing",
+    url_rtdetrColab: "https://colab.research.google.com/drive/1AnSlTbDRw7Z92Pq54YkH4pFQEkCOsiyT?usp=sharing",
     size: "~120 KB",
   },
 ]
@@ -297,10 +300,35 @@ export default function Resources() {
                 <span className="res-extra-desc">{item.desc}</span>
                 <span className="res-extra-meta">{item.filename} · {item.size}</span>
               </div>
-              <button className="res-download-btn res-download-btn--neutral">
-                <DownloadIcon />
-                Próximamente
-              </button>
+              <div className="res-action-links">
+                <a
+                  className="res-download-btn res-download-btn--neutral enabled"
+                  href={item.url_driveentrenamiento}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <DownloadIcon />
+                  Drive
+                </a>
+                <a
+                  className="res-download-btn res-download-btn--neutral enabled"
+                  href={item.url_yolov11Colab}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <DownloadIcon />
+                  YOLO Colab
+                </a>
+                <a
+                  className="res-download-btn res-download-btn--neutral enabled"
+                  href={item.url_rtdetrColab}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <DownloadIcon />
+                  RT-DETR Colab
+                </a>
+              </div>
             </div>
           ))}
         </div>
@@ -315,8 +343,8 @@ export default function Resources() {
           <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <p>
-          Los archivos estarán disponibles para descarga directa una vez el proyecto sea publicado. 
-          Contacta al equipo de investigación para acceso anticipado.
+          Los entregables ya están disponibles para consulta y descarga desde los enlaces mostrados arriba.
+          Si necesitas acceso adicional o ayuda para reproducir los entrenamientos, contacta al equipo de investigación.
         </p>
       </div>
     </div>
