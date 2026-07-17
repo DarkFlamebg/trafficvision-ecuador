@@ -77,7 +77,7 @@ Filtros post-detección:
 - Confianza mínima: **45%**
 - Proporción ancho/alto: **1.5 a 6.0** (forma real de placa)
 - Corrección EXIF automática para fotos de celular
-<img width="1216" height="507" alt="Captura de pantalla 2026-07-17 131406" src="https://github.com/user-attachments/assets/71c8c087-2ec1-4694-8332-1669c24f886f" />
+<img width="284" height="181" alt="detections-yolo (1)" src="https://github.com/user-attachments/assets/e1662d05-d424-4ab3-808b-b98f6384e556" />
 
 ### Etapa 2 — Lectura OCR (`plate_reader.py`)
 
@@ -87,6 +87,7 @@ Preprocesamiento inteligente antes de EasyOCR:
 - Detección de color de fondo (HSV) — procesamiento diferente para placas verdes, naranjas, azules y blancas
 - Corrección de errores por posición — letras pos. 0-2, números pos. 3-6
 - Formato automático `AAA-0000`
+<img width="397" height="173" alt="Captura de pantalla 2026-07-17 133049" src="https://github.com/user-attachments/assets/6ff66579-0dd9-4af7-942e-ccb423496705" />
 
 ### Etapa 3 — Clasificación de Calidad (`plate_classifier.py`)
 
