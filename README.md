@@ -1,4 +1,5 @@
-<img width="1216" height="507" alt="Captura de pantalla 2026-07-17 131406" src="https://github.com/user-attachments/assets/71c8c087-2ec1-4694-8332-1669c24f886f" /># TrafficVision 🚦
+# TrafficVision 🚦
+<img width="1685" height="531" alt="Captura de pantalla 2026-07-17 132111" src="https://github.com/user-attachments/assets/5c229527-3435-4171-9d79-e967be7e47cf" />
 
 **TrafficVision** es una plataforma integral e inteligente diseñada para la monitorización, análisis y gestión avanzada del tráfico vehicular. Utilizando un pipeline multimodal de Inteligencia Artificial, el sistema no solo detecta vehículos, sino que extrae la información de sus patentes (placas) y evalúa el estado físico de las mismas mediante el uso de Modelos Fundacionales (LLMs).
 
@@ -66,8 +67,6 @@ TrafficVision/
 └── README.md           # Este archivo
 ```
 
----
-
 ## 🧠 Pipeline Técnico Detallado
 
 ### Etapa 1 — Detección (`plate_detector.py`)
@@ -78,6 +77,7 @@ Filtros post-detección:
 - Confianza mínima: **45%**
 - Proporción ancho/alto: **1.5 a 6.0** (forma real de placa)
 - Corrección EXIF automática para fotos de celular
+<img width="1216" height="507" alt="Captura de pantalla 2026-07-17 131406" src="https://github.com/user-attachments/assets/71c8c087-2ec1-4694-8332-1669c24f886f" />
 
 ### Etapa 2 — Lectura OCR (`plate_reader.py`)
 
@@ -99,8 +99,7 @@ Google Gemini Flash Vision clasifica 4 atributos:
 | Reflejo | No / Sí | Gemini analiza visualmente |
 | Suciedad | No / Sí | Gemini analiza visualmente |
 
-<img width="370" height="422" alt="Captura de pantalla 2026-07-17 131525" src="https://github.com/user-attachments/assets/042fb573-6068-449f-b9a5-7b5e10946d43" />
-
+<img width="370" height="147" alt="Captura de pantalla 2026-07-17 131525" src="https://github.com/user-attachments/assets/79a38cf9-b971-4f66-8142-f91804d274b0" />
 
 En TrafficVision el pipeline funciona así:
 
@@ -130,10 +129,11 @@ JSON: vehículo + placa + confianzas + etiquetas de calidad
 | **Vision Mamba** | State Space Model backbone - Efficient vision transformer alternative | ✅ Comparativa |
 
 El entrenamiento se gestiona comparando mAP, Precisión, Recall y F1-Score usando un dashboard interactivo en React + Chart.js leyendo directamente los `results.csv`.
-<img width="1286" height="427" alt="Captura de pantalla 2026-07-17 131911" src="https://github.com/user-attachments/assets/1e25804c-c5ce-4fbb-bdd3-a6c93c28ac1d" />
-<img width="1288" height="421" alt="Captura de pantalla 2026-07-17 131905" src="https://github.com/user-attachments/assets/b42fc731-2992-4b01-b804-0ecd80a0dd42" />
 <img width="1320" height="430" alt="Captura de pantalla 2026-07-17 131853" src="https://github.com/user-attachments/assets/7df7fc81-af3c-483e-89ad-4f19b172f322" />
 
+<img width="1288" height="421" alt="Captura de pantalla 2026-07-17 131905" src="https://github.com/user-attachments/assets/b42fc731-2992-4b01-b804-0ecd80a0dd42" />
+
+<img width="1286" height="427" alt="Captura de pantalla 2026-07-17 131911" src="https://github.com/user-attachments/assets/1e25804c-c5ce-4fbb-bdd3-a6c93c28ac1d" />
 
 ---
 
