@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import "./Home.css"
 import ArchitectureDiagram from "./ArchitectureDiagram"
+import landingPageImg from "../../assets/images/Landing-page.png"
 
 // --- Nuevas constantes explicativas -------------------------------------------------
 // Descripción de cada métrica que se muestra en la tabla de modelos.
@@ -227,7 +228,7 @@ export default function Home() {
             <div className="visual-preview-container">
               {/* Reemplaza la URL por la imagen o mockup real de tu sistema */}
               <img 
-                src="../src/assets/images/Landing-page.png" 
+                src={landingPageImg} 
                 alt="Simulación de detección de placas" 
                 className="visual-main-img"
               />
