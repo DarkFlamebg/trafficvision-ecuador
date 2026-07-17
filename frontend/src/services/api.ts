@@ -6,7 +6,9 @@ export const getBaseUrl = () => {
 
 export const getWsUrl = () => {
   const baseUrl = getBaseUrl();
-  return baseUrl.replace(/^http/, 'ws');
+  return baseUrl.startsWith('https') 
+    ? baseUrl.replace(/^https/, 'wss') 
+    : baseUrl.replace(/^http/, 'ws');
 }
 
 const API = axios.create({
