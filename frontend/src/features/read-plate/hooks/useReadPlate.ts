@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { FFmpeg } from "@ffmpeg/ffmpeg"
 import { fetchFile, toBlobURL } from "@ffmpeg/util"
-import API from "../../../services/api"
+import API, { getWsUrl } from "../../../services/api"
 import { drawBoxes, extractVideoFrames, exportReportCSV } from "../utils/readplate.utils"
 import type { ApiResponse, DetectionReport, VideoTypeMetric } from "../types/readplate.types"
 
@@ -259,7 +259,7 @@ export function useReadPlate() {
 
     // VIDEO: WebSocket streaming
     try {
-      const ws = new WebSocket("ws://localhost:8000/ws/detect-vehicle/video")
+      const ws = new WebSocket(`${getWsUrl()}/ws/detect-vehicle/video`)
       wsRef.current = ws
 
       ws.onopen = async () => {

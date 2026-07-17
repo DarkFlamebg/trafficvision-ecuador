@@ -29,7 +29,6 @@ export function parseMetrics(csvData: string): ParsedMetrics {
 
   const history: EpochData[] = [];
   let p = 0, r = 0, m50 = 0, m95 = 0;
-  let lastEpoch = 0;
 
   if (isUltralytics) {
     const headers = header.split(",").map(h => h.trim());
@@ -58,7 +57,7 @@ export function parseMetrics(csvData: string): ParsedMetrics {
       const em95 = map95Idx !== -1 ? parseFloat(row[map95Idx]) : 0;
 
       history.push({ epoch: epochNum, precision: ep, recall: er, map50: em50 });
-      p = ep; r = er; m50 = em50; m95 = em95; lastEpoch = epochNum;
+      p = ep; r = er; m50 = em50; m95 = em95;
     }
   } else {
     // MMDetection / Vision Mamba format
@@ -83,7 +82,6 @@ export function parseMetrics(csvData: string): ParsedMetrics {
       
       if (epStr) {
         currentEpoch = parseInt(epStr) || currentEpoch + 1;
-        lastEpoch = currentEpoch;
         history.push({ epoch: currentEpoch, precision: 0, recall: 0, map50: 0 });
       } else {
         const valM50_95 = parseFloat(row[20]) || 0;

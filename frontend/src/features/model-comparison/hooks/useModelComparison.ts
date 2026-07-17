@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react"
-import API from "../../../services/api"
+import API, { getWsUrl } from "../../../services/api"
 import type {
   ModelType,
   ComparisonResult,
@@ -191,7 +191,7 @@ export function useModelComparison() {
 
   const startVideoWebSocket = (model: ModelType, videoBytes: ArrayBuffer): void => {
     const ws = new WebSocket(
-      `ws://127.0.0.1:8000/api/v1/compare/video?model=${model}`
+      `${getWsUrl()}/api/v1/compare/video?model=${model}`
     )
 
     if (model === "yolo") yoloWsRef.current   = ws

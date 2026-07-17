@@ -59,9 +59,8 @@ function ds(label: string, color: string, values: (number | undefined)[]) {
 }
 
 function ChartCard({
-  id, title, explain, children,
+  title, explain, children,
 }: {
-  id: string
   title: string
   explain: string
   children: React.ReactNode
@@ -107,27 +106,27 @@ export function MambaDashboard({ data }: { data: EpochRow[] }) {
 
   return (
     <div className="mamba-charts-grid">
-      <ChartCard id="mb-c1" title="Pérdida Total (Train)" explain="Reducción global del error durante el entrenamiento. Una curva decreciente indica convergencia estable del modelo.">
+      <ChartCard title="Pérdida Total (Train)" explain="Reducción global del error durante el entrenamiento. Una curva decreciente indica convergencia estable del modelo.">
         <Line id="mb-c1" data={c1} options={lineOpts("Loss")} />
       </ChartCard>
 
-      <ChartCard id="mb-c2" title="Pérdidas Detalladas" explain="Desglose de los componentes de pérdida: bbox y cls son las pérdidas principales del detector, rpn_bbox y rpn_cls corresponden a la región propuesta.">
+      <ChartCard title="Pérdidas Detalladas" explain="Desglose de los componentes de pérdida: bbox y cls son las pérdidas principales del detector, rpn_bbox y rpn_cls corresponden a la región propuesta.">
         <Line id="mb-c2" data={c2} options={lineOpts("Loss")} />
       </ChartCard>
 
-      <ChartCard id="mb-c3" title="Learning Rate" explain="Evolución escalonada de la tasa de aprendizaje. La escala logarítmica permite apreciar el decaimiento progresivo que estabiliza el entrenamiento.">
+      <ChartCard title="Learning Rate" explain="Evolución escalonada de la tasa de aprendizaje. La escala logarítmica permite apreciar el decaimiento progresivo que estabiliza el entrenamiento.">
         <Line id="mb-c3" data={c3} options={lineOpts("LR", undefined, undefined, true)} />
       </ChartCard>
 
-      <ChartCard id="mb-c4" title="mAP (Validación)" explain="Métricas de precisión media en validación. mAP@50 mide solapamientos del 50%; mAP@75 es más estricto y exige mayor exactitud en la caja delimitadora.">
+      <ChartCard title="mAP (Validación)" explain="Métricas de precisión media en validación. mAP@50 mide solapamientos del 50%; mAP@75 es más estricto y exige mayor exactitud en la caja delimitadora.">
         <Line id="mb-c4" data={c4} options={lineOpts("mAP", 0, 1)} />
       </ChartCard>
 
-      <ChartCard id="mb-c5" title="mAP por Tamaño de Placa" explain="Rendimiento segmentado por escala de objeto. Las placas grandes (Large) obtienen el mejor mAP gracias a su área de cobertura en el detector.">
+      <ChartCard title="mAP por Tamaño de Placa" explain="Rendimiento segmentado por escala de objeto. Las placas grandes (Large) obtienen el mejor mAP gracias a su área de cobertura en el detector.">
         <Line id="mb-c5" data={c5} options={lineOpts("mAP", 0, 1)} />
       </ChartCard>
 
-      <ChartCard id="mb-c6" title="mAP@50 vs mAP@75" explain="Comparativa directa entre umbral normal (50%) y estricto (75%). La brecha entre ambas curvas refleja cuán preciso es el modelo al localizar la placa.">
+      <ChartCard title="mAP@50 vs mAP@75" explain="Comparativa directa entre umbral normal (50%) y estricto (75%). La brecha entre ambas curvas refleja cuán preciso es el modelo al localizar la placa.">
         <Line id="mb-c6" data={c6} options={lineOpts("mAP", 0, 1)} />
       </ChartCard>
     </div>

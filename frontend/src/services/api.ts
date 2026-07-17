@@ -1,7 +1,16 @@
 import axios from 'axios'
 
+export const getBaseUrl = () => {
+  return import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+}
+
+export const getWsUrl = () => {
+  const baseUrl = getBaseUrl();
+  return baseUrl.replace(/^http/, 'ws');
+}
+
 const API = axios.create({
-  baseURL: 'http://127.0.0.1:8000',
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'multipart/form-data',
   },

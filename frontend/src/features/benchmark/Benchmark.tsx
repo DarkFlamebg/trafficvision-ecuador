@@ -3,6 +3,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import { SkeletonBlock } from "../../components/Skeleton"
+import { getWsUrl, getBaseUrl } from "../../services/api"
 import "./Benchmark.css"
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
@@ -61,7 +62,7 @@ interface FeedItem {
 
 const NUM_IMAGES = 10
 
-const WS_URL = `ws://localhost:8000/api/v1/benchmark/ws?num_images=${NUM_IMAGES}`
+const WS_URL = `${getWsUrl()}/api/v1/benchmark/ws?num_images=${NUM_IMAGES}`
 
 function getFastest(s: { yolo: Summary; rtdetr: Summary; mamba: Summary }) {
   const entries = [
@@ -156,7 +157,7 @@ export default function Benchmark() {
     }
 
     ws.onerror = () => {
-      setError("No se pudo conectar con el servidor. Verifica que el backend esté activo en localhost:8000.")
+      setError(`No se pudo conectar con el servidor. Verifica que el backend esté activo en ${getBaseUrl()}.`)
       setRunning(false)
     }
 
@@ -417,7 +418,7 @@ export default function Benchmark() {
 
       {/* FOOTER */}
       <footer className="bm-footer">
-        <span>Backend · <code>localhost:8000</code></span>
+        <span>Backend · <code>{getBaseUrl()}</code></span>
         <span>TrafficVision · 2026</span>
       </footer>
 
