@@ -227,7 +227,7 @@ export default function Home() {
             <div className="visual-preview-container">
               {/* Reemplaza la URL por la imagen o mockup real de tu sistema */}
               <img 
-                src="../src\assets\images\Landing-page.png" 
+                src="../src/assets/images/Landing-page.png" 
                 alt="Simulación de detección de placas" 
                 className="visual-main-img"
               />
