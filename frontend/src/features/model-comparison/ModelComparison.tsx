@@ -434,8 +434,50 @@ function ModelComparison() {
             </section>
         )}
 
+        {/* Loading Skeleton */}
+        {mc.loading && !hasResults && !hasVideoActivity && (
+          <section className="comparison-skeleton-section" aria-label="Analizando imagen">
+            <div className="comparison-panel-header">
+                <span className="comparison-panel-label" aria-hidden="true">02</span>
+                <h2 className="comparison-panel-title">PROCESANDO MODELOS...</h2>
+            </div>
+            
+            {/* YOLO Skeleton */}
+            <div className="prototype-model-row-header" style={{ marginBottom: "0.5rem" }}>
+              <span className="comparison-model-tag" style={{ color: "var(--yolo)", borderColor: "rgba(34, 211, 238, 0.35)", background: "rgba(34, 211, 238, 0.06)" }}>YOLO</span>
+            </div>
+            <div className="comparison-skeleton-row">
+              <div className="skeleton-box" style={{ height: '280px' }} />
+              <div className="skeleton-box" style={{ height: '280px' }} />
+              <div className="skeleton-box" style={{ height: '280px' }} />
+            </div>
+            <div className="prototype-model-divider" />
+            
+            {/* RT-DETR Skeleton */}
+            <div className="prototype-model-row-header" style={{ marginBottom: "0.5rem" }}>
+              <span className="comparison-model-tag" style={{ color: "var(--rtdetr)", borderColor: "rgba(245, 158, 11, 0.35)", background: "rgba(245, 158, 11, 0.06)" }}>RT-DETR</span>
+            </div>
+            <div className="comparison-skeleton-row">
+              <div className="skeleton-box" style={{ height: '280px' }} />
+              <div className="skeleton-box" style={{ height: '280px' }} />
+              <div className="skeleton-box" style={{ height: '280px' }} />
+            </div>
+            <div className="prototype-model-divider" />
+
+            {/* Vision Mamba Skeleton */}
+            <div className="prototype-model-row-header" style={{ marginBottom: "0.5rem" }}>
+              <span className="comparison-model-tag" style={{ color: "var(--mamba)", borderColor: "rgba(168, 85, 247, 0.35)", background: "rgba(168, 85, 247, 0.06)" }}>Vision Mamba</span>
+            </div>
+            <div className="comparison-skeleton-row" style={{ marginBottom: 0 }}>
+              <div className="skeleton-box" style={{ height: '280px' }} />
+              <div className="skeleton-box" style={{ height: '280px' }} />
+              <div className="skeleton-box" style={{ height: '280px' }} />
+            </div>
+          </section>
+        )}
+
         {/* Empty state */}
-        {!hasResults && !hasVideoActivity && (
+        {!hasResults && !hasVideoActivity && !mc.loading && (
             <div className="comparison-empty-right">
             <div className="comparison-empty-illustration" aria-hidden="true">
                 <svg width="56" height="56" viewBox="0 0 56 56" fill="none">

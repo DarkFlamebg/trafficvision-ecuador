@@ -196,6 +196,10 @@ def _try_fix(candidate: str) -> str | None:
     Retorna la placa corregida o None si no es posible.
     Aplica correcciones diferenciadas por zona (letras vs dígitos).
     """
+    # Filtro estricto anti falsos-positivos (ej. texto puro publicitario)
+    if sum(c.isdigit() for c in candidate) < 2 or sum(c.isalpha() for c in candidate) < 1:
+        return None
+
     for n_digits in (4, 3):
         if len(candidate) < 3 + n_digits:
             continue
@@ -234,6 +238,11 @@ def _clean_and_fix(text: str) -> str:
     for length in (7, 6):
         for start in range(len(clean) - length + 1):
             candidate = clean[start:start + length]
+            
+            # Anti falsos-positivos: debe tener al menos 2 números y 1 letra reales
+            if sum(c.isdigit() for c in candidate) < 2 or sum(c.isalpha() for c in candidate) < 1:
+                continue
+
             letters   = _fix_letter_zone(candidate[:3])
             digits    = _fix_digit_zone(candidate[3:])
             for pos in range(3):
@@ -288,18 +297,30 @@ def read_plate(image: np.ndarray) -> dict | None:
         fixed     = _clean_and_fix(text)
         formatted = _format_plate(fixed)
         candidates.append({
+            'raw':        text,
             'plate':      formatted,
             'confidence': round(conf, 4),
             'valid':      bool(_EC_FMT.match(formatted)),
         })
 
     valid_ones = [c for c in candidates if c['valid']]
-    best = max(valid_ones or candidates, key=lambda c: c['confidence'])
+    
+    if valid_ones:
+        best = max(valid_ones, key=lambda c: c['confidence'])
+        final_plate = best['plate']
+    else:
+        best = max(candidates, key=lambda c: c['confidence'])
+        raw_clean = re.sub(r'[^A-Z0-9]', '', best['raw'].upper())
+        # Si el OCR lee muy pocos caracteres o tiene muy baja confianza, es simplemente ilegible
+        if len(raw_clean) < 5 or best['confidence'] < 0.40:
+            final_plate = "Placa no legible"
+        else:
+            final_plate = "Placa Extranjera"
 
     if best['confidence'] < OCR_MIN_CONF:
         return None
 
     return {
-        'plate':      best['plate'],
+        'plate':      final_plate,
         'confidence': best['confidence'],
     }
