@@ -1,4 +1,4 @@
-# TrafficVision 🚦
+<img width="1216" height="507" alt="Captura de pantalla 2026-07-17 131406" src="https://github.com/user-attachments/assets/71c8c087-2ec1-4694-8332-1669c24f886f" /># TrafficVision 🚦
 
 **TrafficVision** es una plataforma integral e inteligente diseñada para la monitorización, análisis y gestión avanzada del tráfico vehicular. Utilizando un pipeline multimodal de Inteligencia Artificial, el sistema no solo detecta vehículos, sino que extrae la información de sus patentes (placas) y evalúa el estado físico de las mismas mediante el uso de Modelos Fundacionales (LLMs).
 
@@ -9,7 +9,7 @@
 - **Análisis de Estado Físico (IA Generativa):** Clasificación del estado de la placa (nivel de oclusión, suciedad, legibilidad general) mediante integración con Gemini 2.5 Flash.
 - **Panel de Control Interactivo:** Visualización de métricas, flujos de tráfico y estadísticas en tiempo real.
 - **Arquitectura Escalable:** Diseño modular basado en microservicios lógicos (Frontend React, Backend FastAPI).
-
+<img width="1881" height="907" alt="Captura de pantalla 2026-07-17 131142" src="https://github.com/user-attachments/assets/6f987144-d04a-4743-b017-d4ffd20e4f15" />
 ---
 
 ## 📋 Estado del Sistema
@@ -28,13 +28,14 @@
 
 El núcleo de **TrafficVision** reside en su pipeline secuencial de procesamiento de imágenes y video, el cual se compone de tres etapas principales:
 
-1. **Detección de Objetos (YOLOv11n & Vision Mamba):** 
+1. **Detección de Objetos (YOLOv11n & RT DETR & Vision Mamba):** 
    - Se utiliza **YOLOv11n** para la localización rápida y precisa de vehículos y sus respectivas placas en el frame.
    - Opcionalmente, se integra la arquitectura **Vision Mamba (Vim)** combinada con backbones Swin (`swin_r4`) para tareas específicas de detección avanzada.
 2. **Reconocimiento Óptico de Caracteres (EasyOCR):** 
    - Una vez recortada la región de la placa, el motor **EasyOCR** extrae el texto alfanumérico.
 3. **Clasificación y Análisis Semántico (Gemini 2.5 Flash):** 
    - La imagen de la placa junto con el texto extraído se envían a la API de **Google Gemini**. El modelo evalúa el estado físico de la patente, indicando si presenta daños, suciedad u obstrucciones que dificulten su legibilidad.
+
 
 ### Stack Tecnológico
 
@@ -98,6 +99,9 @@ Google Gemini Flash Vision clasifica 4 atributos:
 | Reflejo | No / Sí | Gemini analiza visualmente |
 | Suciedad | No / Sí | Gemini analiza visualmente |
 
+<img width="370" height="422" alt="Captura de pantalla 2026-07-17 131525" src="https://github.com/user-attachments/assets/042fb573-6068-449f-b9a5-7b5e10946d43" />
+
+
 En TrafficVision el pipeline funciona así:
 
 ```
@@ -126,6 +130,10 @@ JSON: vehículo + placa + confianzas + etiquetas de calidad
 | **Vision Mamba** | State Space Model backbone - Efficient vision transformer alternative | ✅ Comparativa |
 
 El entrenamiento se gestiona comparando mAP, Precisión, Recall y F1-Score usando un dashboard interactivo en React + Chart.js leyendo directamente los `results.csv`.
+<img width="1286" height="427" alt="Captura de pantalla 2026-07-17 131911" src="https://github.com/user-attachments/assets/1e25804c-c5ce-4fbb-bdd3-a6c93c28ac1d" />
+<img width="1288" height="421" alt="Captura de pantalla 2026-07-17 131905" src="https://github.com/user-attachments/assets/b42fc731-2992-4b01-b804-0ecd80a0dd42" />
+<img width="1320" height="430" alt="Captura de pantalla 2026-07-17 131853" src="https://github.com/user-attachments/assets/7df7fc81-af3c-483e-89ad-4f19b172f322" />
+
 
 ---
 
@@ -141,13 +149,15 @@ El entrenamiento se gestiona comparando mAP, Precisión, Recall y F1-Score usand
 | license-plates-ec-3 | — | OCR de caracteres (36 clases) — pendiente |
 | license-plates-ec-4 | 375 | **Dataset personal** — fotos propias |
 
+<img width="1185" height="697" alt="Captura de pantalla 2026-07-17 131719" src="https://github.com/user-attachments/assets/a4f5f438-62bd-4181-b3bc-faee59b7bf8d" />
+
 ---
 
 ## 🚀 Guía de Instalación y Despliegue
 
 ### Requisitos Previos
 - **Node.js** (v18 o superior)
-- **Python** (v3.11 o superior)
+- **Python** (v3.11)
 - **PostgreSQL** (v14 o superior)
 - (Opcional) **Docker** y **Docker Compose**
 
@@ -187,6 +197,9 @@ VITE_API_URL=http://localhost:8000
 Para asegurar el correcto funcionamiento del pipeline multimodal, asegúrate de que el backend tenga acceso al modelo base de YOLO.
 - El peso de YOLO (`yolov8n.pt`) debe encontrarse descargado en el backend o será descargado automáticamente en la primera ejecución.
 - Las credenciales de Gemini deben estar activas para la etapa de clasificación. Si la API Key falla, el sistema proveerá una lectura OCR básica sin el análisis de estado.
+
+<img width="1202" height="621" alt="Captura de pantalla 2026-07-17 131804" src="https://github.com/user-attachments/assets/87664a69-409f-40c6-92ef-bc6a41d96304" />
+
 
 ## 🤝 Contribución
 
