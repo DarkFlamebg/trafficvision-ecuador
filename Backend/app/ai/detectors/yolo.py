@@ -1,19 +1,19 @@
-# app/ai/plate_detector.py
-# Detecta placas usando YOLOv11n entrenado localmente con dataset ecuatoriano
+# app/ai/detectors/yolo.py
+# Detecta placas usando YOLOv11n entrenado localmente con dataset ecuatoriano.
 
 import os
 import numpy as np
 import cv2
 from PIL import Image, ImageOps
 from ultralytics import YOLO
-from app.ai.crop_utils import extract_plate_crop
+from app.ai.detectors.crop_utils import extract_plate_crop
 
 # ── Rutas ──────────────────────────────────────────────────────────────────────
-_BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
-_ROOT_DIR  = os.path.abspath(os.path.join(_BASE_DIR, "../.."))
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR = os.path.abspath(os.path.join(_BASE_DIR, "../../.."))
 
-MODEL_PATH            = os.path.join(_ROOT_DIR, "app", "models", "trained", "yolo11n_combined_all", "best.pt")
-CONFIDENCE_THRESHOLD  = 0.45
+MODEL_PATH           = os.path.join(_ROOT_DIR, "app", "models", "trained", "yolo11n_combined_all", "best.pt")
+CONFIDENCE_THRESHOLD = 0.45
 
 # Autos/camiones: ratio > 1.5 (placa horizontal)
 # Motos EC:       ratio < 1.0 (placa vertical ~10x15cm)
@@ -22,6 +22,7 @@ ASPECT_RATIO_MIN = 0.3
 ASPECT_RATIO_MAX = 6.0
 
 _model = None
+
 
 def _get_model() -> YOLO:
     global _model
@@ -54,7 +55,7 @@ def detect_plate(input_image) -> list:
 
     Filtros aplicados:
     - Confianza mínima: 0.45
-    - Proporción ancho/alto: entre 1.5 y 6.0 (forma de placa real)
+    - Proporción ancho/alto: entre 0.3 y 6.0 (forma de placa real)
 
     Args:
         input_image: ruta (str) o array NumPy BGR
@@ -94,14 +95,13 @@ def detect_plate(input_image) -> list:
             print(f"[yolo] Bbox descartado por proporción: {w_box}x{h_box} = {aspect_ratio:.2f}")
             continue
 
-        # ── CAMBIO: crop con padding adaptativo + deskew ──────────────────────
         crop = extract_plate_crop(image, x1, y1, x2, y2)
         if crop.size == 0:
             continue
 
         plates.append({
             "image":      crop,
-            "bbox":       [x1, y1, x2, y2],   # bbox original sin padding (para visualización)
+            "bbox":       [x1, y1, x2, y2],
             "confidence": round(conf, 4),
         })
 

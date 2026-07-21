@@ -8,8 +8,10 @@ import cv2
 from PIL import Image, ImageOps
 from ultralytics import YOLO
 
-# Modelo base COCO — se descarga automáticamente si no existe
-MODEL_PATH           = "yolov8n.pt"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR = os.path.abspath(os.path.join(_BASE_DIR, "../.."))
+
+MODEL_PATH           = os.path.join(_ROOT_DIR, "app", "models", "trained", "yolov8n.pt")
 CONFIDENCE_THRESHOLD = 0.45
 
 # Clases de vehículos en COCO y sus IDs

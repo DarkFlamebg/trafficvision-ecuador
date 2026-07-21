@@ -1,0 +1,28 @@
+Python — verifica versión:
+
+>python --version
+>py --version
+
+Node — verifica versión:
+>node --version
+>npm --version
+
+Verifica si ya tienes ultralytics:
+>venv311\Scripts\activate
+>py -m pip show ultralytics
+iniciar api:
+py -m uvicorn app.main:app --reload
+
+Node 22 — perfecto, no necesita cambios
+venv311 activo — aquí es donde instalaremos todo
+Python 3.14 en el sistema — demasiado nuevo, YOLOv8 no es compatible todavía
+
+Python 3.11.9 dentro del venv — compatible con YOLOv8. Instalar:
+py -m pip install ultralytics
+py -c "from ultralytics import YOLO; print('OK')"
+
+El problema es que Ultralytics no soporta DirectML directamente. 
+Necesitas instalar PyTorch con soporte DirectML específico:
+py -m pip uninstall torch torchvision -y
+py -m pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu
+py -m pip install torch-directml

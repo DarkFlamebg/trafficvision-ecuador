@@ -7,9 +7,9 @@ import numpy as np
 import cv2
 import base64
 
-from app.ai.plate_detector              import detect_plate as detect_plate_yolo
-from app.ai.plate_detector_rtdetr       import detect_plate_rtdetr
-from app.ai.plate_detector_efficientdet import detect_plate_efficientdet
+from app.ai.detectors.yolo        import detect_plate      as detect_plate_yolo
+from app.ai.detectors.rtdetr      import detect_plate_rtdetr
+from app.ai.detectors.vision_mamba import detect_plate_vision_mamba
 from app.ai.plate_reader                import read_plate
 
 router = APIRouter()
@@ -131,11 +131,11 @@ async def detect(file: UploadFile = File(...)):
 
     Response:
         {
-          "yolo":         { model, total, detections, image_base64 },
-          "rtdetr":       { model, total, detections, image_base64 },
-          "efficientdet": { model, total, detections, image_base64 },
-          "summary":      { yolo_plates, rtdetr_plates,
-                            efficientdet_plates, total_unique }
+        return { "yolo": { model, total, detections, image_base64 },
+                 "rtdetr": { model, total, detections, image_base64 },
+                 "vision_mamba": { model, total, detections, image_base64 },
+                 "summary": { yolo_plates, rtdetr_plates,
+                            vision_mamba_plates, total_unique }
         }
     """
     if file.content_type not in ("image/jpeg", "image/png", "image/jpg"):
@@ -151,12 +151,12 @@ async def detect(file: UploadFile = File(...)):
     # ── Ejecutar los tres detectores ──────────────────────────────────────────
     yolo_result   = _run_detector(image, detect_plate_yolo,         "YOLOv11n")
     rtdetr_result = _run_detector(image, detect_plate_rtdetr,       "RT-DETR")
-    eff_result    = _run_detector(image, detect_plate_efficientdet, "EfficientDet-D2")
+    vm_result     = _run_detector(image, detect_plate_vision_mamba, "Vision Mamba")
 
     # Placas únicas detectadas entre los tres modelos
     all_plates = set(
         d["plate"]
-        for block in [yolo_result, rtdetr_result, eff_result]
+        for block in [yolo_result, rtdetr_result, vm_result]
         for d in block["detections"]
         if d.get("plate")
     )
@@ -164,11 +164,11 @@ async def detect(file: UploadFile = File(...)):
     return {
         "yolo":         yolo_result,
         "rtdetr":       rtdetr_result,
-        "efficientdet": eff_result,
+        "vision_mamba": vm_result,
         "summary": {
             "yolo_plates":         yolo_result["total"],
             "rtdetr_plates":       rtdetr_result["total"],
-            "efficientdet_plates": eff_result["total"],
+            "vision_mamba_plates": vm_result["total"],
             "total_unique":        len(all_plates),
         },
     }

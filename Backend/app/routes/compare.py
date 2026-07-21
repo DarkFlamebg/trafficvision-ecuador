@@ -23,10 +23,10 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Query, WebSocket
 from pydantic import BaseModel
 
 from app.ai.vehicle_detector    import detect_vehicles
-from app.ai.plate_detector      import detect_plate      as detect_plate_yolo
-from app.ai.plate_detector_rtdetr import detect_plate_rtdetr
-from app.ai.plate_reader        import read_plate
-from app.ai.plate_detector_vm       import detect_plate_vision_mamba
+from app.ai.detectors.yolo        import detect_plate      as detect_plate_yolo
+from app.ai.detectors.rtdetr      import detect_plate_rtdetr
+from app.ai.detectors.vision_mamba import detect_plate_vision_mamba
+from app.ai.plate_reader            import read_plate
 from app.ai.plate_classifier    import classify_plates_batch
 from app.database.connection    import SessionLocal
 from app.database.models        import PlateDetection, DetectionQuality, AuditLog, ModelIA, VehicleType, QualityLabel

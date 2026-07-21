@@ -22,9 +22,9 @@ from datetime import datetime
 # Importar detectores
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from app.ai.plate_detector import detect_plate as detect_yolo
-from app.ai.plate_detector_rtdetr import detect_plate_rtdetr
-from app.ai.plate_detector_vm import detect_plate_vision_mamba
+from app.ai.detectors.yolo import detect_plate as detect_yolo
+from app.ai.detectors.rtdetr import detect_plate_rtdetr
+from app.ai.detectors.vision_mamba import detect_plate_vision_mamba
 from app.ai.plate_reader import read_plate
 
 

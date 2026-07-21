@@ -245,7 +245,7 @@ export function useReadPlate() {
       try {
         const formData = new FormData()
         formData.append("file", file)
-        const res = await API.post<ApiResponse>("/detect-plate", formData)
+        const res = await API.post<ApiResponse>("/api/v1/detection/plate", formData)
         const processingTime = (performance.now() - startTime) / 1000
         setResult(res.data)
         generateReport(res.data, processingTime)
@@ -259,7 +259,7 @@ export function useReadPlate() {
 
     // VIDEO: WebSocket streaming
     try {
-      const ws = new WebSocket(`${getWsUrl()}/ws/detect-vehicle/video`)
+      const ws = new WebSocket(`${getWsUrl()}/api/v1/detection/video`)
       wsRef.current = ws
 
       ws.onopen = async () => {
