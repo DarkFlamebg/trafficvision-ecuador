@@ -12,9 +12,7 @@ APP_VERSION = "1.4.0"
 TEMP_DIR    = "temp"
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
-CORS_ORIGINS = [
-    os.getenv("CORS_ORIGIN", "http://localhost:5173"),
-]
+CORS_ORIGINS = ["*"]
 
 # ── Tipos de archivos permitidos ───────────────────────────────────────────────
 ALLOWED_IMAGE_TYPES = ("image/jpeg", "image/png", "image/jpg")

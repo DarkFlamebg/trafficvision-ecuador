@@ -11,9 +11,9 @@ from app.ai.benchmark_detectors import BenchmarkRunner
 
 router = APIRouter(prefix="/benchmark", tags=["Benchmark"])
 
-# Construir ruta absoluta al dataset (raíz del proyecto -> ml/...)
+# Construir ruta absoluta al dataset en el backend
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-TEST_IMAGES_DIR = os.path.join(PROJECT_ROOT, "frontend", "src", "assets", "license-plates-ec-combined", "test", "images")
+TEST_IMAGES_DIR = os.path.join(PROJECT_ROOT, "backend", "assets", "benchmark")
 
 
 @router.websocket("/ws")
