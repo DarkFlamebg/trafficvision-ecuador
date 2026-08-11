@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export const getBaseUrl = () => {
-  return import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+  return import.meta.env.VITE_API_URL || 'http://26.124.86.170:8000';
 }
 
 export const getWsUrl = () => {
