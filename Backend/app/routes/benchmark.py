@@ -11,9 +11,31 @@ from app.ai.benchmark_detectors import BenchmarkRunner
 
 router = APIRouter(prefix="/benchmark", tags=["Benchmark"])
 
-# Construir ruta absoluta al dataset en el backend
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-TEST_IMAGES_DIR = os.path.join(PROJECT_ROOT, "backend", "assets", "benchmark")
+# Ruta al dataset de benchmark — soporta local (Windows) y Docker (Linux)
+# Se puede sobreescribir con la variable de entorno BENCHMARK_IMAGES_DIR
+def _resolve_benchmark_dir() -> str:
+    # 1. Variable de entorno (máxima prioridad, útil en producción)
+    env_path = os.environ.get("BENCHMARK_IMAGES_DIR")
+    if env_path and os.path.isdir(env_path):
+        return env_path
+
+    # 2. Buscar la carpeta assets/benchmark relativa al archivo actual
+    #    Sube: routes/ -> app/ -> backend_root/
+    base = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+    # Prueba ambas capitalizaciones por compatibilidad Windows/Linux
+    for candidate in [
+        os.path.join(base, "assets", "benchmark"),
+        os.path.join(base, "Assets", "benchmark"),
+    ]:
+        if os.path.isdir(candidate):
+            return candidate
+
+    # 3. Fallback: devuelve la ruta esperada aunque no exista (el WS enviará error claro)
+    return os.path.join(base, "assets", "benchmark")
+
+TEST_IMAGES_DIR = _resolve_benchmark_dir()
+
+
 
 
 @router.websocket("/ws")
